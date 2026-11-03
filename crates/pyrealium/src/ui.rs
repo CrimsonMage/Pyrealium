@@ -546,6 +546,20 @@ pub fn player_login(
     quests: Option<&crate::quests::Book>,
     gameplay: Option<&crate::preferences::GameplayOptions>,
 ) -> Result<Vec<u8>, WorldError> {
+    player_login_with_chat(settings, hotbar, inventory, progression, skills, quests, gameplay, None)
+}
+/// [`player_login`] with the chat tables the player uploaded (`preferences::ChatOptions`).
+#[allow(clippy::too_many_arguments)]
+pub fn player_login_with_chat(
+    settings: Option<&crate::preferences::UiSettings>,
+    hotbar: Option<&crate::preferences::Hotbar>,
+    inventory: Option<&crate::inventory::Inventory>,
+    progression: Option<&crate::progression::Progression>,
+    skills: Option<&crate::skills::Book>,
+    quests: Option<&crate::quests::Book>,
+    gameplay: Option<&crate::preferences::GameplayOptions>,
+    chat: Option<&crate::preferences::ChatOptions>,
+) -> Result<Vec<u8>, WorldError> {
     let mut args = script::integer(progression.map_or(0, |state| state.gold));
     graph(
         &mut args,
@@ -564,10 +578,11 @@ pub fn player_login(
     // A character that never uploaded options gets the page's defaults (a zero radar mask hides
     // every blip from the radar and the selection keys).
     let new_character = crate::preferences::GameplayOptions::new_character();
-    let options = crate::preferences::options_words_with_gameplay(
+    let options = crate::preferences::options_words_with_chat(
         settings,
         hotbar,
         gameplay.or(Some(&new_character)),
+        chat,
     )?;
     graph(&mut args, &[Object::native(0x9b, &options)]);
     skill_graph(&mut args, skills, progression, &BTreeMap::new());

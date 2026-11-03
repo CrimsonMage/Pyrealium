@@ -30,6 +30,7 @@ pub use writer::Writer;
 /// Never edit a published one; add the next number.
 const MIGRATIONS: &[(i32, &str, &str)] = &[
     (1, "initial", include_str!("../../migrations/0001_initial.sql")),
+    (2, "chat_options", include_str!("../../migrations/0002_chat_options.sql")),
 ];
 
 /// How long a connection waits for another connection's write before failing.
@@ -252,8 +253,9 @@ mod tests {
     #[test]
     fn migrate_is_idempotent_and_refuses_a_newer_database() {
         let database = testdb::fresh();
-        assert_eq!(database.migrate().unwrap(), 1);
-        assert_eq!(database.migrate().unwrap(), 1);
+        let latest = MIGRATIONS.last().unwrap().0;
+        assert_eq!(database.migrate().unwrap(), latest);
+        assert_eq!(database.migrate().unwrap(), latest);
         database.connect().unwrap().execute_batch("PRAGMA user_version = 99").unwrap();
         assert!(database.migrate().unwrap_err().to_string().contains("newer than this server"));
     }

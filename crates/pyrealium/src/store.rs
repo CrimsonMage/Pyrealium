@@ -32,6 +32,8 @@ pub struct Character {
     pub ui: Option<crate::preferences::UiSettings>,
     pub hotbar: crate::preferences::Hotbar,
     pub gameplay_options: Option<crate::preferences::GameplayOptions>,
+    /// The chat options page's tables (`preferences::ChatOptions`), once uploaded.
+    pub chat_options: Option<crate::preferences::ChatOptions>,
     pub inventory: crate::inventory::Inventory,
     pub progression: crate::progression::Progression,
     pub skills: crate::skills::Book,
@@ -929,6 +931,20 @@ impl Store {
         self.characters.get_mut(&id).unwrap().gameplay_options = Some(options);
         Ok(())
     }
+    pub fn update_chat_options(
+        &mut self,
+        account: &str,
+        id: u64,
+        options: crate::preferences::ChatOptions,
+    ) -> io::Result<()> {
+        let character = self.characters.get(&id)
+            .filter(|character| character.account == account && !character.deleted)
+            .ok_or_else(|| invalid("chat settings character not owned"))?;
+        if character.chat_options.as_ref() == Some(&options) { return Ok(()); }
+        self.touch(id);
+        self.characters.get_mut(&id).unwrap().chat_options = Some(options);
+        Ok(())
+    }
     pub fn update_hotbar(
         &mut self,
         account: &str,
@@ -1065,6 +1081,7 @@ impl Store {
             instance: 0,
             ui: None,
             gameplay_options: None,
+            chat_options: None,
             hotbar: crate::preferences::Hotbar::default(),
             inventory: crate::inventory::Inventory::default(),
             progression: crate::progression::Progression::default(),
@@ -1186,6 +1203,7 @@ fn to_row(c: &Character, placement: Option<Placement>, tradeskills: Option<Strin
         binding: c.binding.as_ref().map(json).transpose()?,
         ui: c.ui.as_ref().map(crate::preferences::UiSettings::encode),
         gameplay_options: c.gameplay_options.as_ref().map(crate::preferences::GameplayOptions::encode),
+        chat_options: c.chat_options.as_ref().map(crate::preferences::ChatOptions::encode),
         hotbar: json(&c.hotbar)?,
         skills: json(&c.skills)?,
         professions: json(&c.professions)?,
@@ -1225,6 +1243,10 @@ fn from_row(r: shard::CharacterRow) -> io::Result<(Character, Option<Placement>,
         gameplay_options: r
             .gameplay_options
             .map(|b| crate::preferences::GameplayOptions::decode(&b).map_err(|_| invalid("invalid saved gameplay options")))
+            .transpose()?,
+        chat_options: r
+            .chat_options
+            .map(|b| crate::preferences::ChatOptions::decode(&b).map_err(|_| invalid("invalid saved chat options")))
             .transpose()?,
         inventory: crate::inventory::Inventory::restore(r.items, r.item_high_water)
             .map_err(|e| invalid(&format!("invalid saved inventory: {e}")))?,
@@ -1762,6 +1784,20 @@ mod tests {
         }
         let s=Store::open(&dir).unwrap();
         assert_eq!(s.placement(1),Some(last));
+    }
+    #[test]
+    fn chat_options_survive_restart() {
+        let dir=crate::db::testdb::fresh();
+        let chat=crate::preferences::ChatOptions{filters:std::collections::BTreeMap::from([(1,0x60016f)]),..Default::default()};
+        {
+            let mut s=Store::open(&dir).unwrap();
+            s.create("local","Talker").unwrap();
+            assert!(s.update_chat_options("other",1,chat.clone()).is_err());
+            s.update_chat_options("local",1,chat.clone()).unwrap();
+            s.save_now().unwrap();
+        }
+        let s=Store::open(&dir).unwrap();
+        assert_eq!(s.characters[&1].chat_options.as_ref(),Some(&chat));
     }
     #[test]
     fn avatar_lifetimes_survive_restart() {

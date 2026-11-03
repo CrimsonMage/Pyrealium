@@ -4987,6 +4987,11 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                         script::Request::GameplayOptions(options) => {
                                             store.update_gameplay_options(&peer.session.account, character, options)?;
                                         }
+                                        // Kept, and sent back in the login's options profile
+                                        // (`ui::player_login_with_chat`).
+                                        script::Request::ChatOptions(options) => {
+                                            store.update_chat_options(&peer.session.account, character, options)?;
+                                        }
                                         script::Request::UiSettings(settings) => {
                                             store.update_ui(
                                                 &peer.session.account,
@@ -6230,7 +6235,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                         pulsed: a.pulsed,
                                                     })
                                                     .collect();
-                                                let restored = crate::ui::player_login(
+                                                let restored = crate::ui::player_login_with_chat(
                                                     saved.ui.as_ref(),
                                                     Some(hotbar),
                                                     Some(&saved.inventory),
@@ -6238,6 +6243,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                     Some(&saved.skills),
                                                     Some(&saved.quests),
                                                     saved.gameplay_options.as_ref(),
+                                                    saved.chat_options.as_ref(),
                                                 )
                                                 .map_err(other)?;
                                                 let instance=peer.motion.as_ref().ok_or_else(||invalid("inventory bootstrap without avatar lifetime"))?.instance;

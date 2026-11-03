@@ -33,6 +33,7 @@ pub struct CharacterRow {
     pub binding: Option<Value>,
     pub ui: Option<Vec<u8>>,
     pub gameplay_options: Option<Vec<u8>>,
+    pub chat_options: Option<Vec<u8>>,
     pub hotbar: Value,
     pub skills: Value,
     pub professions: Value,
@@ -82,9 +83,9 @@ pub fn save(connection: &mut Connection, snapshot: &Snapshot) -> io::Result<()> 
                 "INSERT INTO characters (id, account, name, name_key, deleted, instance, xp,
                     available_xp, gold, health, vigor, cell, x, y, z, heading, item_high_water,
                     training_kit, training_supplies, starter_gear, creation, binding, ui,
-                    gameplay_options, hotbar, skills, professions, quests, tradeskills, saved_at)
+                    gameplay_options, hotbar, skills, professions, quests, tradeskills, chat_options, saved_at)
                  VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,
-                    ?22,?23,?24,?25,?26,?27,?28,?29, unixepoch())
+                    ?22,?23,?24,?25,?26,?27,?28,?29,?30, unixepoch())
                  ON CONFLICT (id) DO UPDATE SET account=excluded.account, name=excluded.name,
                     name_key=excluded.name_key, deleted=excluded.deleted, instance=excluded.instance,
                     xp=excluded.xp, available_xp=excluded.available_xp, gold=excluded.gold,
@@ -95,7 +96,8 @@ pub fn save(connection: &mut Connection, snapshot: &Snapshot) -> io::Result<()> 
                     creation=excluded.creation, binding=excluded.binding, ui=excluded.ui,
                     gameplay_options=excluded.gameplay_options, hotbar=excluded.hotbar,
                     skills=excluded.skills, professions=excluded.professions, quests=excluded.quests,
-                    tradeskills=excluded.tradeskills, saved_at=unixepoch()",
+                    tradeskills=excluded.tradeskills, chat_options=excluded.chat_options,
+                    saved_at=unixepoch()",
             )
             .map_err(error)?;
         for c in &snapshot.characters {
@@ -131,6 +133,7 @@ pub fn save(connection: &mut Connection, snapshot: &Snapshot) -> io::Result<()> 
                     json_text(&c.professions)?,
                     json_text(&c.quests)?,
                     c.tradeskills,
+                    c.chat_options,
                 ])
                 .map_err(error)?;
         }
@@ -247,7 +250,7 @@ pub fn load(connection: &mut Connection) -> io::Result<(Vec<CharacterRow>, Vec<D
         "SELECT id, account, name, deleted, instance, xp, available_xp, gold, health, vigor,
             cell, x, y, z, heading, item_high_water, training_kit, training_supplies,
             starter_gear, creation, binding, ui, gameplay_options, hotbar, skills,
-            professions, quests, tradeskills FROM characters ORDER BY id",
+            professions, quests, tradeskills, chat_options FROM characters ORDER BY id",
         |r| {
             let id = from_sql(get(r, 0)?);
             let cell: Option<i64> = get(r, 10)?;
@@ -286,6 +289,7 @@ pub fn load(connection: &mut Connection) -> io::Result<(Vec<CharacterRow>, Vec<D
                 professions: get_json(r, 25, "professions")?,
                 quests: get_json(r, 26, "quests")?,
                 tradeskills: get(r, 27)?,
+                chat_options: get(r, 28)?,
                 items: Vec::new(),
             })
         },

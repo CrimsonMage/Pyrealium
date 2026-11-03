@@ -5,6 +5,8 @@ use std::collections::BTreeMap;
 pub const WINDOW_UPDATE: u32 = 0x82120031;
 pub const HOTBAR_UPDATE: u32 = 0x82120018;
 pub const GAMEPLAY_UPDATE: u32 = 0x8212000c;
+/// `WM_Player` stub 0x2E (`gmCWInterface::UploadChatOptions`, IFun via `CPlayer`).
+pub const CHAT_UPDATE: u32 = 0x8212002d;
 pub const MAX_BYTES: usize = 16384;
 
 /// The four native UploadGameOptions values. Bits remain client preferences,
@@ -59,6 +61,79 @@ impl GameplayOptions {
     pub fn encode(&self) -> Vec<u8> {
         [1, self.bitfield, 1, self.radar, 1, self.shortcut_height, 3, self.damage_range]
             .into_iter().flat_map(u32::to_le_bytes).collect()
+    }
+}
+
+/// The chat options page's tables (`gmChatOptionsUI::Apply` -> `UploadChatOptions`): five
+/// `AAHash` natives (type 1), in the order the 7230 player script packs them (found by running
+/// the client's script, AC2_Rusted `chat_options_7160` flow, and matched against the defaults of
+/// `GameplayOptionsProfile::Clear` / `FlushChatFontOptions`, Legions 0x005C04F0):
+/// text type -> popup flag, chat window -> its entry line's text type, text type -> font colour,
+/// text type -> font size, chat window -> its filter mask. At login they are the options
+/// profile's `m_chatPopupFlags` (0x400), the Legions window table (0x2000, version 6),
+/// `m_chatFontColors` (0x100), `m_chatFontSizes` (0x200) and `m_filterHash` (0x40)
+/// (`GameplayOptionsProfile::StreamPack`, AC2_Rusted ac2-net `native/options.rs`).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ChatOptions {
+    pub popups: BTreeMap<u32, u32>,
+    pub window_types: BTreeMap<u32, u32>,
+    pub colors: BTreeMap<u32, u32>,
+    pub sizes: BTreeMap<u32, u32>,
+    pub filters: BTreeMap<u32, u32>,
+}
+impl ChatOptions {
+    /// The upload's arguments (`PackBuffer`: five tagged references), or the saved form, which
+    /// is the same bytes.
+    pub fn decode(bytes: &[u8]) -> Result<Self, WorldError> {
+        if bytes.len() > MAX_BYTES {
+            return Err(WorldError::LimitExceeded);
+        }
+        let mut r = Reader { bytes, pos: 0 };
+        let mut table = || -> Result<BTreeMap<u32, u32>, WorldError> {
+            r.graph(1)?;
+            let mut map = BTreeMap::new();
+            for _ in 0..r.count(64)? {
+                let key = r.word()?;
+                let value = r.word()?;
+                if map.insert(key, value).is_some() {
+                    return Err(WorldError::InvalidValue);
+                }
+            }
+            r.expect(0)?; // No interpreted fields on the native hash.
+            Ok(map)
+        };
+        let options = Self {
+            popups: table()?,
+            window_types: table()?,
+            colors: table()?,
+            sizes: table()?,
+            filters: table()?,
+        };
+        if r.pos != bytes.len() {
+            return Err(WorldError::TrailingBytes);
+        }
+        if options.window_types.keys().chain(options.filters.keys()).any(|w| !(1..=4).contains(w))
+            || options.popups.values().any(|v| *v > 1)
+        {
+            return Err(WorldError::InvalidValue);
+        }
+        Ok(options)
+    }
+    /// The saved form: the upload's five references, each table in bucket order.
+    pub fn encode(&self) -> Vec<u8> {
+        let mut words = Vec::new();
+        for table in [&self.popups, &self.window_types, &self.colors, &self.sizes, &self.filters] {
+            words.extend([5, 1, 1, 0x44000100, 0, 0xffff0001]);
+            table_words(table, &mut words);
+            words.push(0);
+        }
+        words.into_iter().flat_map(u32::to_le_bytes).collect()
+    }
+}
+fn table_words(table: &BTreeMap<u32, u32>, out: &mut Vec<u32>) {
+    word(out, table.len() as u32);
+    for (key, value) in bucket_order(table) {
+        out.extend([key, *value]);
     }
 }
 
@@ -369,10 +444,22 @@ pub fn options_words_with_gameplay(
     hotbar: Option<&Hotbar>,
     gameplay: Option<&GameplayOptions>,
 ) -> Result<Vec<u32>, WorldError> {
+    options_words_with_chat(settings, hotbar, gameplay, None)
+}
+/// The options profile with the chat tables the player uploaded (`ChatOptions`): the filters
+/// after the radar mask, the four versioned tables after the version, which is then 6 (the
+/// Legions window table needs it); without them the profile is as before (version 4).
+pub fn options_words_with_chat(
+    settings: Option<&UiSettings>,
+    hotbar: Option<&Hotbar>,
+    gameplay: Option<&GameplayOptions>,
+    chat: Option<&ChatOptions>,
+) -> Result<Vec<u32>, WorldError> {
     let mut words = vec![
         (if settings.is_some() { 0x890 } else { 0 })
             | (if hotbar.is_some() { 2 } else { 0 })
-            | (if gameplay.is_some() { 0x10a8 } else { 0 }),
+            | (if gameplay.is_some() { 0x10a8 } else { 0 })
+            | (if chat.is_some() { 0x2740 | 0x80 } else { 0 }),
         0,
     ];
     if let Some(hotbar) = hotbar {
@@ -387,15 +474,94 @@ pub fn options_words_with_gameplay(
     if let Some(options) = gameplay {
         words.push(options.radar);
     }
-    if settings.is_some() || gameplay.is_some() {
-        // The high bit announces the version word needed for window opacity.
+    if let Some(chat) = chat {
+        table_words(&chat.filters, &mut words);
+    }
+    if settings.is_some() || gameplay.is_some() || chat.is_some() {
+        // The high bit announces the version word needed for window opacity and the chat tables.
         let bits = gameplay.map_or(0, |options| options.bitfield)
-            | if settings.is_some() { 0x80000000 } else { 0 };
+            | if settings.is_some() || chat.is_some() { 0x80000000 } else { 0 };
         words.push(bits);
-        if bits & 0x80000000 != 0 { words.push(4); }
+        if bits & 0x80000000 != 0 { words.push(if chat.is_some() { 6 } else { 4 }); }
+    }
+    if let Some(chat) = chat {
+        // StreamPack's versioned order: 0x100, 0x200, 0x2000, 0x400 (then 0x800).
+        for table in [&chat.colors, &chat.sizes, &chat.window_types, &chat.popups] {
+            table_words(table, &mut words);
+        }
     }
     if let Some(settings) = settings {
         settings.opacity_words(&mut words);
     }
     Ok(words)
+}
+
+#[cfg(test)]
+mod chat_tests {
+    use super::*;
+
+    /// What the 7230 player script sends for `UploadChatOptions` after the page flips window 1's
+    /// say filter (the arguments of 0x8212002D, obtained by running the client's script over
+    /// AC2_Rusted's server double, as its `chat_options_7160` test does).
+    const UPLOAD: &str = "05000000010000000100000000010044000000000100ffff0e000002010000000000000002000000000000000000080000000000000010000000000008000000000000000000200000000000100000000000000040000000000000000000010001000000000100000100000000004000000000002000000000000000800000000000000000000200010000000000000005000000010000000100000000010044000000000100ffff0400000201000000100000000200000000000800030000000000010004000000000002000000000005000000010000000100000000010044000000000100ffff11000002000080000400000001000000000000000200000001000000000008000400000004000000020000000000100004000000080000000300000000002000040000001000000004000000400000000600000000000100070000000001000009000000000040000400000000000400040000002000000005000000800000000400000000000200080000000000000005000000010000000100000000010044000000000100ffff11000002000080000000000001000000000000000200000000000000000008000000000004000000000000000000100000000000080000000000000000002000000000001000000000000000400000000000000000000100000000000001000000000000000040000000000000000400000000002000000000000000800000000000000000000200000000000000000005000000010000000100000000010044000000000100ffff04000002010000006f01600002000000000008000300000000000100040000000000020000000000";
+
+    fn hex(text: &str) -> Vec<u8> {
+        (0..text.len()).step_by(2).map(|i| u8::from_str_radix(&text[i..i + 2], 16).unwrap()).collect()
+    }
+
+    #[test]
+    fn the_upload_decodes_into_the_five_tables() {
+        let options = ChatOptions::decode(&hex(UPLOAD)).unwrap();
+        assert_eq!(options.filters[&1], 0x0060_016f);
+        assert_eq!(options.filters[&2], 0x8_0000);
+        assert_eq!(options.window_types[&1], 0x10);
+        assert_eq!(options.window_types[&4], 0x2_0000);
+        assert_eq!(options.popups[&0x100], 1);
+        assert_eq!(options.popups[&0x10], 0);
+        assert_eq!(options.colors[&0x100], 9);
+        assert_eq!(options.colors.len(), 17);
+        assert!(options.sizes.values().all(|size| *size == 0));
+        // The saved form reads back to the same tables.
+        assert_eq!(ChatOptions::decode(&options.encode()).unwrap(), options);
+        // A table of another native type, a window out of range, trailing bytes: refused.
+        let mut wrong = hex(UPLOAD);
+        wrong[20] = 2;
+        assert!(ChatOptions::decode(&wrong).is_err());
+        let mut long = hex(UPLOAD);
+        long.extend([0; 4]);
+        assert!(ChatOptions::decode(&long).is_err());
+    }
+
+    #[test]
+    fn the_login_profile_carries_the_chat_tables_at_version_6() {
+        let options = GameplayOptions::new_character();
+        let chat = ChatOptions {
+            popups: BTreeMap::from([(0x100, 1)]),
+            window_types: BTreeMap::from([(1, 0x10)]),
+            colors: BTreeMap::from([(0x10, 2)]),
+            sizes: BTreeMap::from([(0x10, 0)]),
+            filters: BTreeMap::from([(1, 0x0060_017f)]),
+        };
+        let words = options_words_with_chat(None, None, Some(&options), Some(&chat)).unwrap();
+        // StreamPack's order: the mask, 0x1000, 0x8, 0x20 radar, 0x40 filters, 0x80 bitfield
+        // (top bit: versioned), version 6, 0x100 colours, 0x200 sizes, 0x2000 windows, 0x400 popups.
+        assert_eq!(
+            words,
+            [
+                0x10a8 | 0x2740, 0,
+                1, (-1.0_f32).to_bits(),
+                0x1f,
+                1, 1, 0x0060_017f,
+                0x4 | 0x20 | 0x1000 | 0x8000_0000, 6,
+                1, 0x10, 2,
+                1, 0x10, 0,
+                1, 1, 0x10,
+                1, 0x100, 1,
+            ]
+        );
+        // Without chat tables the profile is unchanged (version not packed without settings).
+        let plain = options_words_with_chat(None, None, Some(&options), None).unwrap();
+        assert_eq!(plain, options_words_with_gameplay(None, None, Some(&options)).unwrap());
+        assert_eq!(plain[0], 0x10a8);
+    }
 }
