@@ -244,6 +244,10 @@ Docker: `PYREALIUM_DATS=/path/to/dataset-7230 docker compose -f deploy/docker/co
 runs the server with its database in a `data` volume. Hosting with systemd: `deploy/pyrealium.service`
 and [online hosting](docs/online-hosting.md).
 
+Client testing: `scripts/test-server.sh` writes a settings file into a state directory of its own
+(`PYREALIUM_STATE`, its database beside it) and runs the server on it. Clients' test tools call it
+rather than writing the settings themselves; its header lists the options and variables.
+
 ## Build and verify
 
 ```powershell
