@@ -267,11 +267,12 @@ def floor_anchor(vertices, indices, target_xy=None, lower_half=False, target_z=N
     return _position(min(candidates)[-1])
 
 
-def resolve_location(game_folder, cell, cells=None, portal=None, mesh_loader=None):
+def resolve_location(game_folder, cell, cells=None, portal=None, mesh_loader=None, target_xy=None):
     """Return a geometry-backed position for a DAT-indexed cell or room.
 
     Outdoor anchors stay within the requested cell and respect terrain holes.
     Interior positions include the native room quaternion and translation.
+    An outdoor `target_xy` (block-local metres inside the cell) picks the floor nearest it.
     """
     from preview_cell import decode_cell
     from preview_terrain import region_references, landscape_defs, decode_terrain
@@ -299,4 +300,4 @@ def resolve_location(game_folder, cell, cells=None, portal=None, mesh_loader=Non
             point = [sum(vertices[i][axis] for i in triangle)/3 for axis in (0, 1)]
             if x*side <= point[0] < (x+1)*side and y*side <= point[1] < (y+1)*side:
                 indices.extend(triangle)
-        return floor_anchor(vertices, indices, [(x+.5)*side, (y+.5)*side])
+        return floor_anchor(vertices, indices, list(target_xy) if target_xy is not None else [(x+.5)*side, (y+.5)*side])

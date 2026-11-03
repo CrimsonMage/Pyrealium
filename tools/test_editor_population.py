@@ -134,6 +134,8 @@ class PopulationWorkflowTests(unittest.TestCase):
     def test_patrol_waypoints_from_the_3d_ground_and_base_selection_in_view(self):
         identity = self.base_world()
         self.editor.active_scene_cell = 0x02990109
+        # On the Creatures page a prepared creature opens its rules inspector.
+        self.editor.library.select(self.editor.page_creatures)
         self.editor.select_in_view(int(identity, 16))
         inspector = self.population.inspector
         self.assertEqual(inspector.row["id"], identity)

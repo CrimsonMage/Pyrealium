@@ -12,6 +12,7 @@ A block-local point (cell, x, y) is at gx = bx*8 + x/20, gy = 2040 - (by*8 + y/2
 from collections import OrderedDict
 import json
 import math
+import re
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk
@@ -50,6 +51,50 @@ def cell_at(gx, gy, cells=2040):
     bx, by = int(gx // 8), int(north // 8)
     x, y = (gx - bx * 8) * 20, (north - by * 8) * 20
     return (bx << 24) | (by << 16) | (1 + min(7, int(x // 20)) * 8 + min(7, int(y // 20))), x, y
+
+
+COORDINATE = re.compile(r"(\d+(?:\.\d+)?)\s*([NS])[\s,]*(\d+(?:\.\d+)?)\s*([EW])", re.IGNORECASE)
+HEX = re.compile(r"(?:0x)?([0-9a-f]{4}|[0-9a-f]{8})", re.IGNORECASE)
+
+
+def parse_destination(text, cells=2040):
+    """A typed destination -> (cell, block-local x, y), or None when it is not one.
+
+    Map coordinates as players write them ("31.2N, 93.1E", "8.6s 52.6w"), a landblock
+    ("CF8C" or "0xCF8C": its middle) or a cell ("CF8C0005": its middle; an interior cell
+    opens as a room). Raises ValueError for a coordinate or block outside the world.
+    """
+    text = text.strip()
+    match = COORDINATE.fullmatch(text)
+    if match:
+        north = float(match.group(1)) * (1 if match.group(2).upper() == "N" else -1)
+        east = float(match.group(3)) * (1 if match.group(4).upper() == "E" else -1)
+        return cell_at((east + 100) * 10.2, cells - (north + 100) * 10.2, cells)
+    match = HEX.fullmatch(text)
+    if not match or not (any(c.isdigit() for c in match.group(1)) or text.lower().startswith("0x")):
+        return None
+    value = int(match.group(1), 16)
+    if len(match.group(1)) == 4:
+        bx, by = value >> 8, value & 255
+        if bx >= cells // 8 or by >= cells // 8:
+            raise ValueError(f"Landblock {value:04X} is outside the world")
+        return (bx << 24) | (by << 16) | (1 + 4 * 8 + 4), 80.0, 80.0
+    if not outdoor(value):
+        return value, None, None
+    index = (value & 65535) - 1
+    return value, (index // 8) * 20 + 10.0, (index % 8) * 20 + 10.0
+
+
+def snap_tile_scale(scale, block_side, tile=64):
+    """Screen pixels per metre snapped so a block tile scales by a whole zoom/subsample pair.
+
+    Returns (scale, (zoom, subsample)): Tk scales images only by integer factors, so the map
+    takes the nearest ratio and the tiles then meet the block grid exactly.
+    """
+    wanted = max(1e-6, scale * block_side / tile)
+    best = min(((up, down) for down in range(1, 9) for up in range(1, 17)),
+               key=lambda pair: (abs(math.log(pair[0] / pair[1] / wanted)), pair[1]))
+    return tile * best[0] / best[1] / block_side, best
 
 
 def map_units(gx, gy, cells=2040):
@@ -119,7 +164,8 @@ class HeroMap(WorldAtlas):
             entry = ttk.Entry(bar, textvariable=self.query, width=28)
             entry.pack(side="left", pady=4)
             entry.bind("<Return>", lambda event: self.find())
-            ttk.Button(bar, text="Find place / portal", command=self.find).pack(side="left", padx=4)
+            ttk.Button(bar, text="Go / find", command=self.find).pack(side="left", padx=4)
+            ttk.Label(bar, text="place, portal, 31.2N 93.1E, landblock CF8C or cell CF8C0005", style="Muted.TLabel").pack(side="left", padx=(0, 8))
         for name, variable in self.layers.items():
             ttk.Checkbutton(bar, text=name, variable=variable, command=self.draw).pack(side="left", padx=3)
 
@@ -413,7 +459,7 @@ class HeroMap(WorldAtlas):
             self.note.set(str(error))
             return
         self.note.set("Opening the selected region in 3D…")
-        self.on_travel(cell)
+        self.on_travel(cell, target_xy=(x, y))
 
     def portal_menu(self, event, portal):
         self.selected_portal = portal["id"]
@@ -432,9 +478,32 @@ class HeroMap(WorldAtlas):
             menu.add_command(label="Destination unknown", state="disabled")
         menu.tk_popup(event.x_root, event.y_root)
 
+    def go_to(self, text):
+        """Teleport the 3D camera to a typed coordinate, landblock or cell; False if it is none."""
+        try:
+            destination = parse_destination(text)
+        except ValueError as error:
+            self.note.set(str(error))
+            return True
+        if destination is None:
+            return False
+        cell, x, y = destination
+        if x is None:
+            self.note.set(f"Opening room {cell:08X} in 3D…")
+            self.on_travel(cell)
+            return True
+        gx, gy = world_point(cell, x, y)
+        if self.export is not None:
+            self.show(gx, gy, level=max(self.level, 4))
+        self.note.set(f"{map_units(gx, gy)} · landblock {cell >> 16:04X} · cell {cell:08X} · opening in 3D…")
+        self.on_travel(cell, target_xy=(x, y))
+        return True
+
     def find(self):
         query = self.query.get().strip().casefold()
-        if not query or self.export is None:
+        if not query or self.go_to(query):
+            return
+        if self.export is None:
             return
         for note in self.export["notes"]:
             if query in note["name"].casefold():

@@ -48,8 +48,12 @@ pub struct Job {
 }
 
 /// The admin thread's copy of what the game runs, to diff a new sync against.
+/// `spawns` is the overlay layer; `base` is the prepared world under it, so an
+/// overlay object with a base identity replaces that object and removing the
+/// override puts the base object back.
 pub struct Planner {
     game_data: PathBuf,
+    base: Arc<BTreeMap<u64, Object>>,
     spawns: BTreeMap<u64, (Arc<[u8]>, Option<crate::services::Service>)>,
     rules: Arc<Rules>,
     revision: String,
@@ -97,9 +101,9 @@ fn affected(old: &Rules, new: &Rules) -> BTreeSet<Target> {
 
 impl Planner {
     /// The state the server started with.
-    pub fn new(game_data: PathBuf, world: &str, rules: &str) -> io::Result<Self> {
+    pub fn new(game_data: PathBuf, world: &str, rules: &str, base: BTreeMap<u64, Object>) -> io::Result<Self> {
         let spawns = parse_world(world, &game_data)?.into_iter().map(|(id, o)| (id, (o.spawn, o.service))).collect();
-        Ok(Self { game_data, spawns, rules: Arc::new(parse_rules(rules)?), revision: revision(world, rules) })
+        Ok(Self { game_data, base: Arc::new(base), spawns, rules: Arc::new(parse_rules(rules)?), revision: revision(world, rules) })
     }
     pub fn revision(&self) -> &str { &self.revision }
     pub fn objects(&self) -> usize { self.spawns.len() }
@@ -111,12 +115,19 @@ impl Planner {
         let mut removed = Vec::new();
         let mut added = Vec::new();
         let mut replaced = 0;
+        // What runs for an identity: its overlay object, else the base object under it.
+        let was = |id: &u64| self.spawns.get(id).cloned().or_else(|| self.base.get(id).map(|o| (o.spawn.clone(), o.service)));
         for id in self.spawns.keys() {
-            if !objects.contains_key(id) { removed.push(*id); }
+            if objects.contains_key(id) { continue; }
+            match self.base.get(id) {
+                // A dropped override: the base object comes back.
+                Some(base) => { removed.push(*id); replaced += 1; added.push(base.clone()); }
+                None => removed.push(*id),
+            }
         }
         let mut spawns = BTreeMap::new();
         for (id, object) in objects {
-            match self.spawns.get(&id) {
+            match was(&id) {
                 Some(old) if old.0 == object.spawn && old.1 == object.service => {}
                 Some(_) => { removed.push(id); replaced += 1; added.push(object.clone()); }
                 None => added.push(object.clone()),
@@ -335,6 +346,39 @@ mod tests {
         assert!(apply(&change(vec![], vec![fresh.clone(), clash], None), &mut scene, Some(&mut runtime), &mut loot, 10).is_err());
         assert!(scene.content_placement(fresh.id).is_none());
         assert!(apply(&change(vec![NAMESPACE + 0x29999], vec![], None), &mut scene, Some(&mut runtime), &mut loot, 10).is_err());
+    }
+
+    #[test]
+    fn dropping_an_override_brings_the_base_object_back() {
+        // Re-adding the base object resolves its movement in the DATs.
+        let Ok(directory) = std::env::var("AC2_TEST_GAME_DATA") else { return };
+        // The world builder saved a moved copy of base object 7; the next sync drops it.
+        let base = object(NAMESPACE + 7, Placement::HUMAN_START, Some(Service::Vendor));
+        let moved = object(NAMESPACE + 7, Placement { coordinates: [3., 4., 0.], ..Placement::HUMAN_START }, Some(Service::Vendor));
+        let planner = Planner {
+            game_data: PathBuf::from(directory),
+            base: Arc::new(BTreeMap::from([(base.id, base.clone())])),
+            spawns: BTreeMap::from([(moved.id, (moved.spawn.clone(), moved.service))]),
+            rules: Arc::new(Rules::default()),
+            revision: String::new(),
+        };
+        let plan = planner.plan("", "").unwrap();
+        assert_eq!(plan.change.removed, vec![base.id]);
+        assert_eq!(plan.change.replaced, 1);
+        assert_eq!(&plan.change.added[0].spawn[..], &base.spawn[..]);
+        assert!(plan.committed.spawns.is_empty());
+    }
+
+    #[test]
+    fn an_override_moves_a_base_object_in_the_running_world() {
+        let (mut scene, mut runtime, mut loot) = world();
+        let creature = object(NAMESPACE + 7, Placement { coordinates: [3., 4., 0.], ..Placement::HUMAN_START }, None);
+        let (_, summary) = apply(&change(vec![creature.id], vec![creature.clone()], None), &mut scene, Some(&mut runtime), &mut loot, 10).unwrap();
+        assert_eq!((summary.replaced, summary.added, summary.removed), (1, 0, 0));
+        // A creature comes back through its spawner, at the new place.
+        let placed = scene.content_objects().find(|o| o.id == creature.id).unwrap();
+        assert_eq!(placed.placement.coordinates, [3., 4., 0.]);
+        assert!(runtime.is_creature(creature.id));
     }
 
     #[test]

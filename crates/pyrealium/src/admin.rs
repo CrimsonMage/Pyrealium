@@ -55,12 +55,13 @@ fn read_or_empty(path: &Path) -> io::Result<String> {
 }
 
 /// Start the endpoint. `world`/`rules` are the texts the server loaded at startup.
-pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths) -> io::Result<Handle> {
+pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
+             base: std::collections::BTreeMap<u64, crate::content::Object>) -> io::Result<Handle> {
     if !bind.ip().is_loopback() {
         return Err(io::Error::other("--admin-bind is local only: use a loopback address such as 127.0.0.1:19373"));
     }
     if paths.world==paths.rules {return Err(io::Error::other("world and rules paths must be different"));}
-    let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?)?;
+    let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base)?;
     let mut secret = [0u8; 32];
     getrandom::getrandom(&mut secret).map_err(|error| io::Error::other(error.to_string()))?;
     let token: String = secret.iter().map(|b| format!("{b:02x}")).collect();
@@ -174,7 +175,7 @@ mod tests {
         let folder = std::env::temp_dir().join(format!("pyrealium-admin-{}", std::process::id()));
         std::fs::create_dir_all(&folder).unwrap();
         let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv") };
-        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths).unwrap();
+        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default()).unwrap();
         let token = std::fs::read_to_string(folder.join("admin.token")).unwrap();
         #[cfg(unix)]
         {
@@ -202,7 +203,7 @@ mod tests {
         let bad = serde_json::json!({"base": done["revision"], "world": "", "rules": "nonsense"}).to_string();
         assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &bad).0, 400);
         assert!(start("0.0.0.0:0".parse().unwrap(), &folder, folder.clone(),
-            Paths { world: folder.join("a"), rules: folder.join("b") }).is_err(), "local only");
+            Paths { world: folder.join("a"), rules: folder.join("b") }, Default::default()).is_err(), "local only");
         std::fs::remove_dir_all(&folder).unwrap();
     }
 }

@@ -58,7 +58,9 @@ class Population:
         self.show = {name: tk.BooleanVar(value=value) for name, value in (
             ("Base world", True), ("Aggro", False), ("Wander", True), ("Leash", False),
             ("Patrols", True), ("Groups", True), ("Labels", True))}
-        self.base_path = tk.StringVar(value=editor.settings.get("reference_world", ""))
+        # The prepared world `pyrealium prepare-content` writes, unless another is chosen.
+        prepared = Path.home() / ".local" / "share" / "pyrealium" / "prepared-world.tsv"
+        self.base_path = tk.StringVar(value=editor.settings.get("reference_world") or (str(prepared) if prepared.is_file() else ""))
 
     # ---- data -------------------------------------------------------------
     def reload(self):
@@ -693,8 +695,11 @@ class CreatureInspector:
             result, identity = prepare_change(args, editor.original)
             if len((self.population.rules.group_of(row["id"]) or {"members": []})["members"]) >= 64:
                 raise ValueError("A spawn group holds at most 64 spawn points.")
-            # Committing reloads the rules from disk; group the copy afterwards.
+            # Committing reloads the rules from disk; group the copy afterwards. The spawn
+            # group is written to the rules file at once, so the world file is saved with it:
+            # a group must never name a placement the saved world lacks.
             editor.commit_change(result)
+            editor.save_file()
             rules = self.population.rules
             group = rules.group_of(row["id"])
             if group is None:

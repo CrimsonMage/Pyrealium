@@ -457,10 +457,10 @@ class GeometryTools:
     def attach_room(self):
         self.dungeon_job("attach")
 
-    def resolve_location(self, folder, cell):
+    def resolve_location(self, folder, cell, target_xy=None):
         from editor_locations import resolve_location
         assets=self.reader(folder)
-        return resolve_location(folder,cell,cells=assets.cells,portal=assets.portal,mesh_loader=assets.mesh)
+        return resolve_location(folder,cell,cells=assets.cells,portal=assets.portal,mesh_loader=assets.mesh,target_xy=target_xy)
 
     def location_links(self, folder, cell):
         from editor_locations import location_links

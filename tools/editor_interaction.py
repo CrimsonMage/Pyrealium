@@ -108,19 +108,16 @@ class ObjectTools:
             return False
 
     def stamp(self):
+        """A click in Place mode adds one object; it is then selected with the move handles.
+        With Keep adding copies on, each further click adds another."""
         editor = self.editor
         if not editor.view3d.placement_enabled:
             return
         editor.selected_id, editor.group_ids = None, ()
         before = len(editor.placements)
-        keep = editor.keep_adding.get()
-        editor.keep_adding.set(True)
-        try:
-            editor.save()
-        finally:
-            editor.keep_adding.set(keep)
-        if len(editor.placements) > before:
-            editor.status.set("Object placed. Click another surface to place again · Ctrl+Z undo · Escape finish.")
+        editor.save()
+        if len(editor.placements) > before and editor.keep_adding.get():
+            editor.status.set("Object added. Click another surface to add another · Ctrl+Z undo · Escape finish · Ctrl+S save.")
 
     def duplicate(self):
         editor = self.editor

@@ -1,4 +1,4 @@
-"""Live server link: every saved edit is pushed to a local running server.
+"""Live server link: every saved content file is pushed to a local running server.
 
 The server (`--admin-bind 127.0.0.1:PORT --content-overlay FILE`) applies the
 overlay world and rules texts between game ticks and saves them to its overlay
@@ -66,6 +66,8 @@ class LiveLink:
             self.changed()
         else:
             self.state.set("Live server: off")
+        if hasattr(self.editor, "show_unsaved"):
+            self.editor.show_unsaved()
 
     def texts(self):
         path = self.editor.loaded_path

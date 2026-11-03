@@ -613,14 +613,25 @@ impl Content {
         self.retired.insert(id, object.instance);
         Ok(object.active.then_some(object.destroy))
     }
-    /// Operator overlay placements join the selected base pack. Identities and
-    /// the per-cell limit are checked against the combined world.
+    /// The placed objects by identity (the base world the live planner overrides).
+    pub fn object_map(&self) -> BTreeMap<u64, Object> {
+        self.objects.clone()
+    }
+    /// Operator overlay placements join the selected base pack. An overlay object
+    /// with a base object's identity replaces it (the world builder moving, turning
+    /// or rescaling a prepared placement); the per-cell limit is checked against
+    /// the combined world.
     pub fn extend(&mut self, path: &Path, game_data: &Path) -> io::Result<usize> {
         let overlay = Self::load(path, game_data)?;
         let count = overlay.objects.len();
         for (id, object) in overlay.objects {
-            if self.objects.len() >= MAX_OBJECTS || self.objects.contains_key(&id) {
-                return Err(invalid(format!("overlay object {id:016x} duplicates base content or exceeds the world limit")));
+            if let Some(base) = self.objects.remove(&id) {
+                if let Some(ids) = self.cells.get_mut(&base.placement.cell) {
+                    ids.retain(|entry| *entry != id);
+                    if ids.is_empty() { self.cells.remove(&base.placement.cell); }
+                }
+            } else if self.objects.len() >= MAX_OBJECTS {
+                return Err(invalid(format!("overlay object {id:016x} exceeds the world limit")));
             }
             let cell = self.cells.entry(object.placement.cell).or_default();
             if cell.len() >= MAX_CELL_OBJECTS {

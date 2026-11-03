@@ -1,5 +1,6 @@
 """Offline graphical content placement. Saves through place_content's DAT checks."""
 import argparse
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import faulthandler
@@ -17,7 +18,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from place_content import bounded_text
-from editor_document import (read_document, rows_from_text, prepare_change,
+from editor_document import (read_document, rows_from_text, prepare_change, adopt_row, drop_unchanged_overrides,
                              commit_document, heading_from_row)
 from preview_assets import Assets
 from preview_view import Preview3D
@@ -26,7 +27,7 @@ from editor_interaction import ObjectTools
 from editor_palette import ModelSwatch
 from editor_geometry import GeometryTools
 from editor_population import Population
-from editor_hero_map import HeroMap, default_export, load_export, read_routes
+from editor_hero_map import HeroMap, default_export, load_export, read_routes, map_units, world_point, snap_tile_scale
 from editor_live import LiveLink
 
 
@@ -83,6 +84,8 @@ class Editor:
         self.placements = []
         self.transform = None
         self.map_view = None
+        self.map_cell = None
+        self.map_tiles = OrderedDict()
         self.executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="content-dat")
         self.assets = None
         self.future = None
@@ -150,6 +153,9 @@ class Editor:
         self.catalog_view = tk.StringVar(value="All objects")
         self.recent_entities = [value for value in self.settings.get("recent_entities", []) if isinstance(value, str)][:24]
         self.favorite_entities = set(value for value in self.settings.get("favorite_entities", []) if isinstance(value, str))
+        # Entities the catalog lacks, placed with a visual the author chose: {entity: [visual, label]}.
+        self.extra_definitions = {key.lower(): value for key, value in self.settings.get("extra_definitions", {}).items()
+                                  if isinstance(value, list) and len(value) == 2 and all(isinstance(v, str) for v in value)}
         self.geometry = GeometryTools(self)
         self.population = Population(self)
         self.live = LiveLink(self)
@@ -163,7 +169,10 @@ class Editor:
         self.view3d.set_tool("explore")
         self.last_tool = "explore"
         self.view3d.tool.trace_add("write", lambda *unused: self.tool_changed())
-        root.bind("<Control-s>", lambda event: self.save())
+        # Ctrl+S writes the content file (and pushes it to a live server); Ctrl+Enter adds or
+        # updates the placement in the working copy.
+        root.bind("<Control-s>", lambda event: self.save_file())
+        root.bind("<Control-Return>", lambda event: self.save())
         root.bind("<Control-f>", lambda event: self.focus_catalog())
         root.bind("<Control-z>", lambda event: self.viewport_command("undo"))
         root.bind("<Control-y>", lambda event: self.viewport_command("redo"))
@@ -304,6 +313,7 @@ class Editor:
         self.nearby_tree.bind("<Return>", lambda event: self.open_nearby())
         ttk.Button(nearby, text="Travel to selected area", command=self.open_nearby, style="Accent.TButton").pack(side="bottom", fill="x", pady=5, before=self.nearby_tree.master)
         ttk.Label(entities, text="Choose content to place", style="Section.TLabel").pack(anchor="w", pady=5)
+        ttk.Label(entities, text="Search by name or entity ID (4700129d or 0x4700129d).", style="Muted.TLabel", wraplength=270).pack(anchor="w")
         self.search_entry = ttk.Entry(entities, textvariable=self.search)
         self.search_entry.pack(fill="x", pady=4)
         self.matches = ttk.Label(entities, style="Muted.TLabel")
@@ -341,10 +351,15 @@ class Editor:
         self.workspace.add(self.atlas, text="World map")
         self.workspace.add(self.view3d, text="Explore in 3D")
         self.workspace.add(map_frame, text="Position map")
+        self.position_page = map_frame
+        # The position map follows the camera: redraw it whenever its tab is shown.
+        self.workspace.bind("<<NotebookTabChanged>>", lambda event: self.workspace.select() == str(map_frame) and self.preview())
         bar = ttk.Frame(map_frame)
         bar.pack(fill="x", pady=5)
         ttk.Label(bar, text="Bird's-eye zone view · click to move the draft · Creatures tab: click a creature · Ctrl-click inspects · right-drag pans · wheel zooms", style="Muted.TLabel").pack(side="left")
         ttk.Button(bar, text="Fit zone", command=self.fit_map).pack(side="right")
+        ttk.Button(bar, text="−", width=3, command=lambda: self.zoom_step(-1)).pack(side="right", padx=(0, 4))
+        ttk.Button(bar, text="+", width=3, command=lambda: self.zoom_step(1)).pack(side="right", padx=(0, 2))
         self.canvas = tk.Canvas(map_frame, background=field, highlightthickness=0, height=280)
         self.canvas.pack(fill="both", expand=True)
         self.canvas.bind("<Configure>", lambda event: self.preview())
@@ -358,8 +373,10 @@ class Editor:
         self.canvas.bind("<B3-Motion>", self.pan_map)
         actions = ttk.Frame(inspector)
         actions.pack(side="bottom", fill="x", padx=8, pady=6)
-        self.save_button = ttk.Button(actions, text="Add placement  /  Ctrl+S", style="Accent.TButton", command=self.save)
+        self.save_button = ttk.Button(actions, text="Add placement  ·  Ctrl+Enter", command=self.save)
         self.save_button.pack(fill="x", pady=4)
+        self.write_button = ttk.Button(actions, text="Save content file  ·  Ctrl+S", style="Accent.TButton", command=self.save_file, state="disabled")
+        self.write_button.pack(fill="x", pady=4)
         self.delete_button = ttk.Button(actions, text="Delete selected", command=self.delete_selected, state="disabled")
         self.delete_button.pack(fill="x", pady=4)
         ttk.Label(inspector, text="PLACEMENT", style="Section.TLabel").pack(anchor="w", padx=10, pady=(10, 7))
@@ -520,7 +537,7 @@ class Editor:
         if command in ("undo", "redo", "delete", "duplicate", "cancel"):
             self.view3d.cancel_transform()
             self.object_tools.cancel()
-        actions = {"save": self.save, "search": self.focus_catalog, "undo": self.undo,
+        actions = {"save": self.save_file, "search": self.focus_catalog, "undo": self.undo,
                    "redo": self.redo, "delete": self.delete_selected, "duplicate": self.object_tools.duplicate}
         if command in actions:
             actions[command]()
@@ -744,6 +761,8 @@ class Editor:
             for entity, visual, label in rows:
                 if int(entity, 16) >> 24 != 0x47 or int(visual, 16) >> 24 != 0x1f:
                     raise ValueError("Invalid entity or visual identifier")
+            known = {row[0].lower() for row in rows}
+            rows += [[entity, visual, label] for entity, (visual, label) in sorted(self.extra_definitions.items()) if entity not in known]
             self.catalog = rows
             self.filter_catalog()
         except (OSError, ValueError) as error:
@@ -751,6 +770,8 @@ class Editor:
 
     def filter_catalog(self):
         query = self.search.get().strip().casefold()
+        if query.startswith("0x"):
+            query = query[2:]
         rows = [row for row in self.catalog if query in " ".join(row).casefold()]
         if self.catalog_view.get() == "Favourites":
             rows = [row for row in rows if row[0] in self.favorite_entities]
@@ -761,6 +782,75 @@ class Editor:
         for index, (entity, visual, label) in enumerate(rows[:500]):
             self.entities.insert("", "end", iid=str(index), values=(entity, label))
         self.matches.configure(text=f"{len(rows):,} matches · showing up to 500")
+        if not rows and self.uncatalogued_entity(query):
+            self.entities.insert("", "end", iid="uncatalogued", values=(query, "Not in the catalog: choose its visual to place it"))
+            self.matches.configure(text="Entity found in the DATs; the catalog has no visual for it.")
+
+    def uncatalogued_entity(self, query):
+        """A typed entity DID the DATs hold but the catalog does not."""
+        if len(query) != 8 or not query.startswith("47") or any(c not in "0123456789abcdef" for c in query):
+            return False
+        try:
+            from ac2_dat import Dat
+            with Dat(Path(self.game.get()) / "portal.dat") as portal:
+                portal.read(int(query, 16))
+            return True
+        except Exception:
+            return False
+
+    def add_uncatalogued(self, entity):
+        """Ask for the visual of an entity the catalog lacks; the DATs settle it only for static objects."""
+        from preview_assets import entity_visual
+        from ac2_dat import Dat
+        did = int(entity, 16)
+        suggested = ""
+        try:
+            with Dat(Path(self.game.get()) / "portal.dat") as portal:
+                suggested = f"{entity_visual(portal.read(did), did):08x}"
+        except Exception:
+            pass
+        window = tk.Toplevel(self.root)
+        window.title(f"Place entity {entity}")
+        window.transient(self.root)
+        body = ttk.Frame(window, padding=14)
+        body.pack(fill="both", expand=True)
+        note = ("The DATs name this static object's visual; check it and continue." if suggested else
+                "This entity's DAT record names no visual: creatures and NPCs get theirs from the server's "
+                "data, which the catalog holds. Enter the VisualDesc (1F…) to draw it with, for example one "
+                "a catalogued look-alike uses.")
+        ttk.Label(body, text=note, wraplength=380).pack(anchor="w", pady=(0, 10))
+        visual, label = tk.StringVar(value=suggested), tk.StringVar(value=f"Entity {entity}")
+        for text, variable in (("Visual (VisualDesc DID)", visual), ("Label in this editor", label)):
+            ttk.Label(body, text=text).pack(anchor="w")
+            ttk.Entry(body, textvariable=variable, width=40).pack(fill="x", pady=(0, 8))
+        error = tk.StringVar()
+        ttk.Label(body, textvariable=error, foreground="#c0392b", wraplength=380).pack(anchor="w")
+        def accept():
+            try:
+                value = int(visual.get().strip().lower().removeprefix("0x"), 16)
+                if value >> 24 != 0x1f:
+                    raise ValueError("A visual is a VisualDesc DID starting 1F.")
+                with Dat(Path(self.game.get()) / "portal.dat") as portal:
+                    portal.read(value)
+            except KeyError:
+                error.set("The DATs hold no record with that visual DID.")
+                return
+            except ValueError as problem:
+                error.set(str(problem) if "VisualDesc" in str(problem) else "Enter a hexadecimal DID such as 1f000627.")
+                return
+            text = " ".join(label.get().split())[:200] or f"Entity {entity}"
+            self.extra_definitions[entity] = [f"{value:08x}", text]
+            self.catalog = [row for row in self.catalog if row[0].lower() != entity] + [[entity, f"{value:08x}", text]]
+            window.destroy()
+            self.search.set(entity)
+            row = next((iid for iid in self.entities.get_children() if self.entities.item(iid, "values")[0] == entity), None)
+            if row is not None:
+                self.entities.selection_set(row)
+        buttons = ttk.Frame(body)
+        buttons.pack(fill="x", pady=(6, 0))
+        ttk.Button(buttons, text="Use this visual", style="Accent.TButton", command=accept).pack(side="right")
+        ttk.Button(buttons, text="Cancel", command=window.destroy).pack(side="right", padx=6)
+        window.grab_set()
 
     def toggle_favorite(self):
         entity = self.fields["Entity"].get().strip().lower()
@@ -781,6 +871,8 @@ class Editor:
                 self.status.set("Choose a destination on the map first, then pick an object to build there.")
                 return
             entity = self.entities.item(selected[0], "values")[0]
+            if selected[0] == "uncatalogued":
+                return self.add_uncatalogued(entity)
             self.selected_id, self.group_ids = None, ()
             self.objects.selection_remove(*self.objects.selection())
             self.view3d.set_tool("place")
@@ -862,6 +954,10 @@ class Editor:
             if self.loaded_path:
                 self.output.set(str(self.loaded_path))
             return
+        if not self.discard_unsaved():
+            if self.loaded_path:
+                self.output.set(str(self.loaded_path))
+            return
         try:
             path = Path(self.output.get()).resolve()
             original = read_document(path)
@@ -870,27 +966,91 @@ class Editor:
                 self.history.clear()
                 self.redo_history.clear()
             self.loaded_path, self.original = path, original
-            self.root.title(f"Pyrealium World Builder — {path.name}")
-            self.placements = rows
-            self.selected_id = None
-            self.group_ids = ()
-            self.baseline = self.field_snapshot()
-            self.content_revision += 1
-            self.filter_placements()
-            self.update_actions()
+            self.disk_text = original
+            self.show_document(rows)
             self.status.set(f"Loaded {len(rows):,} placements. Select one to edit, or choose an entity to add.")
-            self.population.reload()
             self.live.changed()
-            self.preview()
         except (OSError, ValueError) as error:
             if self.loaded_path:
                 self.output.set(str(self.loaded_path))
             self.status.set(str(error))
             messagebox.showerror("Content could not be loaded", str(error), parent=self.root)
 
+    def show_document(self, rows):
+        """Show the working copy's placements (after a load, an edit, undo or redo)."""
+        self.placements = rows
+        self.selected_id = None
+        self.group_ids = ()
+        self.baseline = self.field_snapshot()
+        self.content_revision += 1
+        self.filter_placements()
+        self.update_actions()
+        self.population.reload()
+        self.preview()
+
+    def unsaved(self):
+        return self.loaded_path is not None and getattr(self, "disk_text", self.original) != self.original
+
+    def show_unsaved(self):
+        if self.loaded_path is None or not hasattr(self, "write_button"):
+            return
+        dirty = self.unsaved()
+        self.root.title(f"Pyrealium World Builder — {'• ' if dirty else ''}{self.loaded_path.name}")
+        live = " and push live" if self.live.enabled.get() else ""
+        self.write_button.configure(state="normal" if dirty else "disabled",
+                                    text=(f"Save content file{live}  ·  Ctrl+S" if dirty else "Content file saved"))
+
+    def prepared_rows(self):
+        """The loaded base world's rows by identity."""
+        return {row["id"]: row for row in self.population.reference}
+
+    def save_file(self):
+        """Write the working copy to the content file; a live server then loads it."""
+        if self.closing:
+            return
+        if self.view3d.tool.get() in ("terrain", "dungeon", "entrance") or self.library.select()==str(self.page_geometry):
+            self.geometry.save()
+            return
+        base = {key: row["raw"] for key, row in self.prepared_rows().items() if row.get("raw")}
+        if base:
+            pruned = drop_unchanged_overrides(self.original, base)
+            if pruned != self.original:
+                self.original = pruned
+                self.placements = rows_from_text(pruned)
+                self.filter_placements()
+        if not self.unsaved():
+            self.status.set("No unsaved placement changes.")
+            return
+        try:
+            self.require_loaded_path()
+            commit_document(self.loaded_path, self.disk_text, self.original)
+            self.disk_text = self.original
+            self.show_unsaved()
+            self.live.changed()
+            self.status.set(f"Saved {self.loaded_path.name}." + (" Pushing to the live server…" if self.live.enabled.get() else
+                            " Tick Live server under Project / DATs to load edits into a running server."))
+        except (OSError, ValueError) as error:
+            messagebox.showerror("Content file was not saved", str(error), parent=self.root)
+            self.status.set(f"Not saved: {error}")
+
+    def discard_unsaved(self):
+        """Ask before throwing away unsaved working-copy edits; False cancels."""
+        if not self.unsaved():
+            return True
+        answer = messagebox.askyesnocancel("Unsaved placements", f"Save the changes to {self.loaded_path.name} first?", parent=self.root)
+        if answer is None:
+            return False
+        if answer:
+            self.save_file()
+            return not self.unsaved()
+        return True
+
     def update_actions(self):
-        self.save_button.configure(text="Update placement  ·  Ctrl+S" if self.selected_id is not None else "Add placement  ·  Ctrl+S")
-        self.delete_button.configure(state="normal" if self.selected_id is not None else "disabled")
+        self.save_button.configure(text="Update placement  ·  Ctrl+Enter" if self.selected_id is not None else "Add placement  ·  Ctrl+Enter")
+        self.show_unsaved()
+        override = self.selected_id is not None and f"{self.selected_id:016x}" in self.prepared_rows()
+        self.delete_button.configure(state="normal" if self.selected_id is not None else "disabled",
+                                     text="Revert to prepared world" if override else "Delete selected")
         self.undo_button.configure(state="normal" if self.history else "disabled")
         self.redo_button.configure(state="normal" if self.redo_history else "disabled")
         self.fields_changed()
@@ -971,74 +1131,168 @@ class Editor:
             x, y = (float(self.fields[name].get()) for name in ("X", "Y"))
             if not all(math.isfinite(v) and abs(v) < 1_000_000 for v in (x, y)):
                 return
-            # The whole zone (landblock and its outdoor neighbours) in the draft's block frame.
+            # While exploring outdoors the map follows the camera's own cell; otherwise the draft's.
+            camera = self.camera_cell()
+            ref = camera[0] if camera else cell
+            self.map_cell = ref
+            draft = self.population.frame(dict(cell=cell, x=x, y=y, z=0), ref)
+            # The whole zone (landblock and its outdoor neighbours) in the reference block frame.
             creatures = {row["id"] for row in self.population.creatures()}
             points = []
             for row in self.placements:
                 if row[0].lower() in creatures:
                     continue
-                point = self.population.frame(dict(cell=int(row[3], 16), x=float(row[4]), y=float(row[5]), z=float(row[6])), cell)
+                point = self.population.frame(dict(cell=int(row[3], 16), x=float(row[4]), y=float(row[5]), z=float(row[6])), ref)
                 if point is not None:
                     points.append((point[0], point[1], row[1]))
             width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
             if width < 80 or height < 80:
                 return
-            zone = cell >> 16
+            zone = ref >> 16
+            outside = 1 <= (ref & 65535) <= 64
+            side = self.population.block_side()
             if self.map_view is None or self.map_view[0] != zone:
-                # Outdoors, fit the landblock; indoors, fit the room's placements.
-                if 1 <= (cell & 65535) <= 64:
-                    side = self.population.block_side()
-                    self.map_view = (zone, side / 2, side / 2, side * 1.1)
+                # Outdoors, centre on the camera (or the landblock) and keep the zoom; indoors, fit the room's placements.
+                if outside:
+                    span = self.map_view[3] if self.map_view else side * 1.1
+                    at = camera[1] if camera else (side / 2, side / 2)
+                    self.map_view = (zone, at[0], at[1], span)
                 else:
                     xs, ys = [x] + [p[0] for p in points], [y] + [p[1] for p in points]
                     self.map_view = (zone, (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2,
                                      max(40, max(xs)-min(xs), max(ys)-min(ys)) * 1.15)
             _, middle_x, middle_y, span = self.map_view
             scale = min(width-70, height-70) / span
+            tiles = self.atlas.export if outside else None
+            if tiles:
+                scale, tile_zoom = snap_tile_scale(scale, side)
             self.transform = middle_x, middle_y, scale, width, height
             def project(px, py):
                 return width / 2 + (px - middle_x) * scale, height / 2 - (py - middle_y) * scale
-            self.canvas.create_text(12, 12, anchor="nw", fill="#b9cad9", text=f"Zone {cell >> 16:04x} · draft cell {cell:08x} · +Y north ↑ · +X east →")
-            if 1 <= (cell & 65535) <= 64:
-                side = self.population.block_side()
-                for bx in (-1, 0, 1):
-                    for by in (-1, 0, 1):
-                        ax, ay = project(bx*side, by*side)
-                        bx2, by2 = project((bx+1)*side, (by+1)*side)
-                        self.canvas.create_rectangle(ax, ay, bx2, by2, outline="#3c5266" if (bx, by) == (0, 0) else "#24323f")
-            spacing = 10 ** math.floor(math.log10(span / 4))
-            if span / spacing > 12:
-                spacing *= 5
-            for axis in range(2):
-                center = middle_x if axis == 0 else middle_y
-                first = math.floor((center-span)/spacing)
-                last = math.ceil((center+span)/spacing)
-                for index in range(first, last+1):
-                    value = index * spacing
-                    sx, sy = project(value if axis == 0 else middle_x, value if axis == 1 else middle_y)
-                    if axis == 0:
-                        self.canvas.create_line(sx, 28, sx, height, fill="#263746")
-                        self.canvas.create_text(sx+3, height-12, text=f"{value:g}", fill="#708a9d", anchor="w")
-                    else:
-                        self.canvas.create_line(0, sy, width, sy, fill="#263746")
-                        self.canvas.create_text(4, sy-7, text=f"{value:g}", fill="#708a9d", anchor="w")
+            if outside:
+                first_x, last_x = math.floor((middle_x - width / 2 / scale) / side), math.floor((middle_x + width / 2 / scale) / side)
+                first_y, last_y = math.floor((middle_y - height / 2 / scale) / side), math.floor((middle_y + height / 2 / scale) / side)
+                blocks = [(bx, by) for bx in range(max(-4, first_x), min(4, last_x) + 1) for by in range(max(-4, first_y), min(4, last_y) + 1)]
+                if tiles:
+                    for bx, by in blocks:
+                        image = self.map_tile(((ref >> 24) + bx, ((ref >> 16) & 255) + by), tile_zoom)
+                        if image is not None:
+                            self.canvas.create_image(*project(bx * side, (by + 1) * side), image=image, anchor="nw")
+                cell_px = side / 8 * scale
+                for bx, by in blocks:
+                    if cell_px >= 10:
+                        for i in range(1, 8):
+                            ax, ay = project(bx * side + i * side / 8, by * side)
+                            self.canvas.create_line(ax, ay, ax, project(0, (by + 1) * side)[1], fill="#3a4c5c")
+                            ax, ay = project(bx * side, by * side + i * side / 8)
+                            self.canvas.create_line(ax, ay, project((bx + 1) * side, 0)[0], ay, fill="#3a4c5c")
+                    ax, ay = project(bx*side, by*side)
+                    bx2, by2 = project((bx+1)*side, (by+1)*side)
+                    here = (bx, by) == (0, 0)
+                    self.canvas.create_rectangle(ax, ay, bx2, by2, outline="#9cc4e4" if here else "#506a80", width=2 if here else 1)
+                    if span / side < 3.5:
+                        block = (((ref >> 24) + bx) & 255) << 8 | ((((ref >> 16) & 255) + by) & 255)
+                        self.canvas.create_text(ax + 4, by2 + 4, anchor="nw", text=f"{block:04X}",
+                                                fill="#d8e8f4" if here else "#8fa6b8", font=("TkDefaultFont", 9, "bold" if here else "normal"))
+                # The reference cell, outlined.
+                index = (ref & 65535) - 1
+                cx, cy = (index // 8) * side / 8, (index % 8) * side / 8
+                ax, ay = project(cx, cy + side / 8)
+                self.canvas.create_rectangle(ax, ay, ax + side / 8 * scale, ay + side / 8 * scale, outline="#ffd479", width=2)
+            if not tiles:
+                spacing = 10 ** math.floor(math.log10(span / 4))
+                if span / spacing > 12:
+                    spacing *= 5
+                for axis in range(2):
+                    center = middle_x if axis == 0 else middle_y
+                    first = math.floor((center-span)/spacing)
+                    last = math.ceil((center+span)/spacing)
+                    for index in range(first, last+1):
+                        value = index * spacing
+                        sx, sy = project(value if axis == 0 else middle_x, value if axis == 1 else middle_y)
+                        if axis == 0:
+                            self.canvas.create_line(sx, 28, sx, height, fill="#263746")
+                            self.canvas.create_text(sx+3, height-12, text=f"{value:g}", fill="#708a9d", anchor="w")
+                        else:
+                            self.canvas.create_line(0, sy, width, sy, fill="#263746")
+                            self.canvas.create_text(4, sy-7, text=f"{value:g}", fill="#708a9d", anchor="w")
             labels = {entity.lower(): label for entity, visual, label in self.catalog}
             for px, py, entity in points:
                 sx, sy = project(px, py)
                 self.canvas.create_rectangle(sx-3, sy-3, sx+3, sy+3, fill="#5d7487", outline="")
                 if self.population.show["Labels"].get():
                     self.canvas.create_text(sx+7, sy, anchor="w", text=labels.get(entity.lower(), entity)[:32], fill="#7f93a5", font=("TkDefaultFont", 8))
-            self.population.map_reference = cell
-            self.population.draw_map(self.canvas, project, scale, cell)
-            sx, sy = project(x, y)
-            self.canvas.create_oval(sx-6, sy-6, sx+6, sy+6, fill="#efb65e", outline="white")
-            self.canvas.create_text(sx, sy+17, text="Editing selected" if self.selected_id is not None else "New placement", fill="#efb65e")
+            self.population.map_reference = ref
+            self.population.draw_map(self.canvas, project, scale, ref)
+            if draft is not None:
+                sx, sy = project(draft[0], draft[1])
+                self.canvas.create_oval(sx-6, sy-6, sx+6, sy+6, fill="#efb65e", outline="white")
+                self.canvas.create_text(sx, sy+17, text="Editing selected" if self.selected_id is not None else "New placement", fill="#efb65e")
+            if camera:
+                sx, sy = project(*camera[1])
+                self.canvas.create_polygon(sx, sy-8, sx+7, sy+6, sx-7, sy+6, fill="#ffd479", outline="#142233", width=2)
+            where = f"Landblock {ref >> 16:04X} · cell {ref:08X}"
+            if outside:
+                at = camera[1] if camera else (x, y)
+                where += " · " + map_units(*world_point(ref, at[0] - math.floor(at[0] / side) * side, at[1] - math.floor(at[1] / side) * side))
+            where += " · camera" if camera else " · draft"
+            self.canvas.create_rectangle(6, 6, 12 + 7.2 * len(where), 28, fill="#101a27", outline="")
+            self.canvas.create_text(12, 10, anchor="nw", fill="#e3edf5", text=where)
         except (ValueError, OverflowError):
             pass
 
     def fit_map(self):
         self.map_view = None
         self.preview()
+
+    def camera_cell(self):
+        """(cell, block-local x, y) under the 3D camera while exploring outdoors, else None."""
+        cell = self.active_scene_cell
+        if not hasattr(self, "view3d") or self.view3d.tool.get() != "explore" or cell is None or not 1 <= (cell & 65535) <= 64:
+            return None
+        try:
+            eye = self.view3d.get_navigation_point()
+        except Exception:
+            return None
+        side = self.population.block_side()
+        dx, dy = math.floor(eye[0] / side), math.floor(eye[1] / side)
+        bx, by = (cell >> 24) + dx, ((cell >> 16) & 255) + dy
+        if not (0 <= bx < 255 and 0 <= by < 255):
+            return None
+        x, y = eye[0] - dx * side, eye[1] - dy * side
+        here = (bx << 24) | (by << 16) | (1 + min(7, int(x / (side / 8))) * 8 + min(7, int(y / (side / 8))))
+        return here, (x, y)
+
+    def map_tile(self, block, zoom):
+        """The map export's terrain tile for a landblock at a (zoom, subsample) pair, cached."""
+        bx, by = block
+        if not (0 <= bx < 255 and 0 <= by < 255):
+            return None
+        export = self.atlas.export
+        name = f"{bx:02x}{by:02x}"
+        if export is None or name not in export["blocks"]:
+            return None
+        key = (name, zoom)
+        cache = self.map_tiles
+        if key in cache:
+            cache.move_to_end(key)
+            return cache[key]
+        try:
+            source = tk.PhotoImage(master=self.canvas, file=str(export["folder"] / "blocks" / f"{name}.png"))
+        except tk.TclError:
+            return None
+        up, down = zoom
+        image = tk.PhotoImage(master=self.canvas)
+        image.tk.call(image, "copy", source, "-zoom", up, up, "-subsample", down, down)
+        cache[key] = image
+        while len(cache) > 120:
+            cache.popitem(last=False)
+        return image
+
+    def zoom_step(self, steps):
+        if self.map_view is None:
+            return
+        self.zoom_map(SimpleNamespace(delta=steps))
 
     def zoom_map(self, event):
         if self.map_view:
@@ -1198,7 +1452,9 @@ class Editor:
                 self.start_load()
             return
         prior = self.scene_ready
-        preserve = bool(prior and prior[0] == key[0] and prior[1] >> 16 == key[1] >> 16 and prior[2] == key[2])
+        # Keep the camera while the area stays the same; choosing or changing the draft's
+        # entity (its visual) only swaps the preview model.
+        preserve = bool(prior and prior[0] == key[0] and prior[1] >> 16 == key[1] >> 16)
         streamed_view = None
         if self.stream_camera and self.stream_camera[0] == key[1] and self.view3d.tool.get() == "explore":
             focus = self.stream_camera[1]
@@ -1326,7 +1582,7 @@ class Editor:
         except ValueError:
             self.status.set("Enter a hexadecimal cell ID, for example 02990109.")
 
-    def navigate_to(self, cell, position=None, from_history=False):
+    def navigate_to(self, cell, position=None, from_history=False, target_xy=None):
         if self.closing:
             return
         if not from_history:
@@ -1335,16 +1591,16 @@ class Editor:
         if not folder:
             self.status.set("Choose the DAT folder before opening an area.")
             return
-        self.navigation_wanted = (folder, cell, position)
+        self.navigation_wanted = (folder, cell, position, target_xy)
         self.status.set(f"Opening area {cell:08x}…")
         if self.navigation_future is None:
             self.start_navigation()
 
     def start_navigation(self):
         from editor_locations import resolve_location
-        folder, cell, position = self.navigation_wanted
+        folder, cell, position, target_xy = self.navigation_wanted
         self.navigation_loading = self.navigation_wanted
-        self.navigation_future = self.executor.submit(self.geometry.resolve_location, folder, cell) if position is None else self.executor.submit(lambda: position)
+        self.navigation_future = self.executor.submit(self.geometry.resolve_location, folder, cell, target_xy) if position is None else self.executor.submit(lambda: position)
         self.root.after(60, self.finish_navigation)
 
     def finish_navigation(self):
@@ -1359,7 +1615,7 @@ class Editor:
             return
         try:
             point = future.result()
-            folder, cell, unused = self.navigation_loading
+            folder, cell = self.navigation_loading[:2]
             if folder != self.game.get().strip():
                 self.status.set("DAT folder changed; open the area again from the refreshed world list.")
                 return
@@ -1425,6 +1681,8 @@ class Editor:
             self.minimap.marker = self.atlas.marker
             if self.library.select() == str(self.page_map):
                 self.minimap.draw()
+            if self.workspace.select() == str(self.position_page):
+                self.preview()
         if self.camera_timer is None:
             self.camera_timer = self.root.after(200, self.stream_camera_area)
 
@@ -1507,6 +1765,7 @@ class Editor:
                                                        "geometry": self.root.geometry(),
                                                        "recent_entities": self.recent_entities,
                                                        "favorite_entities": sorted(self.favorite_entities), "bookmarks": self.bookmarks,
+                                                       "extra_definitions": self.extra_definitions,
                                                        "reference_world": self.population.base_path.get(),
                                                        "hero_map": self.hero_folder.get(),
                                                        "live_address": self.live.address.get(), "live_data": self.live.data_folder.get()}, indent=2), encoding="utf-8")
@@ -1516,7 +1775,7 @@ class Editor:
     def close(self):
         if self.closing:
             return
-        if not self.discard_draft():
+        if not self.discard_draft() or not self.discard_unsaved():
             return
         if self.geometry.project.dirty and not messagebox.askyesno("Unsaved world geometry", "Close without saving the terrain/dungeon project?", parent=self.root):
             return
@@ -1564,8 +1823,24 @@ class Editor:
             unproject = lambda px, py: (x + (px-width/2)/scale, y - (py-height/2)/scale)
             if self.population.map_click(event, unproject):
                 return
-            self.fields["X"].set(format(x + (event.x-width/2)/scale, ".9g"))
-            self.fields["Y"].set(format(y - (event.y-height/2)/scale, ".9g"))
+            px, py = x + (event.x-width/2)/scale, y - (event.y-height/2)/scale
+            ref = getattr(self, "map_cell", None)
+            if ref is not None and 1 <= (ref & 65535) <= 64:
+                # Outdoors the map's frame is its reference landblock: store the canonical cell.
+                side = self.population.block_side()
+                dx, dy = math.floor(px / side), math.floor(py / side)
+                bx, by = (ref >> 24) + dx, ((ref >> 16) & 255) + dy
+                if not (0 <= bx < 255 and 0 <= by < 255):
+                    return
+                px, py = px - dx * side, py - dy * side
+                cell = (bx << 24) | (by << 16) | (1 + min(7, int(px / (side / 8))) * 8 + min(7, int(py / (side / 8))))
+                self.changing_fields = True
+                try:
+                    self.fields["Cell"].set(f"{cell:08x}")
+                finally:
+                    self.changing_fields = False
+            self.fields["X"].set(format(px, ".9g"))
+            self.fields["Y"].set(format(py, ".9g"))
 
     def placement_args(self):
         values = {}
@@ -1579,10 +1854,16 @@ class Editor:
                 expected = ("a hexadecimal identifier" if name in ("Entity", "Cell") else
                             "a whole number from 0 to 255" if name == "Heading" else "a number")
                 raise ValueError(f"{name}: enter {expected}.") from error
+        extra = self.extra_definitions.get(f"{values['Entity']:08x}")
+        prepared = self.prepared_rows().get(f"{self.selected_id:016x}") if self.selected_id is not None else None
+        if prepared and prepared.get("raw") and int(prepared["raw"][1], 16) == values["Entity"]:
+            # A prepared-world override keeps the prepared object's own visual.
+            extra = [prepared["raw"][2], prepared.get("name") or ""]
         return SimpleNamespace(catalog=self.args.catalog, game_data=Path(self.game.get()),
             output=Path(self.output.get()), entity=values["Entity"], cell=values["Cell"],
             position=[values[name] for name in ("X", "Y", "Z")],
-            heading=values["Heading"], scale=values["Scale"])
+            heading=values["Heading"], scale=values["Scale"],
+            visual=int(extra[0], 16) if extra else None)
 
     def save(self):
         if self.closing:
@@ -1608,8 +1889,14 @@ class Editor:
                 self.new_placement()
                 self.status.set(f"Saved object {identity:016x}. Move the draft and Ctrl+S to add the next copy.")
             else:
+                added = self.selected_id is None
                 self.select_saved(identity)
-                self.status.set(f"Saved object {identity:016x}. The running server has not been changed.")
+                if added:
+                    # A new placement is ready to adjust: the move handles show on it at once.
+                    self.view3d.set_tool("move")
+                    self.workspace.select(1)
+                self.status.set(f"Added object {identity:016x} to the working copy. Adjust it: W move · E rotate · R scale "
+                                "(drag in 3D), or type X/Y/Z/Heading and Update placement. Ctrl+S saves the file.")
         except (OSError, ValueError, OverflowError) as error:
             messagebox.showerror("Placement was not saved", str(error), parent=self.root)
             self.status.set(f"Not saved: {error}")
@@ -1628,12 +1915,17 @@ class Editor:
             self.choose_position(None)
 
     def commit_change(self, result):
+        """Apply an edit to the working copy; Save content file writes it."""
+        self.require_loaded_path()
+        rows = rows_from_text(result)
+        if len(result.encode("utf-8")) > 4*1024*1024:
+            raise ValueError("Content exceeds 4 MiB")
         before = self.original
-        commit_document(self.loaded_path, before, result)
+        self.original = result
         self.history.append((before, result))
         self.history = self.history[-20:]
         self.redo_history.clear()
-        self.reload(force=True)
+        self.show_document(rows)
 
     def delete_selected(self):
         identities = self.group_ids or ((self.selected_id,) if self.selected_id is not None else ())
@@ -1673,15 +1965,30 @@ class Editor:
         if self.arrange_dialog is not None:
             return
         if not any(int(row[0], 16) == identity for row in self.placements):
-            # A base-world object: not movable here, but its creature rules are editable.
-            row = self.population.find(f"{identity:016x}")
-            if row is None:
-                self.status.set("Base-world object: read-only here (not a creature).")
+            creature = self.population.find(f"{identity:016x}")
+            if creature is not None and self.library.select() == str(self.page_creatures):
+                # On the Creatures page a prepared creature opens its rules inspector.
+                self.population.refresh_list()
+                self.population.select(creature["id"], inspect=True)
                 return
-            self.library.select(self.page_creatures)
-            self.population.refresh_list()
-            self.population.select(row["id"], inspect=True)
-            return
+            # A prepared-world object: copy it into the working copy as an override under
+            # its own identity, then edit it like any placement. Unchanged overrides are
+            # dropped when the file is saved.
+            base = self.prepared_rows().get(f"{identity:016x}")
+            if base is None or base.get("raw") is None:
+                self.status.set(f"Object {identity:016x} is not in the loaded base world.")
+                return
+            entity, visual = base["raw"][1].lower(), base["raw"][2].lower()
+            if not any(row[0].lower() == entity for row in self.catalog):
+                # The editor needs a definition to draw and validate it; this session only.
+                self.catalog.append([entity, visual, base.get("name") or f"Prepared object {entity}"])
+            try:
+                self.commit_change(adopt_row(self.original, base["raw"], base.get("name")))
+            except (OSError, ValueError) as error:
+                messagebox.showerror("Object could not be selected for editing", str(error), parent=self.root)
+                return
+            self.status.set(f"Prepared object {identity:016x}: W move · E rotate · R scale, then Ctrl+S to save it as an override. "
+                            "Delete reverts it to the prepared world.")
         selected = set(self.group_ids or ([self.selected_id] if self.selected_id is not None else [])) if additive else set()
         if additive and identity in selected:
             selected.remove(identity)
@@ -1742,9 +2049,9 @@ class Editor:
                 return
             before, after = entry
             result = after if forward else before
-            commit_document(self.loaded_path, self.original, result if result is not None else "pyrealium-world-v2\n")
+            self.original = result if result is not None else "pyrealium-world-v2\n"
             destination.append(source.pop())
-            self.reload(force=True)
+            self.show_document(rows_from_text(self.original))
             self.status.set("Redid last file change." if forward else "Undid last file change.")
         except (OSError, ValueError) as error:
             messagebox.showerror("History could not be restored", str(error), parent=self.root)

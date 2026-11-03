@@ -39,6 +39,34 @@ class EditorWorkflowTests(unittest.TestCase):
             self.root.after_cancel(callback)
         self.root.destroy()
 
+    def working(self):
+        """The editor's working copy: edits reach the file only through Save content file."""
+        return self.editor.original
+
+    def test_edits_reach_the_file_only_on_save(self):
+        editor = self.editor
+        self.select()
+        editor.fields["X"].set("45")
+        editor.save()
+        self.assertEqual(read_document(self.path), self.original)
+        self.assertTrue(editor.unsaved())
+        self.assertEqual(str(editor.write_button.cget("state")), "normal")
+        with patch.object(editor.live, "changed") as pushed:
+            editor.save_file()
+        pushed.assert_called_once()
+        self.assertEqual(rows_from_text(read_document(self.path))[0][4], "45")
+        self.assertFalse(editor.unsaved())
+        # Undo is a working-copy edit again, saved by the next Save.
+        editor.undo()
+        self.assertEqual(rows_from_text(read_document(self.path))[0][4], "45")
+        editor.save_file()
+        self.assertEqual(read_document(self.path), self.original)
+        # Closing with unsaved edits asks; Cancel keeps the editor open.
+        editor.redo()
+        with patch("content_editor.messagebox.askyesnocancel", return_value=None):
+            editor.close()
+        self.assertFalse(editor.closing)
+
     def select(self):
         self.editor.objects.selection_set(self.row[:16])
         self.editor.choose_position(None)
@@ -48,27 +76,30 @@ class EditorWorkflowTests(unittest.TestCase):
         self.assertEqual(self.editor.fields["Heading"].get(), "64")
         self.editor.fields["X"].set("45")
         self.editor.save()
-        rows = rows_from_text(read_document(self.path))
+        rows = rows_from_text(self.working())
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0][0], self.row[:16])
         self.assertEqual(rows[0][4], "45")
         self.assertEqual(rows[0][7:11], self.row.split("\t")[7:11])
         self.editor.undo()
-        self.assertEqual(read_document(self.path), self.original)
+        self.assertEqual(self.working(), self.original)
         self.editor.redo()
-        self.assertEqual(rows_from_text(read_document(self.path))[0][4], "45")
+        self.assertEqual(rows_from_text(self.working())[0][4], "45")
 
     def test_duplicate_then_delete(self):
         self.select()
         self.editor.new_placement()
         self.assertIsNone(self.editor.selected_id)
         self.editor.save()
-        self.assertEqual(len(rows_from_text(read_document(self.path))), 2)
+        self.assertEqual(len(rows_from_text(self.working())), 2)
+        # The new placement is selected with the move handles, ready to adjust.
+        self.assertIsNotNone(self.editor.selected_id)
+        self.assertEqual(self.editor.view3d.tool.get(), "move")
         with patch("content_editor.messagebox.askyesno", return_value=True):
             self.editor.delete_selected()
-        self.assertEqual(len(rows_from_text(read_document(self.path))), 1)
+        self.assertEqual(len(rows_from_text(self.working())), 1)
         self.editor.undo()
-        self.assertEqual(len(rows_from_text(read_document(self.path))), 2)
+        self.assertEqual(len(rows_from_text(self.working())), 2)
 
     def test_search_names_and_cell_filter(self):
         self.editor.placement_search.set("Test creature")
@@ -137,7 +168,7 @@ class EditorWorkflowTests(unittest.TestCase):
         future = Future()
         future.set_result([10, 20, 30])
         editor.navigation_future = future
-        editor.navigation_loading = (editor.game.get(), 0x74ba0010, None)
+        editor.navigation_loading = (editor.game.get(), 0x74ba0010, None, None)
         editor.navigation_wanted = editor.navigation_loading
         editor.finish_navigation()
         self.assertEqual(editor.field_snapshot(), before)
@@ -159,6 +190,103 @@ class EditorWorkflowTests(unittest.TestCase):
         self.assertEqual(editor.wanted[0][1], 0x75ba0001)
         self.assertEqual(editor.wanted[0][2], 0)
 
+    def test_position_map_follows_the_camera_over_terrain(self):
+        import tempfile
+        from pathlib import Path
+        from types import SimpleNamespace
+        editor = self.editor
+        editor.outdoor_grid = {"block_side": 160, "cell_side": 20, "cells": 8}
+        editor.active_scene_cell = 0x74ba0001
+        editor.view3d.set_tool("explore")
+        folder = Path(tempfile.mkdtemp(dir=self.folder))
+        (folder / "blocks").mkdir()
+        tile = tk.PhotoImage(master=self.root, width=64, height=64)
+        tile.put("#79a039", to=(0, 0, 64, 64))
+        tile.write(str(folder / "blocks" / "75ba.png"), format="png")
+        editor.atlas.export = dict(folder=folder, blocks={"75ba"}, notes=[])
+        canvas = editor.canvas
+        with patch.object(editor.view3d, "get_navigation_point", return_value=(170, 15, 30)), \
+                patch.object(canvas, "winfo_width", return_value=600), patch.object(canvas, "winfo_height", return_value=400):
+            # The camera has crossed east into the next landblock's first cell.
+            self.assertEqual(editor.camera_cell(), (0x75ba0001, (10, 15)))
+            editor.preview()
+            texts = [canvas.itemcget(item, "text") for item in canvas.find_all() if canvas.type(item) == "text"]
+            self.assertTrue(any(text.startswith("Landblock 75BA · cell 75BA0001") and text.endswith("camera") for text in texts), texts)
+            self.assertTrue(any(canvas.type(item) == "image" for item in canvas.find_all()), "terrain tile drawn")
+            self.assertTrue(editor.map_tiles)
+            # Zooming keeps the camera's block; a click places the draft in canonical cell terms.
+            span = editor.map_view[3]
+            editor.zoom_step(1)
+            self.assertLess(editor.map_view[3], span)
+            x, y, scale, width, height = editor.transform
+            editor.pick_position(SimpleNamespace(x=width / 2 + (25 - x) * scale, y=height / 2 - (35 - y) * scale))
+        self.assertEqual(editor.fields["Cell"].get(), "75ba000a")
+        self.assertAlmostEqual(float(editor.fields["X"].get()), 25, places=3)
+        self.assertAlmostEqual(float(editor.fields["Y"].get()), 35, places=3)
+
+    def test_prepared_world_objects_are_moved_through_overrides(self):
+        from editor_population import read_reference
+        editor = self.editor
+        base_file = self.folder / "prepared.tsv"
+        base_file.write_text("pyrealium-world-v4\n"
+                             "8140000000000009\t47000001\t1f000001\t02990109\t5\t6\t7\t1\t0\t0\t0\t-\tGuard\n"
+                             "814000000000000a\t47000222\t1f000333\t02990109\t1\t1\t1\t1\t0\t0\t0\t-\t-\n", encoding="utf-8")
+        editor.population.reference = read_reference(base_file)
+        # Selecting the prepared object copies it into the working copy under its own id.
+        editor.select_in_view(0x8140000000000009)
+        self.assertEqual(editor.selected_id, 0x8140000000000009)
+        self.assertEqual(rows_from_text(editor.original)[-1][:7], ["8140000000000009", "47000001", "1f000001", "02990109", "5", "6", "7"])
+        self.assertEqual(editor.delete_button.cget("text"), "Revert to prepared world")
+        # Saving an unchanged override writes nothing for it.
+        editor.save_file()
+        self.assertNotIn("8140000000000009", read_document(self.path))
+        # Moved, it is saved as an override with the prepared identity.
+        editor.select_in_view(0x8140000000000009)
+        editor.fields["X"].set("9")
+        editor.save()
+        editor.save_file()
+        saved = [row for row in rows_from_text(read_document(self.path)) if row[0] == "8140000000000009"]
+        self.assertEqual(saved[0][4], "9")
+        self.assertIn("# Prepared-world override: Guard", read_document(self.path))
+        # Deleting the override reverts the object to the prepared world.
+        with patch("content_editor.messagebox.askyesno", return_value=True):
+            editor.delete_selected()
+        editor.save_file()
+        self.assertNotIn("8140000000000009", read_document(self.path))
+        # A prepared object whose entity the catalog lacks keeps its own visual.
+        editor.select_in_view(0x814000000000000a)
+        editor.fields["Y"].set("4")
+        editor.save()
+        editor.save_file()
+        saved = [row for row in rows_from_text(read_document(self.path)) if row[0] == "814000000000000a"]
+        self.assertEqual(saved[0][1:3], ["47000222", "1f000333"])
+
+    def test_entity_search_takes_ids_as_copied(self):
+        editor = self.editor
+        for typed in ("47000001", "0x47000001", "0X47000001", "test creature"):
+            editor.search.set(typed)
+            values = [editor.entities.item(iid, "values") for iid in editor.entities.get_children()]
+            self.assertEqual([v[0] for v in values], ["47000001"], typed)
+        # An entity the DATs hold but the catalog lacks offers to choose its visual.
+        with patch("ac2_dat.Dat", MagicMock()):
+            editor.search.set("0x470012f5")
+        self.assertEqual(editor.entities.get_children(), ("uncatalogued",))
+        with patch("ac2_dat.Dat", MagicMock(side_effect=KeyError)):
+            editor.search.set("470012f6")
+        self.assertEqual(editor.entities.get_children(), ())
+
+    def test_uncatalogued_entity_places_with_its_chosen_visual(self):
+        editor = self.editor
+        editor.extra_definitions["470012f5"] = ["1f000627", "Ancestor Head (Darkstone)"]
+        editor.load_catalog()
+        self.select()
+        editor.new_placement()
+        editor.fields["Entity"].set("470012f5")
+        self.assertEqual(editor.selection_name.get(), "Ancestor Head (Darkstone)")
+        editor.save()
+        rows = rows_from_text(self.working())
+        self.assertEqual(rows[-1][1:3], ["470012f5", "1f000627"])
+
     def test_keep_adding_allocates_distinct_objects(self):
         self.select()
         self.editor.new_placement()
@@ -167,7 +295,7 @@ class EditorWorkflowTests(unittest.TestCase):
         self.assertIsNone(self.editor.selected_id)
         self.editor.fields["X"].set("5")
         self.editor.save()
-        rows = rows_from_text(read_document(self.path))
+        rows = rows_from_text(self.working())
         self.assertEqual(len(rows), 3)
         self.assertEqual(len({row[0] for row in rows}), 3)
 
@@ -198,31 +326,31 @@ class EditorWorkflowTests(unittest.TestCase):
 
     def test_group_arrangement_commits_one_undoable_edit(self):
         self.seed_group()
-        before = read_document(self.path)
+        before = self.working()
         with patch.object(tk.Toplevel, "grab_set"):
             self.editor.open_arrange()
         dialog = self.editor.arrange_dialog
         self.assertIsNotNone(dialog)
         dialog.fields["Offset X"].set("5")
         dialog.preview()
-        self.assertEqual(read_document(self.path), before)
+        self.assertEqual(self.working(), before)
         with patch("editor_arrange.Dat", MagicMock()):
             dialog.apply()
         self.assertIsNone(self.editor.arrange_dialog)
-        rows = rows_from_text(read_document(self.path))
+        rows = rows_from_text(self.working())
         self.assertEqual([r[4] for r in rows], ["6", "8"])
         self.assertEqual(len(self.editor.history), 1)
         self.editor.undo()
-        self.assertEqual(read_document(self.path), before)
+        self.assertEqual(self.working(), before)
 
     def test_group_delete_undo_restores_entire_selection(self):
         self.seed_group()
-        before = read_document(self.path)
+        before = self.working()
         with patch("content_editor.messagebox.askyesno", return_value=True):
             self.editor.delete_selected()
-        self.assertEqual(rows_from_text(read_document(self.path)), [])
+        self.assertEqual(rows_from_text(self.working()), [])
         self.editor.undo()
-        self.assertEqual(read_document(self.path), before)
+        self.assertEqual(self.working(), before)
 
     def test_direct_drag_commits_once_and_undo_restores_object(self):
         self.select()
@@ -230,13 +358,13 @@ class EditorWorkflowTests(unittest.TestCase):
         editor.view3d.set_tool("move")
         self.assertTrue(editor.object_tools.transform("move", {}, "begin"))
         editor.object_tools.transform("move", dict(translation=(5, 0, 0)), "preview")
-        self.assertEqual(read_document(self.path), self.original)
+        self.assertEqual(self.working(), self.original)
         with patch("editor_arrange.Dat", MagicMock()):
             editor.object_tools.transform("move", {}, "commit")
-        self.assertEqual(rows_from_text(read_document(self.path))[0][4], "6")
+        self.assertEqual(rows_from_text(self.working())[0][4], "6")
         self.assertEqual(len(editor.history), 1)
         editor.undo()
-        self.assertEqual(read_document(self.path), self.original)
+        self.assertEqual(self.working(), self.original)
 
     def test_cancel_drag_restores_fields_and_leaves_file_untouched(self):
         self.select()
@@ -246,5 +374,5 @@ class EditorWorkflowTests(unittest.TestCase):
         editor.object_tools.transform("rotate", dict(degrees=90), "preview")
         editor.object_tools.transform("rotate", {}, "cancel")
         self.assertEqual(editor.field_snapshot(), before)
-        self.assertEqual(read_document(self.path), self.original)
+        self.assertEqual(self.working(), self.original)
         self.assertEqual(editor.history, [])

@@ -2747,7 +2747,10 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
     }
     if let Some(path) = config.content_overlay.as_deref().filter(|path| !path.exists() && config.admin_bind.is_some()) {
         println!("World-builder overlay {} does not exist yet; live edits will create it.", path.display());
-    } else if let Some(path) = config.content_overlay.as_deref() {
+    }
+    // The prepared world under the overlay: live edits override and restore its objects.
+    let base_objects = if config.admin_bind.is_some() { content.object_map() } else { BTreeMap::new() };
+    if let Some(path) = config.content_overlay.as_deref().filter(|path| path.exists()) {
         let directory = config.game_data.as_deref().ok_or_else(|| invalid("--content-overlay requires --game-data"))?;
         let added = content.extend(path, directory)?;
         println!("Loaded {added} world-builder overlay objects from {}.", path.display());
@@ -2939,7 +2942,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
     let admin = match (config.admin_bind, config.content_overlay.clone(), sidecar) {
         (Some(bind), Some(world), Some(rules)) => Some(crate::admin::start(bind, &config.data,
             config.game_data.clone().ok_or_else(|| invalid("--admin-bind requires --game-data"))?,
-            crate::admin::Paths { world, rules })?),
+            crate::admin::Paths { world, rules }, base_objects)?),
         _ => None,
     };
     let mut next_resource_cleanup=0;

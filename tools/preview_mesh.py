@@ -100,9 +100,9 @@ def decode_mesh(data):
     did = reader.u32()
     if did >> 24 not in (1, 6):
         raise MeshFormatError(f"not a CDataMesh/CCellMesh record: {did:#010x}")
+    # CGfxObj::mesh_type is the category appearance atoms select meshes by; every
+    # category is streamed the same way (AC2_Rusted ac2_mesh), so none is refused.
     mesh_type = reader.u32()
-    if mesh_type != 2:
-        raise MeshFormatError(f"unsupported native mesh type {mesh_type}")
     material_count = reader.u32()
     if not 0 <= material_count <= 4096:
         raise MeshFormatError("invalid native mesh material count")

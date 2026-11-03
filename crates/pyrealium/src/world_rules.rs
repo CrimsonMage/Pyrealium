@@ -102,6 +102,8 @@ impl Rules {
         File::open(path)?.take(MAX_BYTES + 1).read_to_end(&mut bytes)?;
         if bytes.len() as u64 > MAX_BYTES { return Err(invalid("world rules exceed 4 MiB")); }
         let text = std::str::from_utf8(&bytes).map_err(|_| invalid("world rules are not UTF-8"))?;
+        // A live sync without rules saves an empty file; it means no rules, as it does live.
+        if text.trim().is_empty() { return Ok(Self::default()); }
         Self::parse(text).map_err(|error| invalid(format!("{}: {error}", path.display())))
     }
 
@@ -227,6 +229,15 @@ impl Rules {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn an_empty_rules_file_is_no_rules() {
+        let path = std::env::temp_dir().join(format!("pyrealium-empty-rules-{}.tsv", std::process::id()));
+        std::fs::write(&path, "").unwrap();
+        let rules = super::Rules::load(&path).unwrap();
+        std::fs::remove_file(&path).unwrap();
+        assert!(rules == super::Rules::default());
+    }
+
     use super::*;
     const SAMPLE: &str = "pyrealium-world-rules-v1\n# comment\n\
 stats\t470007d1\t500\t40\t-\t20\t-\t-\t-\t-\t-\t-\n\

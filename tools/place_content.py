@@ -48,6 +48,10 @@ def _place(args):
             raise ValueError("invalid catalog record")
         if int(fields[0],16) == args.entity:
             matches.append((int(fields[1],16),fields[2]))
+    if getattr(args, "visual", None) is not None:
+        # An explicit visual: an entity the catalog lacks (the author chose it), or a
+        # prepared-world override, which keeps the prepared object's own visual.
+        matches = [(args.visual, "")]
     if len(matches) != 1:
         raise ValueError("definition is missing or ambiguous")
     visual,label = matches[0]

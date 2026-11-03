@@ -129,3 +129,59 @@ def prepare_change(args, original, identity=None, delete=False, preserve_orienta
 
 def heading_from_row(row):
     return round((math.atan2(-float(row[10]), float(row[7])) * 255 / math.pi) % 255)
+
+
+def adopt_row(original, raw, label=None):
+    """The working copy with a prepared-world object copied in under its own identity.
+
+    The server lets a content-file object with a prepared-world identity replace that
+    object, so the copy is an override: moving, turning or rescaling it moves the
+    prepared object, and deleting it puts the prepared object back. `raw` is the
+    prepared row's first 12 fields (identity ... quaternion, scale or "-").
+    """
+    text = original if original is not None else "pyrealium-world-v2\n"
+    lines = text.splitlines()
+    identity = raw[0].lower()
+    if any(row[0].lower() == identity for row in rows_from_text(text)):
+        return text
+    fields = list(raw[:11])
+    scale = raw[11] if len(raw) >= 12 else "-"
+    header = lines[0]
+    if scale != "-" and header == "pyrealium-world-v2":
+        # Scale needs the v3 layout; existing rows keep the native size.
+        lines = ["pyrealium-world-v3"] + [line + "\t-" if line and not line.startswith("#") else line for line in lines[1:]]
+        header = lines[0]
+    if header == "pyrealium-world-v3":
+        fields.append(scale)
+    lines.append("# Prepared-world override" + (f": {label}" if label else ""))
+    lines.append("\t".join(fields))
+    return "\n".join(lines) + "\n"
+
+
+def drop_unchanged_overrides(text, base):
+    """Remove override rows identical to the prepared object they copy (and their comment)."""
+    lines = text.splitlines()
+    keep = []
+    for index, line in enumerate(lines):
+        if line and not line.startswith("#"):
+            fields = line.split("\t")
+            prepared = base.get(fields[0].lower())
+            if prepared is not None and _same_row(fields, prepared):
+                if keep and keep[-1].startswith("# Prepared-world override"):
+                    keep.pop()
+                continue
+        keep.append(line)
+    return "\n".join(keep) + "\n"
+
+
+def _same_row(fields, prepared):
+    if [value.lower() for value in fields[:4]] != [value.lower() for value in prepared[:4]]:
+        return False
+    try:
+        if any(abs(float(a) - float(b)) > 1e-4 for a, b in zip(fields[4:11], prepared[4:11])):
+            return False
+    except ValueError:
+        return False
+    mine = fields[11] if len(fields) >= 12 else "-"
+    theirs = prepared[11] if len(prepared) >= 12 else "-"
+    return mine == theirs or (mine != "-" and theirs != "-" and abs(float(mine) - float(theirs)) <= 1e-4)

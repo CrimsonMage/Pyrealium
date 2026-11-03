@@ -76,7 +76,11 @@ def visual_record(data, did):
         if flags & bit:
             reader.take("f")
     if flags & 0x80:
-        raise ValueError("Visual icon-layer list is not supported yet")
+        # IconDesc::StreamPack: a count, then (layer id, image DID, shift colour) per layer.
+        count = reader.take("I")
+        if count > 4096 or count * 12 > len(data) - reader.offset:
+            raise ValueError("Visual icon-layer count exceeds the record")
+        result["icons"] = [reader.take("III") for unused in range(count)]
     if flags & 0x100:
         result["global"] = group(reader)
     if flags & 0x200:
@@ -251,15 +255,29 @@ class Assets:
         return result
 
     def creature(self, visual):
+        """The visual's meshes, each part group placed at its parent's connection point.
+
+        A mesh of an attached (non-root) group is a moved copy marked `attached`; the root
+        group's meshes are the cached ones, so the preview's animation drives only those.
+        """
+        from editor_setup import decode_setup, place_groups, placed_mesh
         description = self.visual(visual)
         groups = list(description["groups"].values())
-        if len(groups) != 1 or groups[0].get("parent", 0):
-            raise ValueError("Attached multi-part visual groups need connection-frame support")
-        setup = groups[0].get("setup", 0)
-        if setup >> 24 != 4:
+        if not any(group.get("setup", 0) >> 24 == 4 for group in groups):
             raise ValueError("Visual has no supported character setup")
-        return [(self.mesh(did), description.get("scale", (1, 1, 1)))
-                for did in setup_meshes(self.portal.read(setup), setup)]
+        setups = {}
+        def read_setup(did):
+            if did not in setups:
+                setups[did] = decode_setup(self.portal.read(did), did)
+            return setups[did]
+        scale = description.get("scale", (1, 1, 1))
+        result = []
+        for setup, root in place_groups([g for g in groups if g.get("setup", 0) >> 24 == 4], read_setup):
+            for did in setup_meshes(self.portal.read(setup), setup):
+                result.append((placed_mesh(self.mesh(did), root), scale))
+        if not result:
+            raise ValueError("Visual's part groups do not resolve to a root group")
+        return result
 
     def animation(self, visual):
         from preview_animation import load_animation_set
@@ -304,7 +322,7 @@ class Assets:
             try:
                 animation = self.animation(visual)
                 for instance in instances:
-                    if instance["role"] == "preview":
+                    if instance["role"] == "preview" and not instance["mesh"].get("attached"):
                         try:
                             animation.prepare_mesh(instance["mesh"])
                             instance["animation_set"] = animation

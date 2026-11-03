@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 
 from editor_document import (commit_document, prepare_change, read_document,
-                             rows_from_text, heading_from_row)
+                             rows_from_text, heading_from_row, adopt_row, drop_unchanged_overrides)
 
 
 class DocumentTests(unittest.TestCase):
@@ -42,6 +42,39 @@ class DocumentTests(unittest.TestCase):
         result, identity = prepare_change(self.args, self.original)
         self.assertEqual(len(rows_from_text(result)), 2)
         self.assertNotEqual(identity, int(self.row[:16], 16))
+
+    def test_uncatalogued_entity_takes_the_chosen_visual(self):
+        self.args.entity = 0x470012f5
+        with self.assertRaises(ValueError):
+            prepare_change(self.args, self.original)
+        self.args.visual = 0x1f000627
+        result, _ = prepare_change(self.args, self.original)
+        row = rows_from_text(result)[1]
+        self.assertEqual(row[1:3], ["470012f5", "1f000627"])
+        # An explicit visual wins even for a catalogued entity (a prepared-world override
+        # keeps its own); without one the catalog's is used.
+        self.args.entity = 0x47000001
+        result, _ = prepare_change(self.args, self.original)
+        self.assertEqual(rows_from_text(result)[1][2], "1f000627")
+        self.args.visual = None
+        result, _ = prepare_change(self.args, self.original)
+        self.assertEqual(rows_from_text(result)[1][2], "1f000001")
+
+    def test_prepared_overrides_adopt_and_prune(self):
+        raw = ["8140000000000009", "47000001", "1f000001", "02990109", "5", "6", "7", "1", "0", "0", "0", "2"]
+        adopted = adopt_row(self.original, raw, "Guard")
+        # A scaled prepared object needs the v3 layout; the existing row keeps native size.
+        self.assertTrue(adopted.startswith("pyrealium-world-v3\n"))
+        rows = rows_from_text(adopted)
+        self.assertEqual(rows[0][-1], "-")
+        self.assertEqual(rows[1], raw)
+        self.assertEqual(adopt_row(adopted, raw), adopted, "adopting twice changes nothing")
+        base = {raw[0]: raw}
+        pruned = drop_unchanged_overrides(adopted, base)
+        self.assertNotIn("8140000000000009", pruned)
+        self.assertNotIn("Prepared-world override", pruned)
+        moved = adopted.replace("\t5\t6\t7\t", "\t5.5\t6\t7\t")
+        self.assertIn("8140000000000009", drop_unchanged_overrides(moved, base))
 
     def test_scale_upgrade_preserves_other_rows(self):
         self.args.scale = 1.5
