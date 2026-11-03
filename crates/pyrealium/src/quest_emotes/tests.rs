@@ -663,3 +663,27 @@ fn take_gold_pays_or_fails_the_set() {
     assert!(matches!(o.changes.as_slice(), [crate::progression::Command::SpendGold(1000)]));
     assert!(t.run(Trigger::Use, 0x47000002, 0, None, &Book::default(), &none, &Progression::default(), first(&none), 0.0, 1, &item).is_err());
 }
+
+/// A quest sent back to its offer (stage 0, as an escort's death does) is shown failed in the
+/// journal (status 0x20000000, gmQuestInfo::InqExtraText's ID_Quest_Failed) with the line it last
+/// showed; the next run's stage 1 is under way again.
+#[test]
+fn a_quest_sent_back_to_its_offer_is_shown_failed() {
+    let t = shipped();
+    let quest = t.quest("v227").unwrap().journal_id;
+    let book = |stage| Book::default().apply(&crate::quests::Command::Stage { quest, stage }).unwrap();
+    let words = |e: &Vec<u8>| e.windows(4).map(|w| u32::from_le_bytes([w[0], w[1], w[2], w[3]])).collect::<Vec<_>>();
+    let failed = book(0).updates_since(&book(3)).unwrap();
+    assert_eq!(failed.len(), 1);
+    assert!(words(&failed[0]).contains(&0x2000_0000), "the failed status");
+    // The same entry as stage 3 under way, the status words aside.
+    let mut shown = book(3).updates_since(&book(2)).unwrap().remove(0);
+    let under = 0x1000_0000u32.to_le_bytes();
+    for i in 0..shown.len().saturating_sub(3) {
+        if shown[i..i + 4] == under { shown[i..i + 4].copy_from_slice(&0x2000_0000u32.to_le_bytes()); }
+    }
+    assert_eq!(failed[0], shown, "its last line");
+    let again = book(1).updates_since(&book(0)).unwrap();
+    assert!(!words(&again[0]).contains(&0x2000_0000));
+    assert!(book(0).updates_since(&book(0)).unwrap().is_empty());
+}

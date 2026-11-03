@@ -11,6 +11,8 @@ pub const UPDATE: u32 = 0x82130024;
 const ICON: u32 = 0x4100034b;
 const UNDERWAY: u32 = 0x10000000;
 const COMPLETED: u32 = 0x30000000;
+/// gmQuestInfo::InqExtraText 0060aca0: ID_Quest_Failed.
+const FAILED: u32 = 0x20000000;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Progress {
@@ -418,6 +420,17 @@ impl Book {
             args.extend(script::integer(if stage_completed(quest,stage) {COMPLETED} else {UNDERWAY}));
             events.push(script::private_call(UPDATE,&args)?);
         }
+        // A quest sent back to its offer (stage 0: an escort fell) is shown failed: the status
+        // gmQuestInfo::InqExtraText 0060aca0 reads as ID_Quest_Failed, which the journal
+        // (gmJournalQuestsUI::RecvNotice_UpdateQuests 0043f1e0) files with the finished ones, with
+        // the line it last showed. A new run's stage 1 moves it back under way. Not sent at login
+        // (the journal lists stage-0 quests nowhere).
+        for (quest, was) in previous.journal_stages().filter(|(q, _)| self.stage(*q) == 0) {
+            let mut args=script::integer(0);
+            args.extend(native_graph(0xa0,&stage_payload_as(quest,was,self.timer(quest),previous.count(quest),true,Some(FAILED))?));
+            args.extend(script::integer(FAILED));
+            events.push(script::private_call(UPDATE,&args)?);
+        }
         Ok(events)
     }
 }
@@ -440,6 +453,10 @@ fn stage_completed(quest: u32, stage: u8) -> bool {
 /// A data-driven quest's journal entry: the registry's title and level, the stage's line and the
 /// run's start and solve times.
 fn stage_payload(quest: u32, stage: u8, timer: Timer, count: u16, play_fx: bool) -> Result<Vec<u8>, WorldError> {
+    stage_payload_as(quest, stage, timer, count, play_fx, None)
+}
+/// [`stage_payload`] with the status given (`FAILED`) in place of the stage's.
+fn stage_payload_as(quest: u32, stage: u8, timer: Timer, count: u16, play_fx: bool, status: Option<u32>) -> Result<Vec<u8>, WorldError> {
     let tables = crate::quest_emotes::tables().ok_or(WorldError::InvalidValue)?;
     let registry = tables.quests().find(|q| q.journal_id == quest).ok_or(WorldError::InvalidValue)?;
     let title = &registry.title_text;
@@ -449,7 +466,8 @@ fn stage_payload(quest: u32, stage: u8, timer: Timer, count: u16, play_fx: bool)
     let mut bytes=Vec::new(); word(&mut bytes,quest);
     bytes.extend(world::literal_name(title)?);
     bytes.extend(world::literal_name(text)?);
-    word(&mut bytes,ICON); word(&mut bytes,if done {COMPLETED} else {UNDERWAY}); word(&mut bytes,1);
+    let done = done && status.is_none();
+    word(&mut bytes,ICON); word(&mut bytes,status.unwrap_or(if done {COMPLETED} else {UNDERWAY})); word(&mut bytes,1);
     bytes.extend(world::literal_name(text)?);
     let time = |t: u64| if t == 0 { -1.0f64 } else { t as f64 };
     word(&mut bytes,u32::from(registry.min_level.max(1))); bytes.extend(time(timer.started).to_le_bytes());
