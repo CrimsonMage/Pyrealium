@@ -1,4 +1,4 @@
-//! The `shard` schema: saved characters, their items, ground items and world-wide values.
+//! The game tables: saved characters, their items, ground items and world-wide values.
 //! `Store` owns the in-memory state and builds a `Snapshot` of what changed; this module only
 //! moves rows.
 use super::{error, from_sql, invalid, to_sql};
@@ -66,7 +66,7 @@ pub fn save(client: &mut Client, snapshot: &Snapshot) -> io::Result<()> {
     let mut tx = client.transaction().map_err(error)?;
     let upsert = tx
         .prepare(
-            "INSERT INTO shard.characters (id, account, name, name_key, deleted, instance, xp,
+            "INSERT INTO characters (id, account, name, name_key, deleted, instance, xp,
                 available_xp, gold, health, vigor, cell, x, y, z, heading, item_high_water,
                 training_kit, training_supplies, starter_gear, creation, binding, ui,
                 gameplay_options, hotbar, skills, professions, quests, tradeskills, saved_at)
@@ -126,10 +126,10 @@ pub fn save(client: &mut Client, snapshot: &Snapshot) -> io::Result<()> {
     // Delete every saved character's items before inserting any, so an item that moved between
     // two characters in this snapshot never collides with its old row.
     let ids: Vec<i64> = snapshot.characters.iter().map(|c| to_sql(c.id)).collect();
-    tx.execute("DELETE FROM shard.items WHERE character_id = ANY($1)", &[&ids]).map_err(error)?;
+    tx.execute("DELETE FROM items WHERE character_id = ANY($1)", &[&ids]).map_err(error)?;
     let insert = tx
         .prepare(
-            "INSERT INTO shard.items (id, character_id, definition, visual, quantity, stack_limit,
+            "INSERT INTO items (id, character_id, definition, visual, quantity, stack_limit,
                 equipment_mask, equipped, slot, roll) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
         )
         .map_err(error)?;
@@ -139,12 +139,12 @@ pub fn save(client: &mut Client, snapshot: &Snapshot) -> io::Result<()> {
         }
     }
     if let Some(ground) = &snapshot.ground {
-        tx.execute("DELETE FROM shard.ground_items", &[]).map_err(error)?;
+        tx.execute("DELETE FROM ground_items", &[]).map_err(error)?;
         for d in ground {
             let item = serde_json::to_value(&d.item).map_err(io::Error::other)?;
             let [x, y, z] = d.placement.coordinates;
             tx.execute(
-                "INSERT INTO shard.ground_items (id, item, cell, x, y, z, heading)
+                "INSERT INTO ground_items (id, item, cell, x, y, z, heading)
                  VALUES ($1,$2,$3,$4,$5,$6,$7)",
                 &[&to_sql(d.id()), &item, &i64::from(d.placement.cell), &x, &y, &z, &i16::from(d.placement.heading)],
             )
@@ -184,7 +184,7 @@ pub fn load(client: &mut Client) -> io::Result<(Vec<CharacterRow>, Vec<DroppedIt
     for r in client
         .query(
             "SELECT id, character_id, definition, visual, quantity, stack_limit, equipment_mask,
-                equipped, slot, roll FROM shard.items ORDER BY id",
+                equipped, slot, roll FROM items ORDER BY id",
             &[],
         )
         .map_err(error)?
@@ -208,7 +208,7 @@ pub fn load(client: &mut Client) -> io::Result<(Vec<CharacterRow>, Vec<DroppedIt
             "SELECT id, account, name, deleted, instance, xp, available_xp, gold, health, vigor,
                 cell, x, y, z, heading, item_high_water, training_kit, training_supplies,
                 starter_gear, creation, binding, ui, gameplay_options, hotbar, skills,
-                professions, quests, tradeskills FROM shard.characters ORDER BY id",
+                professions, quests, tradeskills FROM characters ORDER BY id",
             &[],
         )
         .map_err(error)?
@@ -257,7 +257,7 @@ pub fn load(client: &mut Client) -> io::Result<(Vec<CharacterRow>, Vec<DroppedIt
     }
     let mut ground = Vec::new();
     for r in client
-        .query("SELECT id, item, cell, x, y, z, heading FROM shard.ground_items ORDER BY id", &[])
+        .query("SELECT id, item, cell, x, y, z, heading FROM ground_items ORDER BY id", &[])
         .map_err(error)?
     {
         let d = DroppedItem {
@@ -276,10 +276,10 @@ pub fn load(client: &mut Client) -> io::Result<(Vec<CharacterRow>, Vec<DroppedIt
     Ok((characters, ground))
 }
 
-/// A world-wide value (`shard.world_state`), if set.
+/// A world-wide value (`world_state`), if set.
 pub fn world_value(client: &mut impl GenericClient, key: &str) -> io::Result<Option<Value>> {
     Ok(client
-        .query_opt("SELECT value FROM shard.world_state WHERE key = $1", &[&key])
+        .query_opt("SELECT value FROM world_state WHERE key = $1", &[&key])
         .map_err(error)?
         .map(|r| r.get(0)))
 }
@@ -287,7 +287,7 @@ pub fn world_value(client: &mut impl GenericClient, key: &str) -> io::Result<Opt
 /// Sets `key` only if it is unset; returns the value now stored.
 pub fn world_value_init(client: &mut impl GenericClient, key: &str, value: &Value) -> io::Result<Value> {
     client
-        .execute("INSERT INTO shard.world_state (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", &[&key, value])
+        .execute("INSERT INTO world_state (key, value) VALUES ($1, $2) ON CONFLICT (key) DO NOTHING", &[&key, value])
         .map_err(error)?;
     world_value(client, key)?.ok_or_else(|| invalid(format!("world value {key} vanished")))
 }
@@ -295,7 +295,7 @@ pub fn world_value_init(client: &mut impl GenericClient, key: &str, value: &Valu
 pub fn world_value_set(client: &mut impl GenericClient, key: &str, value: &Value) -> io::Result<()> {
     client
         .execute(
-            "INSERT INTO shard.world_state (key, value) VALUES ($1, $2)
+            "INSERT INTO world_state (key, value) VALUES ($1, $2)
              ON CONFLICT (key) DO UPDATE SET value = excluded.value",
             &[&key, value],
         )
@@ -308,7 +308,7 @@ pub fn world_value_set(client: &mut impl GenericClient, key: &str, value: &Value
 pub fn account_owns_characters(client: &mut impl GenericClient, account: &str) -> io::Result<bool> {
     Ok(client
         .query_opt(
-            "SELECT 1 FROM shard.characters WHERE lower(account) = $1 LIMIT 1",
+            "SELECT 1 FROM characters WHERE lower(account) = $1 LIMIT 1",
             &[&account.to_ascii_lowercase()],
         )
         .map_err(error)?

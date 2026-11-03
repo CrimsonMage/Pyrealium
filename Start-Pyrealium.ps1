@@ -1,5 +1,5 @@
 # Start Pyrealium from pyrealium.toml (beside this script). The first run writes a commented
-# pyrealium.toml to edit (DAT directory and PostgreSQL database), like ACE's Config.js.
+# pyrealium.toml to edit (DAT directory and PostgreSQL database).
 [CmdletBinding()]
 param(
     [string]$Config = (Join-Path $PSScriptRoot 'pyrealium.toml'),

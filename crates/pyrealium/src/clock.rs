@@ -7,7 +7,7 @@ use std::{
     time::{Instant, SystemTime, UNIX_EPOCH},
 };
 
-/// `shard.world_state` key of the world's clock origin.
+/// `world_state` key of the world's clock origin.
 const KEY: &str = "clock_origin";
 
 #[derive(Serialize, Deserialize)]

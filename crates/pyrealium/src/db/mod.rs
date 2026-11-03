@@ -1,6 +1,6 @@
-//! PostgreSQL persistence. One database holds three schemas, after ACE's auth/shard/world split:
-//! `auth` (accounts, login tickets), `shard` (characters, their items, ground items, world state,
-//! GUN lists) and `world` (prepared content). DAT files never enter the database; they stay on
+//! PostgreSQL persistence. One database, every table in its default schema: accounts and login
+//! tickets, characters with their items, ground items, world state, GUN lists, and the prepared
+//! content (`content_files`, `content_meta`). DAT files never enter the database; they stay on
 //! disk and are read on demand.
 //!
 //! The game loop never waits on SQL during play: `Writer` runs one connection on its own thread
@@ -21,6 +21,7 @@ pub const SERVER_LOCK: i64 = 0x5059_524c;
 /// Embedded migrations, applied in order. Never edit a published one; add the next number.
 const MIGRATIONS: &[(i32, &str, &str)] = &[
     (1, "initial", include_str!("../../migrations/0001_initial.sql")),
+    (2, "one_schema", include_str!("../../migrations/0002_one_schema.sql")),
 ];
 
 pub fn error(e: postgres::Error) -> io::Error {
@@ -69,8 +70,7 @@ impl Database {
             Err(e) => Err(io::Error::other(format!("cannot connect to PostgreSQL database {:?}: {}", self.name(), error(e)))),
         }
     }
-    /// Creates the database when it does not exist and the role may (ACE does the same on its
-    /// first start); otherwise reports the commands an administrator must run.
+    /// Creates the database when it does not exist and the role may; otherwise reports the commands an administrator must run.
     pub fn ensure_exists(&self) -> io::Result<()> {
         let mut config = self.config();
         let name = self.name();

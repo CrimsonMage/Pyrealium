@@ -9,7 +9,7 @@
 //!
 //! Identity is the ticket the client presents (`PresentTicketCmd`): in developer mode (loopback
 //! only) the account name; with an account store the web backend's `account:token` ticket, spent
-//! once. Friends and the ignore list persist per account in `shard.gun_users`. Presence follows two sources: the GUN sessions themselves (`SetLoc` flags) and the
+//! once. Friends and the ignore list persist per account in `gun_users`. Presence follows two sources: the GUN sessions themselves (`SetLoc` flags) and the
 //! game server's characters in the world ([`publish_online`]).
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -352,7 +352,7 @@ impl Hub {
         let lists = serde_json::to_value(user)?;
         client
             .execute(
-                "INSERT INTO shard.gun_users (account, lists) VALUES ($1, $2)
+                "INSERT INTO gun_users (account, lists) VALUES ($1, $2)
                  ON CONFLICT (account) DO UPDATE SET lists = excluded.lists",
                 &[&account, &lists],
             )
@@ -956,7 +956,7 @@ pub fn start(config: GunConfig) -> io::Result<GunHandle> {
     let mut client = config.database.connect()?;
     crate::db::migrate(&mut client)?;
     let mut users = BTreeMap::new();
-    for row in client.query("SELECT account, lists FROM shard.gun_users", &[]).map_err(crate::db::error)? {
+    for row in client.query("SELECT account, lists FROM gun_users", &[]).map_err(crate::db::error)? {
         let user: User = serde_json::from_value(row.get(1)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
         users.insert(row.get::<_, String>(0), user);
     }

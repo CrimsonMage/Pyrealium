@@ -1,12 +1,8 @@
--- Pyrealium schema 1. Three schemas after ACE's auth / shard / world split.
+-- Pyrealium schema 1. Every table lives in the database's default schema.
 -- u64 identities and DIDs are stored as their i64 bit pattern (item ids read back negative).
 
-CREATE SCHEMA auth;
-CREATE SCHEMA shard;
-CREATE SCHEMA world;
-
 -- Accounts: name is the canonical lowercase login name ([a-z0-9_]{1,32}).
-CREATE TABLE auth.accounts (
+CREATE TABLE accounts (
     id            bigserial PRIMARY KEY,
     name          text NOT NULL UNIQUE CHECK (name ~ '^[a-z0-9_]{1,32}$'),
     password_hash text NOT NULL,
@@ -15,18 +11,18 @@ CREATE TABLE auth.accounts (
 );
 
 -- One-use game login tickets; the token itself is never stored, only its SHA-256.
-CREATE TABLE auth.login_tickets (
+CREATE TABLE login_tickets (
     token_hash bytea PRIMARY KEY,
     account    text NOT NULL,
     ip         inet NOT NULL,
     expires_at timestamptz NOT NULL,
     used_at    timestamptz
 );
-CREATE INDEX login_tickets_expiry ON auth.login_tickets (expires_at);
+CREATE INDEX login_tickets_expiry ON login_tickets (expires_at);
 
 -- Characters. Scalar progression and placement are columns, so an offline character can be
 -- read or credited with plain SQL; nested per-character books are JSONB.
-CREATE TABLE shard.characters (
+CREATE TABLE characters (
     id                bigint PRIMARY KEY,
     account           text NOT NULL,
     name              text NOT NULL,
@@ -58,12 +54,12 @@ CREATE TABLE shard.characters (
     tradeskills       text,                          -- tradeskills.rs progress line
     saved_at          timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX characters_account ON shard.characters (account);
+CREATE INDEX characters_account ON characters (account);
 
 -- Items owned by a character. The primary key makes an item id unique across every character.
-CREATE TABLE shard.items (
+CREATE TABLE items (
     id             bigint PRIMARY KEY,
-    character_id   bigint NOT NULL REFERENCES shard.characters (id) ON DELETE CASCADE,
+    character_id   bigint NOT NULL REFERENCES characters (id) ON DELETE CASCADE,
     definition     bigint NOT NULL,
     visual         bigint NOT NULL,
     quantity       bigint NOT NULL,
@@ -73,10 +69,10 @@ CREATE TABLE shard.items (
     slot           integer NOT NULL,
     roll           jsonb                             -- persisted equipment roll, if any
 );
-CREATE INDEX items_character ON shard.items (character_id);
+CREATE INDEX items_character ON items (character_id);
 
 -- Items lying in the world.
-CREATE TABLE shard.ground_items (
+CREATE TABLE ground_items (
     id   bigint PRIMARY KEY,
     item jsonb NOT NULL,
     cell bigint NOT NULL,
@@ -87,19 +83,19 @@ CREATE TABLE shard.ground_items (
 );
 
 -- Small world-wide values (clock origin, ...).
-CREATE TABLE shard.world_state (
+CREATE TABLE world_state (
     key   text PRIMARY KEY,
     value jsonb NOT NULL
 );
 
 -- GUN friend / ignore lists, by account.
-CREATE TABLE shard.gun_users (
+CREATE TABLE gun_users (
     account text PRIMARY KEY,
     lists   jsonb NOT NULL
 );
 
 -- Prepared content (written by content preparation, read at server start).
-CREATE TABLE world.prep_meta (
+CREATE TABLE content_meta (
     id          boolean PRIMARY KEY DEFAULT true CHECK (id),
     input_hash  text NOT NULL,
     version     integer NOT NULL,
@@ -107,7 +103,7 @@ CREATE TABLE world.prep_meta (
     prepared_at timestamptz NOT NULL DEFAULT now()
 );
 -- Content files produced by preparation (world placements TSV, quest and emote tables), by name.
-CREATE TABLE world.files (
+CREATE TABLE content_files (
     name text PRIMARY KEY,
     body text NOT NULL
 );

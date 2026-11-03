@@ -1,4 +1,4 @@
-//! Password accounts and short-lived native GLS tickets (`auth` schema). No password enters UDP.
+//! Password accounts and short-lived native GLS tickets (`accounts`, `login_tickets`). No password enters UDP.
 //! The account service issues tickets; the game server consumes them, each through its own
 //! database connection.
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
@@ -104,7 +104,7 @@ impl Accounts {
                 "Use a lowercase account name of 1-32 letters, digits or underscores and a password of 12-128 characters.",
             ));
         }
-        let count: i64 = self.client.query_one("SELECT count(*) FROM auth.accounts", &[]).map_err(error)?.get(0);
+        let count: i64 = self.client.query_one("SELECT count(*) FROM accounts", &[]).map_err(error)?.get(0);
         if count >= MAX_ACCOUNTS as i64 {
             return Err(invalid("Account registration is unavailable."));
         }
@@ -112,7 +112,7 @@ impl Accounts {
         let inserted = self
             .client
             .execute(
-                "INSERT INTO auth.accounts (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
+                "INSERT INTO accounts (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
                 &[&name, &hash],
             )
             .map_err(error)?;
@@ -127,7 +127,7 @@ impl Accounts {
     fn stored_hash(&mut self, name: &str) -> io::Result<Option<String>> {
         Ok(self
             .client
-            .query_opt("SELECT password_hash FROM auth.accounts WHERE name = $1", &[&name])
+            .query_opt("SELECT password_hash FROM accounts WHERE name = $1", &[&name])
             .map_err(error)?
             .map(|r| r.get(0)))
     }
@@ -148,7 +148,7 @@ impl Accounts {
                 .is_ok()
         });
         if stored.is_some() && matched {
-            let _ = self.client.execute("UPDATE auth.accounts SET last_login_at = now() WHERE name = $1", &[&name]);
+            let _ = self.client.execute("UPDATE accounts SET last_login_at = now() WHERE name = $1", &[&name]);
             return Ok(true);
         }
         Ok(false)
@@ -160,9 +160,9 @@ impl Accounts {
             ));
         }
         self.client
-            .execute("DELETE FROM auth.login_tickets WHERE expires_at <= now() OR used_at IS NOT NULL", &[])
+            .execute("DELETE FROM login_tickets WHERE expires_at <= now() OR used_at IS NOT NULL", &[])
             .map_err(error)?;
-        let live: i64 = self.client.query_one("SELECT count(*) FROM auth.login_tickets", &[]).map_err(error)?.get(0);
+        let live: i64 = self.client.query_one("SELECT count(*) FROM login_tickets", &[]).map_err(error)?.get(0);
         if live >= MAX_LIVE_TICKETS {
             return Err(invalid("Login ticket capacity."));
         }
@@ -170,7 +170,7 @@ impl Accounts {
         let seconds = TICKET_SECONDS as f64;
         self.client
             .execute(
-                "INSERT INTO auth.login_tickets (token_hash, account, ip, expires_at)
+                "INSERT INTO login_tickets (token_hash, account, ip, expires_at)
                  VALUES ($1, $2, $3, now() + make_interval(secs => $4))",
                 &[&ticket_hash(&token), &account, &ip, &seconds],
             )
@@ -191,7 +191,7 @@ pub fn consume(client: &mut postgres::Client, account: &str, ip: IpAddr, token: 
     }
     let claimed = client
         .execute(
-            "UPDATE auth.login_tickets SET used_at = now()
+            "UPDATE login_tickets SET used_at = now()
              WHERE token_hash = $1 AND used_at IS NULL AND account = $2 AND ip = $3
                AND expires_at > now() AND expires_at <= now() + make_interval(secs => $4)",
             &[&ticket_hash(token), &account, &ip, &(TICKET_SECONDS as f64)],

@@ -219,7 +219,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
                 let mut client = database.connect()?;
                 let version = pyrealium::db::schema_version(&mut client)?;
                 let characters: i64 = if version > 0 {
-                    client.query_one("SELECT count(*) FROM shard.characters", &[])?.get(0)
+                    client.query_one("SELECT count(*) FROM characters", &[])?.get(0)
                 } else {
                     0
                 };

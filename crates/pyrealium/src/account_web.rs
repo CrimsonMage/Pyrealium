@@ -13,7 +13,7 @@ use zeroize::Zeroize;
 
 pub struct Config {
     pub bind: SocketAddr,
-    /// The database shared with the game server (`auth` and `shard` schemas).
+    /// The database shared with the game server.
     pub database: crate::db::Database,
     /// Run directory holding the `account-stop.request` signal file.
     pub run_dir: PathBuf,

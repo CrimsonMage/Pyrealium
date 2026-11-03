@@ -9,7 +9,7 @@ Start the server with `pyrealium` (or `start-pyrealium.bat`) from the directory 
 database. Game builds use `target/release/pyrealium.exe`.
 
 World time advances while idle and across server restarts. The server keeps its origin
-in the database (`shard.world_state`, key `clock_origin`) and sends native time
+in the database (`world_state`, key `clock_origin`) and sends native time
 synchronization every five seconds. Clients use the installed DAT calendar: a day lasts
 7,347 real seconds (2h 2m 27s), with lighting and weather selected from its authored sky
 keys. New worlds establish their own origin; this does not reproduce the date of a
@@ -76,8 +76,8 @@ The scene snapshot retains the selected combat mode for observers entering later
 
 The account service runs inside the game server at `http://127.0.0.1:19400` (`[accounts]
 web_bind`); the client login form defaults to that address. `[server] game_host` sets the
-game address returned to clients. Accounts and login tickets live in the database's `auth`
-schema; back the database up with `pg_dump`. Ticket mode rejects development/no-ticket
+game address returned to clients. Accounts and login tickets live in the database (`accounts`,
+`login_tickets`); back the database up with `pg_dump`. Ticket mode rejects development/no-ticket
 login. The client can also use `Launch-AC2.ps1 -Online -AccountUrl http://127.0.0.1:19400 -Account NAME`.
 
 To host the account service apart from the game, set `[accounts] enabled = false` for the

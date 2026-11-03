@@ -4,7 +4,7 @@
 //! `content_profile.py` and the readers it used (`Tools/AC2/dat_probe.py`,
 //! `population_probe.py`); its output is byte-identical to theirs.
 //!
-//! `run` stores the result in the `world` schema and re-prepares only when an input changes
+//! `run` stores the result in `content_files` / `content_meta` and re-prepares only when an input changes
 //! (`input_key`).
 use crate::dat::Dat;
 use serde_json::{Map, Value, json};
@@ -833,21 +833,21 @@ pub fn input_key(directory: &Path, content: &Path, options: Options) -> io::Resu
     Ok(Sha256::digest(hash.finalize()).iter().map(|b| format!("{b:02x}")).collect())
 }
 
-/// The world file name under which the placement table is stored in `world.files`.
+/// The world file name under which the placement table is stored in `content_files`.
 pub const WORLD_FILE: &str = "world.tsv";
 
-/// Replaces the `world` schema's prepared content in one transaction.
+/// Replaces the stored prepared content in one transaction.
 pub fn store(client: &mut postgres::Client, key: &str, prepared: &Prepared) -> io::Result<()> {
     let mut tx = client.transaction().map_err(crate::db::error)?;
-    tx.execute("DELETE FROM world.files", &[]).map_err(crate::db::error)?;
-    tx.execute("DELETE FROM world.prep_meta", &[]).map_err(crate::db::error)?;
-    tx.execute("INSERT INTO world.files (name, body) VALUES ($1, $2)", &[&WORLD_FILE, &prepared.world])
+    tx.execute("DELETE FROM content_files", &[]).map_err(crate::db::error)?;
+    tx.execute("DELETE FROM content_meta", &[]).map_err(crate::db::error)?;
+    tx.execute("INSERT INTO content_files (name, body) VALUES ($1, $2)", &[&WORLD_FILE, &prepared.world])
         .map_err(crate::db::error)?;
     for (name, text) in &prepared.tables {
-        tx.execute("INSERT INTO world.files (name, body) VALUES ($1, $2)", &[name, text]).map_err(crate::db::error)?;
+        tx.execute("INSERT INTO content_files (name, body) VALUES ($1, $2)", &[name, text]).map_err(crate::db::error)?;
     }
     tx.execute(
-        "INSERT INTO world.prep_meta (input_hash, version, report) VALUES ($1, $2, $3)",
+        "INSERT INTO content_meta (input_hash, version, report) VALUES ($1, $2, $3)",
         &[&key, &VERSION, &prepared.report],
     )
     .map_err(crate::db::error)?;
@@ -857,7 +857,7 @@ pub fn store(client: &mut postgres::Client, key: &str, prepared: &Prepared) -> i
 /// The stored preparation's input key, if any.
 pub fn stored_key(client: &mut postgres::Client) -> io::Result<Option<String>> {
     Ok(client
-        .query_opt("SELECT input_hash FROM world.prep_meta WHERE version = $1", &[&VERSION])
+        .query_opt("SELECT input_hash FROM content_meta WHERE version = $1", &[&VERSION])
         .map_err(crate::db::error)?
         .map(|r| r.get(0)))
 }
@@ -888,7 +888,7 @@ impl World {
 pub fn load(client: &mut postgres::Client) -> io::Result<Option<World>> {
     let mut out = World::default();
     let mut found = false;
-    for row in client.query("SELECT name, body FROM world.files ORDER BY name", &[]).map_err(crate::db::error)? {
+    for row in client.query("SELECT name, body FROM content_files ORDER BY name", &[]).map_err(crate::db::error)? {
         let (name, body): (String, String) = (row.get(0), row.get(1));
         if name == WORLD_FILE {
             out.world = body;

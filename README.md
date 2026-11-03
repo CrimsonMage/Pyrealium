@@ -163,7 +163,7 @@ See the [GUN protocol and limitations](docs/gun-protocol.md).
 
 ## Missing content records
 
-The preparation report (`world.prep_meta.report` in the database, or `NAME.report.json` beside `pyrealium prepare-content` output) lists the exact record IDs and DAT
+The preparation report (`content_meta.report` in the database, or `NAME.report.json` beside `pyrealium prepare-content` output) lists the exact record IDs and DAT
 archives missing from each excluded server placement. These are different from
 texture-resolution problems: `highres.dat` cannot supply absent entity, visual, or
 room definitions. Counts grow as additional capture and regional content is
@@ -210,7 +210,7 @@ compilation. DATs stay on disk and are read on demand; they never go into the da
 
 ## Run
 
-Like ACE: one binary, one settings file, one database.
+One binary, one settings file, one database.
 
 1. Create a PostgreSQL role (`createuser --pwprompt pyrealium`, and either let it create
    databases or `createdb --owner pyrealium pyrealium`).
@@ -221,10 +221,10 @@ Like ACE: one binary, one settings file, one database.
    changed, starts the account service (loopback HTTP 19400) and the game server (UDP
    9000/9001). `pyrealium stop` saves and stops it.
 
-PostgreSQL holds three schemas, after ACE's split: `auth` (accounts and one-use login
-tickets), `shard` (characters, their items, ground items, world clock, GUN lists) and
-`world` (the prepared placements and quest tables). Characters are kept in memory while
-the server runs and saved every `save.interval_seconds` (default 300, as ACE), at logoff
+Every table sits in the database's default schema: accounts and one-use login tickets,
+characters with their items, ground items, the world clock, GUN lists, and the prepared
+placements and quest tables (`content_files`, `content_meta`). Characters are kept in memory while
+the server runs and saved every `save.interval_seconds` (default 300), at logoff
 and at shutdown, each save one transaction for every changed character and the ground
 items, so a crash rolls the world back to the last save as a whole. Experience and gold
 are columns, so an offline character can be read or credited with plain SQL while the

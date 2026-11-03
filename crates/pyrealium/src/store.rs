@@ -46,7 +46,7 @@ pub struct Character {
     pub skill_used: BTreeMap<u32, f64>,
 }
 
-/// Default time between periodic saves (ACE also saves online characters every five minutes).
+/// Default time between periodic saves of online characters (five minutes).
 pub const SAVE_INTERVAL: Duration = Duration::from_secs(300);
 
 pub struct Store {
@@ -1682,10 +1682,10 @@ mod tests {
             assert!(s.credit_offline(id+1,1).is_err());
         }
         let mut client=dir.connect().unwrap();
-        let row=client.query_one("SELECT xp, available_xp FROM shard.characters WHERE id=$1",&[&(id as i64)]).unwrap();
+        let row=client.query_one("SELECT xp, available_xp FROM characters WHERE id=$1",&[&(id as i64)]).unwrap();
         assert_eq!((row.get::<_,i64>(0),row.get::<_,i64>(1)),(250,250));
         // An external SQL credit of an offline character is read at the next start.
-        client.execute("UPDATE shard.characters SET xp=xp+10, available_xp=available_xp+10 WHERE id=$1",&[&(id as i64)]).unwrap();
+        client.execute("UPDATE characters SET xp=xp+10, available_xp=available_xp+10 WHERE id=$1",&[&(id as i64)]).unwrap();
         let s=Store::open(&dir).unwrap();
         assert_eq!(s.characters[&id].progression.xp,260);
     }
