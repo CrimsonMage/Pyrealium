@@ -219,6 +219,7 @@ pub struct Strike {
 }
 mod creature_skills;
 mod escort;
+mod holds;
 mod ledger;
 pub use ledger::Applied;
 /// A vital change applied every `period_ms` for `duration_ms`.
@@ -299,6 +300,8 @@ pub enum Event {
     /// An escort whose player stayed out of its radar too long gave up (`quest_emotes`
     /// EscortAbandoned sets, else EscortLost).
     EscortAbandoned { player: u64, entity: u32 },
+    /// A timed hold ended: kept (`done`) or lost (`holds`; the quest's HoldDone or HoldLost sets).
+    Hold { player: u64, actor: u64, entity: u32, done: bool },
     Health {
         actor: u64,
         health: u32,
@@ -339,6 +342,8 @@ pub struct Encounters {
     ledger: Vec<ledger::Entry>,
     /// Escorted creatures (`quest_emotes` StartEscort) and their players (`escort`).
     escorts: escort::Escorts,
+    /// Timed holds (`quest_emotes` StartHold).
+    holds: Vec<holds::Hold>,
     /// The harmful abilities of each creature entity.
     abilities: BTreeMap<u32, Vec<crate::abilities::CreatureAbility>>,
     drains: Vec<creature_skills::Drain>,

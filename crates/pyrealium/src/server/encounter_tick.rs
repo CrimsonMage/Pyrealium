@@ -171,6 +171,10 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                 crate::encounters::Event::EscortLost { player, entity } => {
                     updates.extend(escort_quest(&mut srv.store, player, entity, crate::quest_emotes::Trigger::EscortLost)?);
                 }
+                crate::encounters::Event::Hold { player, actor, entity, done } => {
+                    let trigger = if done { crate::quest_emotes::Trigger::HoldDone } else { crate::quest_emotes::Trigger::HoldLost };
+                    updates.extend(hold_quest(&mut srv.store, player, actor, entity, trigger)?);
+                }
                 crate::encounters::Event::EscortAbandoned { player, entity } => {
                     // A quest with no EscortAbandoned set fails as for a lost escort.
                     let tables = crate::quest_emotes::tables();
@@ -382,10 +386,15 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
 /// given up on far away, so this is not an item service (those wait for a player out of combat):
 /// only quest progress, lines and tells, as a fellow's kill credit is applied.
 fn escort_quest(store: &mut Store, player: u64, entity: u32, trigger: crate::quest_emotes::Trigger) -> io::Result<Vec<crate::scene::Delivery>> {
+    hold_quest(store, player, 0, entity, trigger)
+}
+/// An escort's or a timed hold's sets (owner: the creature's placement `iid` or its entity),
+/// committed as quest state and talk.
+fn hold_quest(store: &mut Store, player: u64, iid: u64, entity: u32, trigger: crate::quest_emotes::Trigger) -> io::Result<Vec<crate::scene::Delivery>> {
     let mut updates = Vec::new();
     let unix = crate::clock::now();
     let Some((tables, c)) = crate::quest_emotes::tables().zip(store.characters.get(&player).filter(|c| !c.deleted)) else { return Ok(updates) };
-    let Some(outcome) = tables.run(trigger, entity, 0, None, &c.quests, &c.inventory, &c.progression, 0, 0., unix, &crate::quest_emotes::item)
+    let Some(outcome) = tables.run(trigger, entity, iid, None, &c.quests, &c.inventory, &c.progression, 0, 0., unix, &crate::quest_emotes::item)
         .ok().flatten().filter(|o| o.items.is_empty() && o.changes.is_empty()) else { return Ok(updates) };
     for event in commit_quest_outcome(store, player, &outcome)? {
         updates.push(crate::scene::Delivery { recipient: player, data: event.into() });

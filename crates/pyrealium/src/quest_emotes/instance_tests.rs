@@ -73,3 +73,35 @@ fn instance_rows_are_checked() {
     let e = Tables::parse([&reg, &(HEADERS[1].to_owned() + "\n"), &sets, &acts], ["r", "s", "e", "a"]).unwrap_err().to_string();
     assert!(e.contains("p1 (group) is not an instance_group"), "{e}");
 }
+
+/// StartHold summons the slot's creature in the player's lane and starts a timed hold on it; its
+/// end runs the HoldDone or HoldLost sets of the creature, which change quests and talk only.
+#[test]
+fn start_hold_summons_the_slot_and_its_end_runs_hold_sets() {
+    let rows = |extra: &str| {
+        let d = db::empty().unwrap();
+        d.execute_batch(&format!("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40000092', '0x25000001', '0x1', 'Q', 't');
+            INSERT INTO quest_stage (quest, stage, completed, journal_text, source) VALUES ('q', 1, 0, 'Hold.', 't'), ('q', 2, 1, 'Held.', 't');
+            INSERT INTO instance_group (name, source) VALUES ('shrine', 't');
+            INSERT INTO instance_lane (instance_group, lane, entry, source) VALUES ('shrine', 0, '0x049e0118 180 0 3 128', 't');
+            INSERT INTO spawn_slot (name, instance_group, lane, iid, source) VALUES ('relic', 'shrine', 0, '0x81406a7500001a00', 't');
+            INSERT INTO emote_set (name, priority, owner_entity, owner_iid, trigger, quest, stage_min, stage_max, source) VALUES
+                ('start', 1, '0x47000001', NULL, 'Use', 'q', '0', '0', 't'), ('in', 2, NULL, NULL, 'QuestSuccess', NULL, NULL, NULL, 't'),
+                ('kept', 3, NULL, '0x81406a7500001a00', 'HoldDone', 'q', '1', '1', 't');
+            INSERT INTO emote_action (emote_set, ord, action, p1, p2, p3, source) VALUES
+                ('start', 1, 'ClaimInstance', 'shrine', 'in', '', 't'),
+                ('in', 1, 'SetStage', 'q', '1', '', 't'), ('in', 2, 'StartHold', 'relic', '90', '', 't'),
+                ('kept', 1, 'SetStage', 'q', '2', '', 't'){extra};")).unwrap();
+        Tables::from_db(&d)
+    };
+    let t = rows("").unwrap();
+    let o = enter(&t, &Book::default());
+    assert_eq!(o.world, [WorldOp::Generate(0x81406a7500001a00)]);
+    assert_eq!(o.hold, Some((0x81406a7500001a00, 90)));
+    let book = o.quests.iter().try_fold(Book::default(), |bk, c| bk.apply(c)).unwrap();
+    let kept = t.run(Trigger::HoldDone, 0x47000002, 0x81406a7500001a00, None, &book, &Inventory::default(), &Progression::default(),
+        ITEM_NAMESPACE + 1, 0.0, 100, &item).unwrap().unwrap();
+    assert!(kept.quests.iter().any(|q| matches!(q, Q::Stage { stage: 2, .. })));
+    // A hold's sets give nothing.
+    assert!(rows(", ('kept', 2, 'AwardGold', '10', '', '', 't')").is_err());
+}

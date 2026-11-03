@@ -1602,12 +1602,18 @@ def chain_order(hunts):
 
 
 KINGDOM_TRACE = ("kingdom membership: Pyrealium stores a character's kingdom and Kingdom Points (quest actions "
-                 "SetKingdom, InqKingdom, AwardKingdomPoints, InqKingdomPoints), but no source traced shows how a player "
-                 "joins a kingdom (which NPC or quest sets it): decide the join flow, then the quest's rows can gate on it")
-DEFEND_TRACE = ("a timed hold: the player's item use spawns a beacon, portal bore or crop that must survive "
-                "attackers for a time; Pyrealium's quest tables have no action that spawns a creature or object at the "
-                "player and no timed stage (delay_ms is not scheduled), so this needs engine work beyond escort "
-                "(or `ignore defend`)")
+                 "SetKingdom, InqKingdom, AwardKingdomPoints, InqKingdomPoints) and sends the client its "
+                 "Faction_Membership. The DATs say how a player joins: the Kingdom Shrines "
+                 "(wsl_factionshrineorder/dominion/shadow/neutral 0x4700085c/0x47000858/0x47000859/0x4700085b, "
+                 "'Use this shrine to join the Order Kingdom.', the neutral one 'to leave your current Kingdom') "
+                 "apply the Eff_FactionChange* effects, and the client's errors name a level, a gold cost and a "
+                 "reset delay (Faction_NotProperLevel, Faction_NotEnoughGold, Faction_ResetTimeNotPassed) with no "
+                 "values; only the Order shrine is in the prepared world. Decide those values and the shrines' "
+                 "placements, then the quest's rows can gate on the kingdom")
+DEFEND_TRACE = ("a timed hold (the player's item use brings out a beacon, portal bore or crop that must survive "
+                "attackers for a time): write it as hand rows in the editor's Quests tab: an instance_group with "
+                "the guarded creature and each attacker as spawn_slots, StartHold on the guarded slot, Generate for "
+                "the attackers, and HoldDone / HoldLost sets on the guarded creature (or `ignore defend`)")
 KINGDOM_TRACE_OLD = ("kingdom/faction/hero standing: the client knows a faction (gmWeenieDesc data mask "
                  "FactionType 0x2000) and shows 'Kingdom Points:' (UI string table 0x25000011 key 0x5c9a09da), "
                  "but Pyrealium stores neither (allegiance.rs answers every player unaffiliated); the requirement and "
@@ -1684,7 +1690,7 @@ def classify(d, data):
                                     "`0x47...`), then `arrive OBJECT [N m]` at the destination or a turn-in step (or `ignore "
                                     "escort` where the walkthrough only mentions one)"))
         elif g == "defend a spawned object":
-            d["blocks"].append(("Engine feature", "us", DEFEND_TRACE))
+            d["blocks"].append(("Write steps", "you", DEFEND_TRACE))
         else:
             d["blocks"].append(("Engine feature", "us", g))
 

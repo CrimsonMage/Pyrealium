@@ -322,6 +322,16 @@ impl Tables {
                     });
                     if let Some(iid) = iid { s.outcome.world.push(super::instances::WorldOp::Generate(iid)); }
                 }
+                Action::StartHold { slot, seconds } => {
+                    let iid = self.slots.get(slot).and_then(|sl| {
+                        let lane = self.groups.get(&sl.group).and_then(|g| s.book.lane(g.id))?;
+                        sl.iids.get(&lane).copied()
+                    });
+                    if let Some(iid) = iid {
+                        s.outcome.world.push(super::instances::WorldOp::Generate(iid));
+                        s.outcome.hold = Some((iid, *seconds));
+                    }
+                }
                 Action::MoveToLane(group) => {
                     if let Some(entry) = self.groups.get(group).and_then(|g| g.lanes.get(&s.book.lane(g.id)?)) { s.outcome.moveto = Some(*entry); }
                 }

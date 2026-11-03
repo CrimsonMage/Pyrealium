@@ -192,7 +192,8 @@ reads `content.sql` from beside the world table (`--content`; content preparatio
   to the killer, or the killer's fellows too when the quest's credit is `fellowship`), Crafted and
   EscortLost and EscortAbandoned (the crafted item's or the escort's entity: an escort that died,
   or that gave up on a player out of its radar for three minutes; a quest with no EscortAbandoned
-  set runs its EscortLost sets then), QuestSuccess, QuestFailure and Goto
+  set runs its EscortLost sets then), HoldDone and HoldLost (a timed hold's end, below),
+  QuestSuccess, QuestFailure and Goto
   (no owner: reached from another set), and PlayerDeath, QuestExpired and Logout (no owner; they
   name their quest and stages: a death, a run past its time limit, or leaving the world). The
   last three change quests and talk only: the check refuses one that reaches a reward or a move.
@@ -269,6 +270,12 @@ Instances (parallel copies of a place a quest hands out one per player, `quest_e
   player's lane, DismissSlots sends the lane's creatures away, ReleaseInstance does that and frees
   the lane. A death, logout or expiry set may release and dismiss (not claim, summon or move), so
   a run that ends that way can free its lane: give every instanced quest such sets.
+- StartHold (slot, seconds) does Generate and starts a timed hold on that creature: kept to the
+  end, the HoldDone sets of the creature (owner_iid: its placement, or owner_entity) run; if it
+  dies, or the player dies or goes more than 40 m from it (Pyrealium policy: no source gives a
+  radius), its HoldLost sets run. Those sets change quests and talk only (as a death set does).
+  A guarded object and its attackers are slots of one group: StartHold on the object, Generate
+  for each attacker, DismissSlots when the hold ends.
 
 The Gauntlet (Cragstone Excavation) is plain hand-written rows (its sets are named
 `gauntlet_*`): the Master's offer by level bracket, one portal set and one kill set for all 16

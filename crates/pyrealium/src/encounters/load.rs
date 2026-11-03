@@ -285,7 +285,7 @@ impl Encounters {
             regen_vigor,
             regen_interval,
             next_regen: 0,
-            burns: Vec::new(), mends: Vec::new(), regen: BTreeMap::new(), ratings: Vec::new(), ledger: Vec::new(), escorts: Default::default(), next_eid: 0, abilities: crate::abilities::creature_abilities(), drains: Vec::new(),
+            burns: Vec::new(), mends: Vec::new(), regen: BTreeMap::new(), ratings: Vec::new(), ledger: Vec::new(), escorts: Default::default(), holds: Vec::new(), next_eid: 0, abilities: crate::abilities::creature_abilities(), drains: Vec::new(),
             training_loot: false,
             shared_xp: BTreeSet::new(),
             dice:crate::combat::Dice::seeded(),

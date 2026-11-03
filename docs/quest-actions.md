@@ -48,6 +48,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `ClaimInstance` | p1 group: instance group name<br>[p2 success set: set name]<br>[p3 failure set: set name] | Takes a free lane of the instance group for the player (success set), or finds none free (failure set). A player already holding a lane of it succeeds. |
 | `ReleaseInstance` | p1 group: instance group name | Frees the player's lane of the group and sends its slots' creatures away. |
 | `Generate` | p1 slot: spawn slot name | Summons the slot's creature in the player's lane of its group (an earlier one's corpse goes first); nothing without a lane. |
+| `StartHold` | p1 slot: spawn slot name<br>p2 seconds: whole number 1-86400 | Generate, and a timed hold: the player must keep the slot's creature alive and stay within 40 m of it for the seconds; then its HoldDone sets run, or its HoldLost sets when it dies or the player dies or leaves it. |
 | `DismissSlots` | p1 group: instance group name | Sends away the creatures, alive or dead, of the group's slots in the player's lane. |
 | `MoveToLane` | p1 group: instance group name | Moves the player to the entry of its lane of the group. |
 | `GenerateStep` | p1 group: instance group name<br>p2 quest: quest name | Generate for the group's slot whose step (spawn_slot.step) is the quest's current stage: a chain of rooms or waves by stage. |

@@ -21,7 +21,7 @@ import editor_quests
 
 TRIGGERS = ["Use", "Give", "Kill", "ItemUsedOn", "Enter", "Crafted", "EscortLost", "QuestSuccess", "QuestFailure",
             "Goto", "PlayerDeath", "QuestExpired", "Logout", "EscortAbandoned", "EnterWorld", "UseItem", "Bind",
-            "Travel", "Ask", "Talk"]
+            "Travel", "Ask", "Talk", "HoldDone", "HoldLost"]
 SET_FIELDS = ["name", "priority", "trigger", "owner_entity", "owner_iid", "owner_slots", "item", "phrase", "quest",
               "stage_min", "stage_max", "range", "probability", "family", "source"]
 ACTIONS_DOC = Path(__file__).resolve().parent.parent / "docs" / "quest-actions.md"

@@ -71,16 +71,22 @@ pub enum Trigger {
     /// The player used an NPC that no quest Use set, vendor or other service answered (owner:
     /// the NPC): its own conversation.
     Talk,
+    /// A timed hold (StartHold) was kept to its end (owner: the held creature's placement or
+    /// entity).
+    HoldDone,
+    /// A timed hold was lost: the held creature died, or the player died or left it.
+    HoldLost,
 }
 
 impl Trigger {
-    pub const NAMES: [(&'static str, Trigger); 20] = [
+    pub const NAMES: [(&'static str, Trigger); 22] = [
         ("Use", Trigger::Use), ("Give", Trigger::Give), ("Kill", Trigger::Kill), ("ItemUsedOn", Trigger::ItemUsedOn),
         ("Enter", Trigger::Enter), ("Crafted", Trigger::Crafted), ("EscortLost", Trigger::EscortLost),
         ("QuestSuccess", Trigger::QuestSuccess), ("QuestFailure", Trigger::QuestFailure), ("Goto", Trigger::Goto),
         ("PlayerDeath", Trigger::PlayerDeath), ("QuestExpired", Trigger::QuestExpired), ("Logout", Trigger::Logout),
         ("EscortAbandoned", Trigger::EscortAbandoned), ("EnterWorld", Trigger::EnterWorld), ("UseItem", Trigger::UseItem),
         ("Bind", Trigger::Bind), ("Travel", Trigger::Travel), ("Ask", Trigger::Ask), ("Talk", Trigger::Talk),
+        ("HoldDone", Trigger::HoldDone), ("HoldLost", Trigger::HoldLost),
     ];
     pub fn parse(name: &str) -> Option<Self> { Self::NAMES.iter().find(|(n, _)| *n == name).map(|(_, t)| *t) }
     /// A set with no owner: reached from another set (a branch or Goto).
@@ -172,6 +178,8 @@ pub enum Action {
     DismissSlots(String),
     /// Summons the slot's creature in the player's lane of its group.
     Generate(String),
+    /// Generate, and a timed hold on the slot's creature for `seconds` (`encounters::holds`).
+    StartHold { slot: String, seconds: u32 },
     /// Moves the player to the entry of its lane of the group.
     MoveToLane(String),
     /// Moves the player to the slot's arrival point in its lane (a room of its own per slot).
@@ -272,6 +280,8 @@ pub struct Outcome {
     pub resume: Option<Resume>,
     /// Creatures summoned or sent away (`instances`; applied by the server's tick).
     pub world: Vec<instances::WorldOp>,
+    /// A timed hold started: the slot creature's placement and its seconds (StartHold).
+    pub hold: Option<(u64, u32)>,
     /// The NPC's lines (Say): speaker override and text.
     pub says: Vec<(Option<String>, String)>,
     /// Instance lanes taken and freed (group id, lane).

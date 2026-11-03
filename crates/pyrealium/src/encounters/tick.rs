@@ -611,6 +611,7 @@ impl Encounters {
                 });
             }
         }
+        self.hold_tick(now, scene, store, &mut events);
         for action in self.spawners.poll(now) {
             match action {
                 crate::spawners::Action::Remove(id)=>events.push(Event::Despawn(id)),

@@ -99,7 +99,7 @@ fn resume_set(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer>, tables: 
     let outcome = tables.resume(resume, &saved.quests, &saved.inventory, &saved.progression, srv.store.next_item_id()?,
         (srv.now_ms % 1000) as f32 / 1000.0, crate::clock::now(), &crate::quest_emotes::item)?;
     let talks_only = outcome.items.is_empty() && outcome.changes.is_empty() && outcome.moveto.is_none()
-        && outcome.escort.is_none() && !outcome.end_escort;
+        && outcome.escort.is_none() && !outcome.end_escort && outcome.hold.is_none();
     if talks_only {
         let events = commit_quest_outcome(&mut srv.store, character, &outcome)?;
         return peer.queue_ordered_batch(events);

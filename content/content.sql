@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS emote_set (
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*' OR owner_iid GLOB '[a-z]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
     'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned',
-    'EnterWorld', 'UseItem', 'Bind', 'Travel', 'Ask', 'Talk')),
+    'EnterWorld', 'UseItem', 'Bind', 'Travel', 'Ask', 'Talk', 'HoldDone', 'HoldLost')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
   owner_slots TEXT REFERENCES instance_group(name) ON UPDATE CASCADE,
   phrase TEXT CHECK (phrase IS NULL OR (phrase <> '' AND trigger = 'Ask')),

@@ -122,6 +122,9 @@ impl Tables {
             if matches!(trigger, Trigger::Crafted | Trigger::EscortLost | Trigger::EscortAbandoned | Trigger::UseItem) && (owner_entities.is_empty() || !owner_iids.is_empty()) {
                 return Err(bad("a Crafted, EscortLost, EscortAbandoned or UseItem set names its entity in owner_entity (no owner_iid)"));
             }
+            if matches!(trigger, Trigger::HoldDone | Trigger::HoldLost) && owner_entities.is_empty() && owner_iids.is_empty() {
+                return Err(bad("a HoldDone or HoldLost set names the held creature: owner_iid or owner_entity"));
+            }
             if trigger == Trigger::Enter && f[2].is_empty() {
                 return Err(bad("an Enter set names its point: owner_iid, the world object it is around (range: the radius)"));
             }
@@ -198,7 +201,8 @@ impl Tables {
     /// A death, a logout or a run's expiry changes quests and talks only: no set they reach (by
     /// a branch or Goto) gives, takes, awards or moves.
     fn check_personal(&self, lines: &BTreeMap<String, String>) -> io::Result<()> {
-        for start in self.sets.iter().filter(|s| s.trigger.personal() || matches!(s.trigger, Trigger::Bind | Trigger::Travel)) {
+        // A timed hold's end commits quest state and talk only, as a personal set does.
+        for start in self.sets.iter().filter(|s| s.trigger.personal() || matches!(s.trigger, Trigger::Bind | Trigger::Travel | Trigger::HoldDone | Trigger::HoldLost)) {
             let mut seen = std::collections::BTreeSet::new();
             let mut todo = vec![start.id.as_str()];
             while let Some(set) = todo.pop() {
@@ -206,7 +210,7 @@ impl Tables {
                 for (_, action) in self.actions.get(set).map_or(&[][..], Vec::as_slice) {
                     let refused = matches!(action, Action::GiveItem { .. } | Action::TakeItem { .. } | Action::RandomGive(_)
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
-                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. }
+                        | Action::StartEscort(_) | Action::Generate(_) | Action::StartHold { .. } | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. }
                         | Action::GenerateStep { .. } | Action::MoveToStep { .. } | Action::AwardXpShare { .. } | Action::AwardGoldShare { .. }
                         | Action::TakeQuantity { .. } | Action::GiveStack { .. } | Action::TakeGold(_) | Action::AwardQuestPoints(_)
                         | Action::AwardKingdomPoints { .. });

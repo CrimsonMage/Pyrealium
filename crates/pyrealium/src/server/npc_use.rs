@@ -101,6 +101,7 @@ pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_em
             if runtime.start_escort(character,entity,scene).is_none() {events_note(peer,"Your escort is not nearby.")?;}
         }
         if outcome.end_escort {runtime.end_escort(character);}
+        if let Some((iid,seconds))=outcome.hold {runtime.start_hold(character,iid,seconds,now);}
     }
     if let Some(prepared)=prepared {
         if let Some(runtime)=encounters {runtime.stop(character);}

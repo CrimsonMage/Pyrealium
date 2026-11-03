@@ -676,3 +676,32 @@ fn the_examined_hit_chance_is_the_rolled_one() {
     assert_eq!(runtime.hit_percent(&store, 1, target), None);
     assert_eq!(runtime.hit_percent(&store, 1, target + 1), None);
 }
+
+/// A timed hold (`holds`): kept to its end, or lost when the player goes past its leash or its
+/// creature dies.
+#[test]
+fn a_timed_hold_ends_kept_or_is_lost_when_its_creature_dies_or_the_player_leaves() {
+    let (mut runtime, mut scene, mut store, _path, creature) = fixture("hold");
+    runtime.actors.get_mut(&creature).unwrap().target = None;
+    let entity = runtime.actors[&creature].entity;
+    let holds = |events: &[Event]| events.iter().filter_map(|e| match e {
+        Event::Hold { player: 1, actor, entity: e2, done } if *actor == creature && *e2 == entity => Some(*done), _ => None }).collect::<Vec<_>>();
+    assert!(!runtime.start_hold(1, creature + 1, 10, 0), "no such creature");
+    // Kept: ten seconds by it.
+    assert!(runtime.start_hold(1, creature, 10, 0));
+    assert!(holds(&runtime.tick(5_000, &scene, &mut store, [1].into_iter(), None).unwrap()).is_empty());
+    assert_eq!(holds(&runtime.tick(10_100, &scene, &mut store, [1].into_iter(), None).unwrap()), [true]);
+    // Lost: the player is 50 m off.
+    let start = scene.content_placement(creature).unwrap();
+    assert!(runtime.start_hold(1, creature, 60, 11_000));
+    let mut far = start;
+    far.coordinates[0] += 50.0;
+    scene.warp_creature(creature, far, 11_000).unwrap();
+    assert_eq!(holds(&runtime.tick(12_000, &scene, &mut store, [1].into_iter(), None).unwrap()), [false]);
+    // Lost: it dies.
+    scene.warp_creature(creature, start, 12_000).unwrap();
+    assert!(runtime.start_hold(1, creature, 60, 13_000));
+    runtime.actors.get_mut(&creature).unwrap().health = 0;
+    assert_eq!(holds(&runtime.tick(14_000, &scene, &mut store, [1].into_iter(), None).unwrap()), [false]);
+    drop(store);
+}
