@@ -5708,6 +5708,13 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                         .extend(scene.look_at(character, target).map_err(other)?);
                                     return Ok(replies);
                                 }
+                                world::ClientEvent::ForceCreate { target } => {
+                                    // Answered only in the world; see `Scene::force_create`.
+                                    if let Phase::InWorld { character } = peer.session.phase {
+                                        deliveries.extend(scene.force_create(character, target));
+                                    }
+                                    return Ok(replies);
+                                }
                                 world::ClientEvent::Look { yaw, pitch } => {
                                     if peer.motion.is_none() {
                                         return Err(invalid("look outside world session"));

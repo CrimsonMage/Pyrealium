@@ -990,6 +990,53 @@ impl Scene {
             })
             .collect())
     }
+    /// `ECM_Physics::SendEvt_CForceCreate` (Legions 0x0048F0E0, opcode 0x1008F and an
+    /// InstanceID): the client asks again for the create of an object it has events for but no
+    /// object (it sends it when a position or destroy names an unknown id). The object's create
+    /// goes back to the requester only, with what a late observer gets (`activate`): its
+    /// CreateObject and the updates since, or a body's spawn, held items and public stats; a
+    /// held item alone gets its own create.
+    ///
+    /// Pyrealium policy: only an object the requester can see is answered, else nothing (no
+    /// error). Evidence: the retail captures hold 43,467 force-create requests, mostly after a
+    /// PositionCell (0x100C1) or a DestroyObject (0x100C2) for an object out of the player's
+    /// view, and the retail server answered few of them with a CreateObject (407 within three
+    /// seconds); which it answered is not recorded, so the scene's own visibility decides.
+    pub fn force_create(&self, observer: u64, target: u64) -> Vec<Delivery> {
+        let mut deliveries = Vec::new();
+        if target == observer || !self.bodies.get(&observer).is_some_and(|b| b.ready) {
+            return deliveries;
+        }
+        if let Some(object) = self.content.object(target) {
+            if self.can_observe(observer, target) {
+                deliveries.push(Delivery { recipient: observer, data: object.spawn.clone() });
+                for data in object.updates() {
+                    deliveries.push(Delivery { recipient: observer, data: data.clone() });
+                }
+            }
+            return deliveries;
+        }
+        if let Some(body) = self.bodies.get(&target) {
+            if self.can_observe(observer, target) {
+                deliveries.push(Delivery { recipient: observer, data: body.spawn.clone().into() });
+                body.hand_spawns(observer, &mut deliveries);
+                for (_, data) in body.public_stats.values() {
+                    deliveries.push(Delivery { recipient: observer, data: data.clone() });
+                }
+            }
+            return deliveries;
+        }
+        if let Some((holder, data)) = self
+            .bodies
+            .values()
+            .find_map(|b| b.hands.get(&target).map(|data| (b.id, data.clone())))
+        {
+            if holder != observer && self.can_observe(observer, holder) {
+                deliveries.push(Delivery { recipient: observer, data });
+            }
+        }
+        deliveries
+    }
     pub fn look(&self, id: u64, yaw: f32, pitch: f32) -> Result<Vec<Delivery>, WorldError> {
         if !yaw.is_finite() || !pitch.is_finite() {
             return Err(WorldError::InvalidValue);
@@ -1084,6 +1131,29 @@ mod tests {
         })
         .unwrap();
         Body::new(id, placement, bytes).unwrap()
+    }
+    #[test]
+    fn force_create_answers_only_visible_objects_and_only_the_requester() {
+        let id = crate::content::NAMESPACE + 1;
+        let home = Placement::HUMAN_START;
+        let mut scene = Scene::with_content(crate::content::Content::fixture(id, home, None));
+        scene.enter(body(1, home.cell)).unwrap();
+        scene.enter(body(2, home.cell)).unwrap();
+        scene.enter(body(3, 2)).unwrap();
+        scene.enter_hidden(body(4, home.cell)).unwrap();
+        // A visible creature: its CreateObject, to the requester alone.
+        let content = scene.force_create(1, id);
+        assert!(!content.is_empty() && content.iter().all(|d| d.recipient == 1));
+        assert_eq!(content[0].data, scene.content.object(id).unwrap().spawn);
+        // A visible player: its spawn.
+        let player = scene.force_create(1, 2);
+        assert_eq!(player.len(), 1);
+        assert_eq!(&player[0].data[..4], &world::CREATE_OBJECT.to_le_bytes());
+        assert_eq!(&player[0].data[4..12], &2u64.to_le_bytes());
+        // Out of view, not ready, unknown, oneself, or a requester not in the world: nothing.
+        for (observer, target) in [(1, 3), (1, 4), (1, 99), (1, 1), (4, 2), (99, 2), (3, id)] {
+            assert!(scene.force_create(observer, target).is_empty(), "{observer} {target}");
+        }
     }
     #[test]
     fn target_look_requires_ready_visible_objects_and_preserves_clear_sentinels() {

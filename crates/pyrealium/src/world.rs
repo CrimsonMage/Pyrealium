@@ -14,6 +14,8 @@ pub const PLAYER_DESC: u32 = 0x10068;
 pub const MIN_CHARACTER_SET: u32 = 0x100b8;
 pub const SCENE_RENDERING_COMPLETE: u32 = 0x100d1;
 pub const CLIENT_SCRIPT_EVENT: u32 = 0x10053;
+/// `ECM_Physics::SendEvt_CForceCreate`, queue 3.
+pub const CLIENT_FORCE_CREATE: u32 = 0x1008f;
 pub const MAX_STRING_BYTES: usize = 4096;
 pub const MAX_CHARACTERS: usize = 64;
 
@@ -49,6 +51,10 @@ pub enum ClientEvent {
         pitch: f32,
     },
     LookAt {
+        target: u64,
+    },
+    /// `ECM_Physics::SendEvt_CForceCreate` (0x1008F): the object whose create the client asks for.
+    ForceCreate {
         target: u64,
     },
     CreateCharacter {
@@ -202,6 +208,10 @@ pub fn decode_client_event(bytes: &[u8]) -> Result<ClientEvent, WorldError> {
         }
         // ECM_Physics::SendEvt_CLookAt 00496980: opcode and one InstanceID.
         0x100c7 => ClientEvent::LookAt {
+            target: reader.u64()?,
+        },
+        // ECM_Physics::SendEvt_CForceCreate (Legions 0x0048F0E0): opcode and one InstanceID.
+        CLIENT_FORCE_CREATE => ClientEvent::ForceCreate {
             target: reader.u64()?,
         },
         CREATE_CHARACTER => {
@@ -758,6 +768,20 @@ pub fn destroy_inventory_item(id: u64, instance: u16) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn force_create_is_the_opcode_and_one_instance_id() {
+        // The client's packet (`ECM_Physics::SendEvt_CForceCreate`; AC2_Rusted ac2-net
+        // `client_event.rs`): 8F 00 01 00, then the id, nothing after.
+        let wire = [0x8f, 0, 1, 0, 0x21, 0, 0, 0x80, 2, 0, 0, 0x81];
+        assert_eq!(
+            decode_client_event(&wire),
+            Ok(ClientEvent::ForceCreate { target: 0x8100_0002_8000_0021 })
+        );
+        assert!(decode_client_event(&wire[..11]).is_err());
+        let mut extra = wire.to_vec();
+        extra.push(0);
+        assert_eq!(decode_client_event(&extra), Err(WorldError::TrailingBytes));
+    }
     #[test]
     fn deletion_uses_account_then_identity_and_exact_lengths() {
         let bytes = encode_delete_character(7, b"a").unwrap();
