@@ -45,6 +45,8 @@ const GOLD_DEFINITION: u32 = 0x47001108;
 pub const STOCK: [Stock; 16] = [Stock::Potion, Stock::Weapon, Stock::Mucor, Stock::Tallow, Stock::Material(0x470010f2),Stock::Material(0x470010f3),Stock::Material(0x470010f4),Stock::Material(0x470010f5),Stock::Material(0x470010fe),Stock::Material(0x470027a0),Stock::Material(0x470027a3),Stock::Material(0x4700141f),Stock::Material(0x47001400),Stock::Material(0x47002ad4),Stock::Material(0x470010fa),Stock::Material(0x470027a2)];
 /// Shared bounded Pyrealium price policy; unknown/quest items cannot be transmuted.
 pub fn sale_value(item:&Item)->Option<(&'static str,u32)> {
+    // Coins melt back into the bag at their count (`money`).
+    if item.definition==crate::money::COIN {return Some(("coins",item.quantity));}
     if let Some(stock)=Stock::for_item(item) {Some((stock.name(),stock.sell_price()))}
     else if crate::starter_gear::tradable(item) || crate::apparel::tradable(item) || crate::treasure_weapons::valid_finish(item) {Some(("equipment",3))}
     else {None}
@@ -431,7 +433,7 @@ impl SellRequest {
         if word(0) != 2
             || word(12) != 1
             || word(20) != 1
-            || ![1, u32::from(crate::crafting::TALLOW_QUANTITY)].contains(&word(24))
+            || word(24) == 0
             || word(28) != 2
             || word(16) >= u32::from(BAG_SLOTS)
             || [0, u64::MAX].contains(&owner)

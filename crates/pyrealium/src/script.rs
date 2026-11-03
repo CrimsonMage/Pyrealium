@@ -21,6 +21,7 @@ pub enum Request {
     Allegiance(crate::allegiance::Query),
     Group(crate::groups::Request),
     MerchantSell(crate::merchants::SellRequest),
+    MoneyWithdraw(crate::money::WithdrawRequest),
     MerchantBuy(crate::merchants::BuyRequest),
     MerchantClose(u64),
     MerchantRefresh(u64),
@@ -140,6 +141,11 @@ pub fn decode(function: u32, bytes: &[u8]) -> Result<Request, WorldError> {
             let options = crate::preferences::GameplayOptions::decode(bytes)?;
             r.pos = bytes.len();
             Request::GameplayOptions(options)
+        }
+        crate::money::WITHDRAW => {
+            let request = crate::money::WithdrawRequest::decode(bytes)?;
+            r.pos = bytes.len();
+            Request::MoneyWithdraw(request)
         }
         crate::merchants::SELL => {
             let request = crate::merchants::SellRequest::decode(bytes)?;

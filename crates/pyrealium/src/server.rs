@@ -2580,6 +2580,8 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
     }
     let mut inventory_metadata = BTreeMap::new();
     let mut merchant_catalog = None;
+    // The money bag's coins (`money`), where the merchants run.
+    let mut money_coin: Option<crate::money::Coin> = None;
     // Development profile for the tradeskills live tests (PYREALIUM_DEV_TRADESKILLS=1; never set by a
     // player's server): the DAT's recipes, surveying, mining and the starter tools.
     let mut trade_assets: Option<crate::tradeskills::Assets> = None;
@@ -2646,6 +2648,9 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                     inventory_metadata.insert(definition, Some(metadata));
                 }
                 merchant_catalog = Some(catalog);
+                let coin = crate::money::Coin::load(&mut portal)?;
+                inventory_metadata.insert(crate::money::COIN, Some(coin.metadata));
+                money_coin = Some(coin);
                 crate::crafting::validate_assets(&mut portal)?;
                 crate::professions::validate_assets(&mut portal,&mut inventory_metadata)?;
                 if config.training_kit && std::env::var_os("PYREALIUM_DEV_TRADESKILLS").is_some() {
@@ -3401,21 +3406,21 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                             return Ok(replies);
                                         }
                                         script::Request::MerchantSell(request) => {
+                                            // `DragToMoneyBag` melts an item into the bag anywhere,
+                                            // as retail did: the 2005 capture
+                                            // `selling.items.in.inventory.elog` melts with no store
+                                            // open (0x82050011 line, money 0xC1C, 0x820E0058,
+                                            // 0x820F0009, 0x100C2), and Turbine's 2002 developer
+                                            // chat (AC2 Vault interviews/devchat 030702): "we allow
+                                            // players to melt down their loot in to gold". The
+                                            // prices stay Pyrealium's (`merchants::sale_value`).
                                             let result =
                                                 (|| -> io::Result<Vec<crate::scene::Delivery>> {
-                                                    if merchant_catalog.is_none()
-                                                        || !peer.merchant_open_ms.is_some_and(
-                                                            |last| {
-                                                                now_ms.saturating_sub(last)
-                                                                    <= 30_000
-                                                            },
-                                                        )
-                                                    {
+                                                    if merchant_catalog.is_none() {
                                                         return Err(invalid(
-                                                            "Open the nearby vendor before selling.",
+                                                            "Melting items is not enabled on this server.",
                                                         ));
                                                     }
-                                                    merchant_ready(character, &scene, peer.native_shop.as_ref().map(|shop| shop.merchant()))?;
                                                     if peer.last_inventory_ms.is_some_and(|last| {
                                                         now_ms.saturating_sub(last) < 250
                                                     }) {
@@ -3448,7 +3453,6 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                         &inventory_metadata,
                                                     )?;
                                                     peer.last_inventory_ms = Some(now_ms);
-                                                    peer.merchant_open_ms = Some(now_ms);
                                                     Ok(updates)
                                                 })(
                                                 );
@@ -3461,6 +3465,57 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                         now,
                                                     )?,
                                                 ),
+                                            }
+                                            return Ok(replies);
+                                        }
+                                        script::Request::MoneyWithdraw(request) => {
+                                            let result =
+                                                (|| -> io::Result<Vec<crate::scene::Delivery>> {
+                                                    let coin = money_coin.as_ref().ok_or_else(|| {
+                                                        invalid("The money bag is not enabled on this server.")
+                                                    })?;
+                                                    if peer.last_inventory_ms.is_some_and(|last| {
+                                                        now_ms.saturating_sub(last) < 250
+                                                    }) {
+                                                        return Err(invalid(
+                                                            "Wait briefly before another inventory action.",
+                                                        ));
+                                                    }
+                                                    if peer.combat {return Err(invalid("Leave combat before taking money out."));}
+                                                    let saved = &store.characters[&character];
+                                                    let plan = crate::money::plan_withdraw(
+                                                        character,
+                                                        &request,
+                                                        coin,
+                                                        &saved.inventory,
+                                                        &saved.progression,
+                                                        store.next_item_id()?,
+                                                    )
+                                                    .map_err(io::Error::other)?;
+                                                    let updates = item_service_transaction(
+                                                        peer,
+                                                        character,
+                                                        &plan.items,
+                                                        &plan.changes,
+                                                        plan.events,
+                                                        &mut store,
+                                                        &mut scene,
+                                                        &inventory_metadata,
+                                                    )?;
+                                                    peer.last_inventory_ms = Some(now_ms);
+                                                    Ok(updates)
+                                                })(
+                                                );
+                                            match result {
+                                                Ok(updates) => deliveries.extend(updates),
+                                                Err(error) => {
+                                                    // The bag stays ghosted until a WM_Money answer.
+                                                    let mut events = vec![script::chat(&error.to_string(), 1).map_err(other)?];
+                                                    events.push(crate::money::bag_done(character).map_err(other)?);
+                                                    for event in events {
+                                                        replies.extend(peer.send_event(&event, now)?);
+                                                    }
+                                                }
                                             }
                                             return Ok(replies);
                                         }

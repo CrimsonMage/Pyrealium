@@ -40,6 +40,7 @@ pub mod item_services;
 pub mod legacy;
 pub mod licensing;
 pub mod merchants;
+pub mod money;
 pub mod movement;
 pub mod map_travel;
 pub mod player_transaction;
