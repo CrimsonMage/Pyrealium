@@ -1,0 +1,9 @@
+# All of Pyrealium's Rust code: the server (crates/pyrealium), the DAT/resource/world/physics and
+# protocol crates it builds on (crates/ac2-*), and the scripted test client (crates/ac2-network-bridge).
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[profile.release]
+overflow-checks = true
+lto = "thin"

@@ -13,5 +13,5 @@ export PYREALIUM_SOURCE_URL
 export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER="$linker"
 export CARGO_BUILD_JOBS=2
 export CARGO_INCREMENTAL=0
-cargo build --locked --release --target "$target" --manifest-path "$root/emulator/Cargo.toml"
-printf 'Built %s\n' "$root/emulator/target/$target/release/pyrealium"
+cargo build --locked --release --target "$target" --manifest-path "$root/Cargo.toml"
+printf 'Built %s\n' "$root/target/$target/release/pyrealium"

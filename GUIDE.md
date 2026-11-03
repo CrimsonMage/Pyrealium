@@ -4,19 +4,16 @@ Pyrealium is a persistent multiplayer AC2 server. It continues Thwargle's AC2E, 
 
 ## Running
 
-Game builds now use `target/game/release/pyrealium.exe`; the account service keeps
-`target/release/pyrealium.exe`. This lets a game build finish while standalone accounts
-are running. The build refreshes the account copy only when it is not in use;
-otherwise it reports the pending account update. The normal launcher prefers
-the game copy and prints its path, with a fallback for older installations.
-It recognizes either managed executable when verifying an existing service.
+Start the server with `pyrealium` (or `start-pyrealium.bat`) from the directory holding
+`pyrealium.toml`; `pyrealium init` writes one to edit. See the README's Run section for the
+database. Game builds use `target/release/pyrealium.exe`.
 
-World time advances while idle and across server restarts. The server preserves
-its origin in `data/world/clock-origin.json` and sends native time synchronization
-every five seconds. Back up that file with the world store. Clients use the
-installed DAT calendar: a Legions day lasts 7,347 real seconds (2h 2m 27s), with
-lighting and weather selected from its authored sky keys. New worlds establish
-their own origin; this does not reproduce the date of a historical retail server.
+World time advances while idle and across server restarts. The server keeps its origin
+in the database (`shard.world_state`, key `clock_origin`) and sends native time
+synchronization every five seconds. Clients use the installed DAT calendar: a day lasts
+7,347 real seconds (2h 2m 27s), with lighting and weather selected from its authored sky
+keys. New worlds establish their own origin; this does not reproduce the date of a
+historical retail server.
 
 For local population testing, enter `@spawns` in chat while outdoors. It lists
 the nearest five live imported creatures with map coordinates and distance.
@@ -42,8 +39,8 @@ profiles, recovered native trophy rates and the versioned inferred treasure
 policy. Supported equipment can roll persistent armor ratings and palette tints.
 There is no universal potion fallback. Full retail treasure probabilities,
 weapon/jewelry affixes and AI/generator scripts remain unverified. See
-`emulator/content/README.md` for catalog coverage and spawner group configuration,
-and [content recovery](../Docs/ADMIN_CONTENT_RECOVERY.md) for the inferred quest,
+`content/README.md` for catalog coverage and spawner group configuration,
+and [content recovery](../docs/ADMIN_CONTENT_RECOVERY.md) for the inferred quest,
 camp and loot rules and their evidence.
 
 Attacking retains the selected target and combat stance, including after a kill.
@@ -51,26 +48,24 @@ Use Z/Stop Combat to return to peace before changing equipment. Corpse pickup,
 Loot All and Transmute All temporarily enter peace and restore combat afterward,
 without restarting attacks on the corpse.
 
-Run `start-pyrealium.bat` from the workspace root, or `Start-Pyrealium.ps1`. This uses the existing Pyrealium binary (building it if missing), prepares a compatible world placement file from the installed DATs, starts the account service on loopback HTTP 19400, and listens for game traffic on 127.0.0.1 UDP 9000 and 9001. Rust is needed for builds, not for starting an existing binary. After changing server source, run `start-pyrealium.bat -Rebuild` or `Build-Pyrealium.ps1`. In another terminal run `Launch-AC2.ps1 -Online`. The client builds its native bridge if missing. Sign in with a new account name (1–32 letters, digits or underscores) and a password (12–128 characters). First login creates the account; subsequent logins verify the saved password. Account names are case-insensitive. The server owns character creation, progression and inventory.
+`start-pyrealium.bat` (or `Start-Pyrealium.ps1`) builds the server if it is missing and
+runs it with `pyrealium.toml` beside the script, writing a commented one on the first run.
+Parameters: `-Config`, `-Rebuild`, `-SkipBuild`, `-Stop`. Rust is needed for builds, not for
+starting an existing binary. In another terminal run `Launch-AC2.ps1 -Online`. Sign in with a
+new account name (1–32 letters, digits or underscores) and a password (12–128 characters).
+First login creates the account; later logins verify the saved password. Account names are
+case-insensitive. The server owns character creation, progression and inventory.
 
-Parameters: `-Port`, `-Account`, `-DatDirectory`, `-DataDirectory`, `-Content`, `-Python`, `-SkipBuild`, `-Rebuild`. `-SkipBuild` also prevents the first build when no binary exists; it cannot be combined with `-Rebuild`. Defaults resolve relative to the project directory, regardless of the current working directory. Graceful shutdown: `Start-Pyrealium.ps1 -Stop`. Back up `data/world` with the server stopped. The store uses append-only journals with exclusive writer locks, validated replay, atomic transactions and persisted placements; it is not a MySQL schema. The CLI also exposes store inspection and compaction commands inherited from Pyrealium.
-
-Starting again with the same data directory reports the existing server's PID and
-endpoint and exits successfully. It does not rebuild, rewrite the live content,
-or apply different settings to that server. Stop the server before rebuilding or
-changing its configuration. The launcher verifies the lock's process, executable,
-and data directory. A stale marker is archived only after obtaining exclusive
-read/write access and confirming its recorded process has exited. Live,
-unreadable and unverifiable markers remain intact. Both world and account
-services use this recovery path.
+Starting a second server on the same database fails with a clear message; stop the first
+(`pyrealium stop`) before rebuilding or changing its settings.
 
 ## Initial gameplay ruleset
 
 The compatible capture pack was audited at 5,606 placements, including 4,428 combat point spawners and 78 vendor identities. The separately versioned inferred pack adds 702 accepted placements in 143 camp groups plus noncombat NPCs, with 88 quest profiles. Counts depend on the installed content and recovered evidence; the generated report next to the prepared TSV is authoritative. Version mapping, per-cell snapshot selection and duplicate/dead-object filtering withhold incompatible observations. Authored portal routes and compatible lifestone fixtures use the native binding/recall handlers. Recovered NPC or vendor identity does not imply complete scripting or retail stock.
 
-The authored starter encounter supports targeting, range-checked melee/missile/magic attacks, learned racial starter skills, retaliation, health/vigor, death/despawn/respawn, XP and gold. Claimed loot is journaled before publication and survives logout/restart; unclaimed corpse contents expire. Separate authored tutorial rewards remain independent of recovered creature loot tables. The Legions profile validates racial starter gear, and equipped weapons publish their native modes/animations to nearby players. The human starter circuit can be completed through its reward, outdoor exit and recall; it is authored development content, not full retail tutorial parity. Complete quest/crafting scripts, original loot generation probabilities and affixes, PvP and complete anti-cheat enforcement remain unfinished.
+The authored starter encounter supports targeting, range-checked melee/missile/magic attacks, learned racial starter skills, retaliation, health/vigor, death/despawn/respawn, XP and gold. Claimed loot is saved with the character (periodic save, logoff, shutdown) and survives restart; unclaimed corpse contents expire. Separate authored tutorial rewards remain independent of recovered creature loot tables. The Legions profile validates racial starter gear, and equipped weapons publish their native modes/animations to nearby players. The human starter circuit can be completed through its reward, outdoor exit and recall; it is authored development content, not full retail tutorial parity. Complete quest/crafting scripts, original loot generation probabilities and affixes, PvP and complete anti-cheat enforcement remain unfinished.
 
-The native server/client layer also supports persistent character appearance, multiple players, scene visibility, cell changes, server position corrections, local/tell/emote chat, owned inventory replication, item use/equipment requests, death/resurrection, and authenticated ticket login. Client compatibility details and verification commands are in `../Network/README.md`.
+The native server/client layer also supports persistent character appearance, multiple players, scene visibility, cell changes, server position corrections, local/tell/emote chat, owned inventory replication, item use/equipment requests, death/resurrection, and authenticated ticket login. Client compatibility details and verification commands are in `../tests/network/README.md`.
 
 Unarmed starter attacks now publish native martial-arts mode and attack stories;
 supported starter swords retain one-handed mode. The Idol uses Melee_Normal1,
@@ -79,17 +74,27 @@ The scene snapshot retains the selected combat mode for observers entering later
 
 ## Authenticated hosting
 
-Normal startup manages the account backend at `http://127.0.0.1:19400`; the client login form defaults to that address. `-AccountPort` changes its port, `-AuthDirectory` selects the account store, and `-GameHost` sets the game address returned to clients. By default accounts are stored beside the world directory in `accounts/`. Back up both stores with the services stopped. Ticket mode rejects development/no-ticket login. The client can also use `Launch-AC2.ps1 -Online -AccountUrl http://127.0.0.1:19400 -Account NAME`.
+The account service runs inside the game server at `http://127.0.0.1:19400` (`[accounts]
+web_bind`); the client login form defaults to that address. `[server] game_host` sets the
+game address returned to clients. Accounts and login tickets live in the database's `auth`
+schema; back the database up with `pg_dump`. Ticket mode rejects development/no-ticket
+login. The client can also use `Launch-AC2.ps1 -Online -AccountUrl http://127.0.0.1:19400 -Account NAME`.
 
-Normal startup reuses a healthy local account service when its executable, account/world directories, account port, public origin and game endpoint match. This also handles an account child left running after its launcher window closed. Reused services remain running when the game stops; a newly started account child stops with its game server. Incompatible or unverifiable lock owners are preserved and reported, rather than bypassed.
+To host the account service apart from the game, set `[accounts] enabled = false` for the
+game server and run `pyrealium accounts` with the same settings file elsewhere; both use the
+same database.
 
-For a separately managed backend with a different local bind, run `Start-Accounts.ps1`, then start the game with `-ExternalAccounts -AuthDirectory PATH -PublicOrigin URL`, using the same account/world directories and game endpoint in both launchers. The game launcher leaves external services running. To stop an account backend, use `Start-Accounts.ps1 -Stop -AuthDirectory PATH`.
+Reserved names (`local`, `admin`, `administrator`, `system`) and names that already own
+characters without an account (development logins) cannot be registered. To use a
+development account locally, set `[server] auth = "developer"` (loopback only).
 
-Legacy password-free stores are never claimed by auto-registration. Reserved names (`local`, `admin`, `administrator`, `system`) and names owning pre-existing characters without an account record cannot be registered. To access an old development account locally, explicitly start with `-DevelopmentLogin` and clear the account-service URL/password in the client. This option is restricted to loopback. Existing character/account files are not migrated or erased.
+For external hosting, put the loopback account service behind a TLS reverse proxy and set
+`[server] bind = "0.0.0.0:PORT"`, `game_host`, and `[accounts] public_origin =
+"https://accounts.example.com"`. The proxy must overwrite `X-Forwarded-For` with the client's
+single IPv4 address; tickets bind to that address. Publish both UDP ports. Remote deployment
+itself has not been performed.
 
-For external hosting, put the loopback account backend behind a TLS reverse proxy and start the managed pair with `-Bind 0.0.0.0 -GameHost game.example.com -AuthDirectory PATH -PublicOrigin https://accounts.example.com`. For a separately managed backend, also pass `-ExternalAccounts` and configure matching `PublicOrigin`, `GameHost`, `GamePort`, account and world directories in `Start-Accounts.ps1`. The proxy must overwrite `X-Forwarded-For` with the client's single IPv4 address; tickets bind to that address. Publish both UDP ports. No firewall/router settings are changed by these scripts. Remote deployment itself has not been performed.
-
-The account backend serves `/source.zip` with the source used to build this modified server, preserving the AGPL source offer. Build after changing source; do not point the offer at unmodified upstream. `export_source.py` packages the current server source, docs, dependency lockfile, and build/launch helpers using explicit source directories. It works in this monorepo and in an unpacked source download, and excludes game DATs, account state and journals.
+The account backend serves `/source.zip` with the source used to build this modified server, preserving the AGPL source offer. Build after changing source; do not point the offer at unmodified upstream. `export_source.py` packages the current server source, docs, dependency lockfile, and build/launch helpers using explicit source directories. It works in this monorepo and in an unpacked source download, and excludes game DATs and any database contents.
 
 ## Local map testing
 
@@ -124,9 +129,9 @@ reports the ordered per-character progress. After the introductions:
 4. Speak to the Advance Scout in the Vault, then use the shard for the authored
    completion step and 65 XP. The exit portal leads to the outdoor starter hub.
 
-These exchanges use versioned `s1` journal entries, recomputed from a canonical
-plan on replay. They preserve inventory, progression and travel across restart.
-Introductions retain the earlier `q5` records. Failed or repeated exchanges grant
+Each exchange changes the character's quest stage, inventory and progression together and
+is saved with the character. They preserve inventory, progression and travel across restart.
+Failed or repeated exchanges grant
 nothing. The glyph gateway can be reused after unlocking it, allowing return
 after death or recall without requiring another consumable glyph.
 
@@ -163,7 +168,7 @@ subset includes 224 racial profiles: Flame Bolt applies its damage and periodic
 burn, while supported healing, vigor, regeneration and combat-rating effects
 use the same cast path. Train the skill and equip the required implement first.
 Nine shared mastery skills can be trained and raised for the supported races;
-their ranks contribute to combat ratings. See `emulator/content/README.md` and
+their ranks contribute to combat ratings. See `content/README.md` and
 `skill-runtime.report.json` for the exact scope and pending profiles.
 
 This does not finish every retail spell effect. Magic damage remains a server
@@ -175,24 +180,23 @@ Tumerok Flash selects Magic_Harm1; normal magic auto-attacks keep Magic_Auto1.
 Unsupported required effects withhold the cast rather than consume vigor for
 a silently incomplete status effect. Non-lifestone recalls remain unavailable.
 
-`Network/test_shelter.py` verifies the complete implemented continuation with two
+`tests/network/test_shelter.py` verifies the complete implemented continuation with two
 UDP clients, including three additional armor appearances and server restart.
-`Network/test_armor.py` covers the starter wardrobe on all six supported bodies.
+`tests/network/test_armor.py` covers the starter wardrobe on all six supported bodies.
 These checks do not establish full retail quest or spell parity.
 
-- The opt-in `PYREALIUM_UNREAL_LEGIONS_DATA=1` profile recognizes the supplied Legions state fingerprints. It does not modify DAT bytes or claim compatibility with the original 7148 client VM. It was made for the former Unreal client, which decoded wire data and did not execute the merchant/group/allegiance WLIB packages whose retail layouts differ.
 - Skill metadata (1,927 resolved definitions; 186 unresolved) and 30 advancement curves were regenerated with the existing strict DAT readers. Unsupported records remain unsupported. Server metadata validation remains active for supported skills, inventory and loot.
 - Ordered network counters wrap as native 16-bit stamps; a reordered rollover is covered by a transport regression test. Client re-entry keeps the upstream-compatible incoming sequence.
 - `emulator` retains the `pyrealium` library name for existing tests/modules; the executable is **pyrealium.exe**. Original licensing/notices remain intact. `UPSTREAM.md` describes upstream features, not the completion level of this Pyrealium ruleset.
 - Upstream native-client launcher assets and launcher-specific startup scripts are omitted. The `deploy/` templates and upstream documentation remain reference material for porting; use the Pyrealium scripts above for this Windows/Legions setup.
 
-Build the server independently with `Build-Pyrealium.ps1 -Test`, or build the server and the native protocol bridge the network tests drive with `../Build-AC2Network.ps1 -Test`. Protocol integration tests are in `../Network`; they use isolated temporary stores. For a manual game-only build, regenerate the source archive with Python `export_source.py`, then run `cargo build --release --locked --manifest-path emulator/Cargo.toml --target-dir target/game`. Use the PowerShell build script to also refresh the stopped account-service executable.
+Build the server independently with `Build-Pyrealium.ps1 -Test`, or build the server and the native protocol bridge the network tests drive with `../Build-AC2Network.ps1 -Test`. Protocol integration tests are in `../Network`; they use isolated temporary stores. For a manual game-only build, regenerate the source archive with Python `export_source.py`, then run `cargo build --release --locked --manifest-path Cargo.toml --target-dir target/game`. Use the PowerShell build script to also refresh the stopped account-service executable.
 
 Inventory drags reorder the native dense backpack list, including adjacent slots.
 Release a backpack item over the world to drop the whole item or stack at your feet;
 double-click it within four meters to pick it up. Unequip worn items first. Nearby
-players see the same dropped model and may pick it up. Drops and pickups commit
-atomically in the character journal and survive server restart. Ground items are
+players see the same dropped model and may pick it up. A drop or pickup and both
+characters it touches are saved in the same transaction and survive server restart. Ground items are
 bounded to 512 per server; partial-stack world drops remain unfinished. Corpse
 containers now support owned multi-item drops, single pickup and Loot All.
 
@@ -200,5 +204,5 @@ The reconstructed Vault arrival and Advance Scout now use floor positions clear
 of the authored Menhir Shard. Logging in at the old obstructed arrival moves the
 character to that clear landing. Native DAT collision tests cover
 both supported capsule extremes and walking away from the landing/scout.
-`Network/test_world_drops.py` checks two-player ownership and restart recovery;
+`tests/network/test_world_drops.py` checks two-player ownership and restart recovery;
 `test_shelter.py` covers the tutorial continuation and old-arrival recovery.

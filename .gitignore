@@ -40,7 +40,6 @@ __pycache__/
 /References/Pyrealium/
 /Tools/Rust/
 /Tools/Pyrealium/
-/Network/Bridge/target/
 /target/
 __pycache__/
 /Asheron's Call 2 - Legions/
@@ -140,3 +139,6 @@ Thumbs.db
 
 # Versioned local launcher builds while the current executable is open
 /launcher/dist-*/
+
+# An operator's settings (holds the database password)
+/pyrealium.toml

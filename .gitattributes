@@ -11,7 +11,7 @@
 *.lock text eol=lf
 *.md text eol=lf
 *.ini text eol=lf
-/emulator/content/recovered-population.tsv text eol=lf
+/content/recovered-population.tsv text eol=lf
 *.service text eol=lf
 *.slice text eol=lf
 *.conf.example text eol=lf

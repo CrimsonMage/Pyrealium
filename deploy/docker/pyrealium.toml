@@ -1,0 +1,20 @@
+# Container settings (deploy/docker/compose.yml). The 7230 DATs are mounted at /dats.
+[server]
+bind = "0.0.0.0:9000"
+auth = "tickets"
+# Set to the address players connect to.
+game_host = "127.0.0.1"
+dat_dir = "/dats"
+run_dir = "/var/lib/pyrealium/run"
+
+[database]
+url = "host=127.0.0.1 user=pyrealium password=pyrealium dbname=pyrealium"
+
+[accounts]
+enabled = true
+# The account page must stay behind a TLS reverse proxy for public hosting (see Caddyfile).
+web_bind = "127.0.0.1:19400"
+# public_origin = "https://accounts.example.com"
+
+[world]
+content_dir = "/opt/pyrealium/content"

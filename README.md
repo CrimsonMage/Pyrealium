@@ -2,9 +2,10 @@
 
 Pyrealium is a persistent Asheron's Call 2 server written in Rust. This repository
 continues Thwargle's AC2E, itself derived from Vanquish's
-[Pyrealium](https://github.com/Vanquish-6/Pyrealium) (see [Credits](#credits)). The server
-is `emulator/`, with its launcher (`start-pyrealium.bat`, `Start-Pyrealium.ps1`), content
-tools and account service. It speaks the native AC2
+[Pyrealium](https://github.com/Vanquish-6/Pyrealium) (see [Credits](#credits)). All of
+its Rust code is in `crates/` (the server is `crates/pyrealium`); its launcher is
+`start-pyrealium.bat` / `Start-Pyrealium.ps1`, with world content in `content/`, authoring
+tools in `tools/` and the account page in `web/`. It speaks the native AC2
 UDP protocol to AC2 clients. This is an experimental implementation, not yet a
 complete retail emulation.
 
@@ -41,7 +42,7 @@ retail server database. Source DATs, captures and reference SQL remain unchanged
   previously unplaced native types. All 563 eligible types matched from the
   wiki regional rosters now have at least one placement in the combined world.
   This does not cover every dungeon, rare encounter or template variant; the
-  [coverage audit](emulator/content/wilderness-coverage-v1.json) accounts
+  [coverage audit](content/wilderness-coverage-v1.json) accounts
   for the remaining native records and withheld sources.
 - **Quests and services:** readable signs send native descriptions. Supported
   doors, containers, merchants, lifestones, portals and tutorial actions have
@@ -55,7 +56,7 @@ retail server database. Source DATs, captures and reference SQL remain unchanged
   an otherwise unsupported NPC to speak; select an NPC and type `@talk` to browse
   information without invoking its working quest or shop action. These are authored
   replies, not recovered retail dialogue or 229 newly playable quests. The
-  [NPC coverage audit](emulator/content/npc-dialogue-v1.audit.json) accounts for
+  [NPC coverage audit](content/npc-dialogue-v1.audit.json) accounts for
   all 89 wiki category entries and additional town/quest NPCs, including 15 names
   without matching native identities and unresolved locations or actor variants.
   Arwic, Lost Wish and Esper Explorers now offer their **Obelisk Search** quests:
@@ -79,7 +80,7 @@ retail server database. Source DATs, captures and reference SQL remain unchanged
   and native identities are retained; missing retail quest IDs and dialogue
   scripts are explicitly reconstructed. Quest changes send only modified entries,
   preventing large completed journals from filling the reliable network queue.
-  See [hunting quest expansion](Docs/ADMIN_CONTENT_RECOVERY.md#hunting-quest-expansion-v2-2026-11-01).
+  See [hunting quest expansion](docs/ADMIN_CONTENT_RECOVERY.md#hunting-quest-expansion-v2-2026-11-01).
 - **Profession crafting:** Skills → Craft → All professions exposes 26 disciplines
   and 357 supported DAT-backed recipes: armor, weapons, tools, refining, dyeing, surveying,
   practice and the two starter potions. Recipe levels, ingredient choices and
@@ -95,7 +96,7 @@ retail server database. Source DATs, captures and reference SQL remain unchanged
   general recipe discovery, exact critical/stat formulas and equipment wear
   remain open. Most recipe grants, some yields
   and output stat scaling are explicitly reconstructed. See
-  [crafting coverage and controls](emulator/content/README.md#profession-crafting-and-gathering).
+  [crafting coverage and controls](content/README.md#profession-crafting-and-gathering).
 - **Loot and equipment:** native trophy probabilities supplement observed corpse
   loot; 312 recovered template rules now bound generic treasure quantities.
   The inferred treasure policy adds variable supported equipment/restorative
@@ -104,7 +105,7 @@ retail server database. Source DATs, captures and reference SQL remain unchanged
   damage used by basic attacks and supported weapon-based skills. Weapon roll
   scaling is reconstructed; exact retail mutations remain unrecovered.
   Pickup, equipment and rewards are
-  journaled. Recovered apparel, including gloves and headwear, supports equipping,
+  saved with the character. Recovered apparel, including gloves and headwear, supports equipping,
   removing and replacing items while preserving native models and race restrictions;
   unknown potion effects and full retail affixes remain unsupported.
 - **Combat and movement:** repeated basic attacks retain their target, missile
@@ -129,9 +130,9 @@ Recovery tools audit Pyreal SQL, historical emulator tables, packet captures,
 quest text, loot and native generator properties. Compatibility and provenance
 reports separate direct evidence from inferred placements and rules. Missing
 generator rosters, exact loot weights, complete dungeon populations and arbitrary
-NPC scripts are still unresolved. See [content recovery](Docs/ADMIN_CONTENT_RECOVERY.md),
-[capture imports](Docs/CAPTURE_REFERENCE_IMPORT.md) and the
-[content manifest guide](emulator/content/README.md).
+NPC scripts are still unresolved. See [content recovery](docs/ADMIN_CONTENT_RECOVERY.md),
+[capture imports](docs/CAPTURE_REFERENCE_IMPORT.md) and the
+[content manifest guide](content/README.md).
 
 The world builder now supports creature stats, AI, weighted loot, patrol routes
 and population groups in an overlay plus a `NAME.rules.tsv` sidecar. Its optional
@@ -140,13 +141,13 @@ restart. Rejected edits preserve the current world; stale revisions stop sync
 until the operator reconciles the files. Group overrides preserve the original
 regional rosters, and live creatures use native movement descriptors. These are
 operator-authored rules, not newly recovered retail data. See the
-[world-builder guide](emulator/docs/content-editor.md) for setup and limits.
+[world-builder guide](docs/content-editor.md) for setup and limits.
 
 The server recognizes the original 7230 DAT profile and selects its own skill,
 advancement and effect tables before loading persisted characters. Those tables
 are validated against the archived 7230 portal records, including Flame Bolt;
 Legions keeps its separate tables. A matching native 7230 client's full gameplay
-acceptance is still unverified. See the [7230 profile notes](emulator/content/7230/README.md).
+acceptance is still unverified. See the [7230 profile notes](content/7230/README.md).
 
 The optional GUN adapter service supports persisted friends/ignores, presence
 and tells over custom TCP/XML. Enable it explicitly with `--gun-adapter-bind
@@ -158,11 +159,11 @@ Offline replay of 501 local retail captures recovers 303 XML messages; two
 disconnect frames without captured version negotiation remain unresolved.
 Live native sessions, retransmission timers and ticket authentication remain
 unfinished. Adapter tests do not establish retail compatibility.
-See the [GUN protocol and limitations](emulator/docs/gun-protocol.md).
+See the [GUN protocol and limitations](docs/gun-protocol.md).
 
 ## Missing content records
 
-`data/world/legions-world.report.json` now lists the exact record IDs and DAT
+The preparation report (`world.prep_meta.report` in the database, or `NAME.report.json` beside `pyrealium prepare-content` output) lists the exact record IDs and DAT
 archives missing from each excluded server placement. These are different from
 texture-resolution problems: `highres.dat` cannot supply absent entity, visual, or
 room definitions. Counts grow as additional capture and regional content is
@@ -190,56 +191,70 @@ starter-area exclusions.
 ## First checkout
 
 ```powershell
-git clone --recurse-submodules https://github.com/CrimsonMage/Pyrealium.git
+git clone https://github.com/CrimsonMage/Pyrealium.git
 ```
 
-For an existing checkout, run `git submodule update --init --recursive`.
-`References/AC2_Rusted` (the AC2_Rusted client's DAT, physics, world and protocol
-crates) is pinned to the tested protocol revision; do not update it to the latest
-upstream commit as part of a normal build.
+The server is self-contained: the DAT, resource, world, physics and protocol code it builds on lives
+in `crates/` (taken from the AC2_Rusted client project at commit `bcf67b4b` and kept here as the
+server's own). Nothing else needs to be checked out beside it.
 
-Install Rust through rustup with `cargo` on PATH, and Python 3.10 or newer. The
-verified Rust toolchain is 1.99.1.
+Install Rust through rustup with `cargo` on PATH, and PostgreSQL 14 or newer
+(the server is tested on 18). Python is needed only for the offline content-authoring
+tools and the Python network tests, not to build or run the server. The verified
+Rust toolchain is 1.99.1.
 
-Supply your own retail AC2 installation in `Asheron's Call 2 - Legions/`, or pass
-`-DatDirectory` to the server scripts. Keep `portal.dat`, `cell_1.dat`,
-`local_English.dat`, and the installation's high-resolution DATs together. Game
-assets and decompiles are not included or required for compilation.
+Supply your own retail Asheron's Call 2 **build 7230** installation (`portal.dat`,
+`cell_1.dat`, `local_English.dat` and its high-resolution DATs together). The server
+refuses other DAT sets. Game assets and decompiles are not included or required for
+compilation. DATs stay on disk and are read on demand; they never go into the database.
 
 ## Run
 
-- Local server: `start-pyrealium.bat` (or `Start-Pyrealium.ps1`); stop it with
-  `Start-Pyrealium.ps1 -Stop`.
-- Linux and hosting: see [Pyrealium setup and hosting](GUIDE.md) and `deploy/`.
+Like ACE: one binary, one settings file, one database.
 
-Normal server startup manages both the account service (loopback HTTP 19400) and
-the game server (UDP 9000/9001). An AC2 client signs in at the account service with
-a new account name and a password of 12–128 characters; first sign-in creates the
-account, later sign-ins require the same password. `local` and `admin` are
-reserved legacy/service names. After a crash, the launcher can recover a stale
-lock when its recorded process is gone; it preserves the old marker and never
-deletes characters or account records. Game builds use
-`target/game/release/pyrealium.exe`, separately from the account service
-executable. Stop the game server before rebuilding it; an existing account service
-can stay running. Its executable is refreshed on a later build when stopped.
+1. Create a PostgreSQL role (`createuser --pwprompt pyrealium`, and either let it create
+   databases or `createdb --owner pyrealium pyrealium`).
+2. `pyrealium init` (or the first `start-pyrealium.bat`) writes a commented
+   `pyrealium.toml`. Set `dat_dir` and the `[database]` url.
+3. `pyrealium` (or `start-pyrealium.bat`) starts everything: it creates and migrates the
+   database, prepares the world content from `content` when it or the DATs
+   changed, starts the account service (loopback HTTP 19400) and the game server (UDP
+   9000/9001). `pyrealium stop` saves and stops it.
 
-The default loopback launcher enables the `@maptravel` test command
-(`--test-map-travel true`): a living character out of combat may travel to a map
-point, with a five-second cooldown. Use `-DisableMapTravel` to turn it off; public
-binds never enable it.
+PostgreSQL holds three schemas, after ACE's split: `auth` (accounts and one-use login
+tickets), `shard` (characters, their items, ground items, world clock, GUN lists) and
+`world` (the prepared placements and quest tables). Characters are kept in memory while
+the server runs and saved every `save.interval_seconds` (default 300, as ACE), at logoff
+and at shutdown, each save one transaction for every changed character and the ground
+items, so a crash rolls the world back to the last save as a whole. Experience and gold
+are columns, so an offline character can be read or credited with plain SQL while the
+server is stopped. Back up with `pg_dump`. A second server on the same database refuses
+to start; a crashed one leaves no lock behind.
+
+An AC2 client signs in at the account service with a new account name and a password of
+12–128 characters; first sign-in creates the account, later sign-ins require the same
+password. `local` and `admin` are reserved names. `[server] auth = "developer"` (loopback
+only) trusts the client's account name instead; `local-accounts` combines both.
+
+`[world] test_map_travel = true` (loopback only) enables the `@maptravel` test command: a
+living character out of combat may travel to a map point, with a five-second cooldown.
+
+Docker: `PYREALIUM_DATS=/path/to/dataset-7230 docker compose -f deploy/docker/compose.yml up --build`
+runs PostgreSQL and the server together. Hosting with systemd: `deploy/pyrealium.service`
+and [online hosting](docs/online-hosting.md).
 
 ## Build and verify
 
 ```powershell
 .\Build-Pyrealium.ps1 -Test
 .\Build-AC2Network.ps1 -Test
-python -m unittest discover -s Network -p test_prepare_content.py
 python .\test_export_source.py
 ```
 
-`Build-AC2Network.ps1` builds the server and the native protocol bridge
-(`Network/Bridge/`), the scripted AC2 client the network tests drive. The server
-creates its compatible placement file from the local DATs when it starts.
+The Rust tests start their own throwaway PostgreSQL cluster (the system's `initdb` and
+`postgres` must be on PATH), or use `PYREALIUM_TEST_DATABASE_URL` (a role that may create
+databases). `Build-AC2Network.ps1` builds the server and the native protocol bridge
+(`crates/ac2-network-bridge/`), the scripted AC2 client the network tests drive.
 
 Network integration tests prepare their own content and isolated stores:
 
@@ -251,7 +266,6 @@ python .\Network\test_auth.py
 python .\Network\test_gameplay.py
 python .\Network\test_armor.py
 python .\Network\test_shelter.py
-python .\Network\test_server_launcher.py
 python .\Network\test_corpse_loot.py
 python .\Network\test_outdoor_population.py
 python .\Network\test_recovered_equipment.py
@@ -289,20 +303,19 @@ This repository starts a new history; the earlier commits were made in the AC2E 
 
 ## Project files
 
-- [Pyrealium setup and hosting](GUIDE.md) and the [content manifest guide](emulator/content/README.md).
-- [Network tests and the native protocol bridge](Network/README.md) (`Network/Bridge/`).
-- [Native gameplay changes and validation](Docs/NATIVE_GAMEPLAY_PASS.md).
-- [Content recovery and reconstruction policy](Docs/ADMIN_CONTENT_RECOVERY.md).
-- [Retail reference probe](Tools/RetailProbe/README.md).
-- `Tools/AC2/`: DAT inspection and reference preparation tools.
-- `References/AC2_Rusted/`: pinned AC2_Rusted crates (Git submodule).
+- [Pyrealium setup and hosting](GUIDE.md) and the [content manifest guide](content/README.md).
+- [Network tests and the native protocol bridge](tests/network/README.md) (`crates/ac2-network-bridge/`).
+- [Native gameplay changes and validation](docs/NATIVE_GAMEPLAY_PASS.md).
+- [Content recovery and reconstruction policy](docs/ADMIN_CONTENT_RECOVERY.md).
+- `tools/ac2/`: DAT inspection and reference preparation tools.
+- `crates/`: the server's DAT, resource, world, physics and protocol crates.
 
 Retail DATs, original client files, decompile archives, and generated runtime assets
 remain local inputs. Keep the licenses and notices included with the reference and
 server projects when using or distributing their code.
 
 The server and native bridge retain their AGPL-3.0-only licenses and upstream
-notices. See `LICENSING.md` and `Network/Bridge/NOTICE.md` for component scope.
+notices. See `LICENSING.md` and `crates/ac2-network-bridge/NOTICE.md` for component scope.
 The repository includes no license grant for proprietary retail assets. AC1
 content, the old native-client launcher, machine-specific SDKs, credentials, and
 prior build/capture output are not part of this source project.

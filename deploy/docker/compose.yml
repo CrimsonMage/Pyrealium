@@ -1,0 +1,32 @@
+# Pyrealium and PostgreSQL. From the repository root:
+#   PYREALIUM_DATS=/path/to/dataset-7230 docker compose -f deploy/docker/compose.yml up --build
+# Characters and accounts live in the `db` volume; the DATs are only read.
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: pyrealium
+      POSTGRES_PASSWORD: pyrealium
+      POSTGRES_DB: pyrealium
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pyrealium"]
+      interval: 2s
+      retries: 30
+  pyrealium:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    # Host networking keeps the account service on loopback for the reverse proxy and the
+    # game's UDP ports as configured.
+    network_mode: host
+    volumes:
+      - ${PYREALIUM_DATS:?set PYREALIUM_DATS to the 7230 DAT directory}:/dats:ro
+volumes:
+  db:

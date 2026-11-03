@@ -1,0 +1,88 @@
+#![forbid(unsafe_code)]
+
+//! Generic typed DBObj validation, cache policy, and request scheduling above DAT storage.
+//!
+//! This crate owns qualified DID/type classification, validated DBObj header/body boundaries,
+//! typed-reference identity, generic cache residency/eviction/invalidation, dependency-plan
+//! deduplication, and deterministic request completion/cancellation events.
+//!
+//! Domain crates own their DBObj body schemas and standalone packed values through
+//! [`ResourceBodyDecode`], [`ResourceBodyDecodeWith`], and [`ResourcePackedDecode`]. This crate
+//! does not expose raw DAT records, metadata proxies, filename lookup, or semantic loaders.
+
+mod body_decode;
+mod db_type;
+mod decode;
+mod decode_failure;
+mod decode_flight;
+mod error;
+mod key;
+mod ownership_stats;
+mod packed_decode;
+mod property;
+mod retail_cache_retention;
+mod store;
+mod string_info;
+#[cfg(test)]
+mod string_info_tests;
+mod string_meta_lex;
+mod string_meta_parse;
+mod string_meta_render;
+mod string_meta_text;
+mod string_number;
+mod string_state;
+mod string_table;
+mod string_tables;
+#[cfg(test)]
+mod test_support;
+mod typed_cache;
+mod typed_ref;
+
+pub use body_decode::ResourceBodyDecodeWith;
+pub use body_decode::{ResourceBodyDecode, ResourceDbObjBody, ResourceDbObjDecodeContext};
+pub use db_type::ResourceTypeId;
+pub use error::{ResourceError, ResourceResult};
+pub use key::ResourceKey;
+pub use ownership_stats::ResourceOwnershipStats;
+pub use ownership_stats::{
+    ResourceOwnershipLane, ResourceOwnershipTypeStats, ResourceScopeOverlapStats,
+    ResourceScopeOverlapTypeStats,
+};
+pub use packed_decode::ResourcePackedDecode;
+pub use property::{
+    ac2_property_type, install_ac2_property_types, read_ac2_property_collection,
+    read_ac2_property_groups, skip_ac2_property_collection, skip_property_collection,
+    update_ac2_property_collection, Ac2PropertyGroup, Ac2PropertyTypes, Ac2PropertyValue,
+};
+pub use retail_cache_retention::{
+    retail_cache_retention_for_type, RetailCacheRetention, RETAIL_CACHE_IDLE_GRACE_SECONDS,
+};
+pub use store::ResourceResidencyLease;
+pub use store::ResourceStore;
+pub use string_info::{
+    get_log_string, get_string, get_string_with_meta_tags, inq_string, inq_string_internal,
+    render_with_table, GetStringError, GetStringFailure, RenderInfo, RenderVar, StringStateRef,
+    StringTableRef, StringTables, StringVarTable,
+};
+pub use string_meta_parse::{RenderErr, RenderErrorCode};
+pub use string_meta_render::{get_match_score, render_string};
+pub use string_meta_text::{
+    apply_meta_tags_to_name, capitalize_first_letter, escape_string, is_escape_char,
+    retrieve_meta_letters, strip_meta_letters, trim_excess_spaces, unescape_string,
+};
+pub use string_state::{
+    female_meta_letters, is_number_singular, load_string_state, male_meta_letters,
+    treasure_meta_letters, StringState, STRING_STATE_ENUM, STRING_STATE_ENUM_GROUP,
+    STRING_STATE_FIRST, STRING_STATE_LAST,
+};
+pub use string_table::{
+    load_string_table, read_wide_pstring, StringTable, StringTableString, STRING_TABLE_FIRST,
+    STRING_TABLE_LAST,
+};
+pub use string_tables::{PreloadedStringTables, StoreStringTables};
+pub use typed_cache::{CachedResource, ResourceCacheStats, ResourceDecodeScope};
+pub use typed_cache::{
+    ResourceCacheFamilyMaintenanceReport, ResourceCacheMaintenanceOutcome,
+    ResourceCacheMaintenanceReport, ResourceCacheObservation,
+};
+pub use typed_ref::TypedResourceRef;

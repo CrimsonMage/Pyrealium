@@ -1,0 +1,17 @@
+[package]
+name = "ac2-network-bridge"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-only"
+publish = false
+default-run = "ac2-network-bridge"
+
+[[bin]]
+name = "ac2-capture-decode"
+path = "src/capture_decode.rs"
+
+[dependencies]
+ac2-net = { path = "../ac2-net" }
+serde_json = "1"
+
+

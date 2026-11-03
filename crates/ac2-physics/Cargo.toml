@@ -1,0 +1,26 @@
+[package]
+name = "ac2-physics"
+edition = "2021"
+version = "0.1.0"
+publish = false
+license = "AGPL-3.0-only"
+
+[lints.clippy]
+# Retail comparisons are written `!(a < b)` on purpose (they differ for NaN); retail signatures
+# keep their parameters and tuple types.
+neg_cmp_op_on_partial_ord = "allow"
+manual_range_contains = "allow"
+too_many_arguments = "allow"
+type_complexity = "allow"
+
+[dependencies]
+ac2-core = { path = "../ac2-core" }
+ac2-math = { path = "../ac2-math" }
+ac2-dat = { path = "../ac2-dat" }
+ac2-db = { path = "../ac2-db" }
+ac2-anim = { path = "../ac2-anim" }
+ac2-assets = { path = "../ac2-assets" }
+ac2-world = { path = "../ac2-world" }
+
+[dev-dependencies]
+ac2-dat = { path = "../ac2-dat", features = ["test-support"] }

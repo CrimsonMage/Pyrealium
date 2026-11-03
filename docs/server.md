@@ -1,0 +1,583 @@
+# Pyrealium
+
+A Rust server for the AC2 admin client, build **7148**. Protocol and data-format
+claims are tied to matching recovered client routines, original-binary test
+vectors and recorded native-client observations. Development policies are labeled
+separately in the evidence notes.
+
+**Local development is working; a complete playable AC2 server is still unfinished.**
+
+The real 7148 client has connected, rendered character selection, entered the
+authored human starting area and sent scene-complete and position messages. Native
+walking and saved cross-cell placement were observed in the matching client.
+The newer HUD, inventory, combat, quest, consumable and travel handlers are
+implemented in Rust but still need fresh matching-client acceptance as one loop.
+Two-client appearance/visibility and general-player readiness are unverified.
+A MusicLoader error can require Continue.
+
+**Status updated 2026-10-25.** The library tests pass and the server loads the
+full 15,127-object world against the converted assets. The latest player systems
+and the larger population still need fresh matching-client acceptance.
+The training profile's combat values, quest, item rewards and instant travel
+are authored development policies; they do not establish original AC2 parity.
+
+## Implemented in the server
+
+- Native login framing, connection handshake and two-port UDP transport, with a
+  loopback-only developer account allowlist.
+- Original-binary-checked ISAAC checksums, bounded reliable delivery, reassembly,
+  duplicate suppression, exact-byte retries and shared ordered queues.
+- Human, Lugian and Tumerok creation choices retained in a checksummed journal,
+  with racial bodies and creation clothing aspects. Ownership checks, deletion
+  tombstones and offline restoration are separate from full character parity.
+- Experimental DAT-backed world entry, saved placement, increasing instance
+  stamps and return to character selection.
+- Movement and head-look decoding, replay/stamp rejection, cell-indexed player
+  presence and create/move/look/destroy replication. Same-cell visibility is a
+  development policy; authoritative collision and movement-speed enforcement are
+  unfinished.
+- Validated native connection logoff releases player ownership and scene presence
+  promptly. This has synthetic UDP coverage; native acceptance is pending.
+- Persistent earned/available XP, gold, health, vigor and level progression using
+  the imported development level profile. Initial vitals of 100 are development
+  defaults; original race/class formulas and equipment effects are unfinished.
+- Durable per-character window placement, opacity and hotbar bindings, restored
+  by the opt-in HUD initializer. These changes are compile checked only; native
+  acceptance remains pending. Bindings do not grant skills or items.
+- Transactional inventory storage with bag moves/swaps, stack merge/split,
+  equipment swaps, unequip and consumption, plus offline management commands.
+  The opt-in HUD path now initializes owned item objects and inventory maps;
+  native dense-bag sorting requests now persist and return move acknowledgments
+  for whole items and stacks with supported DAT metadata and matching owned
+  quantities. Partial-stack drag/split/merge remains unsupported on this path.
+  The captured object-use profile
+  now toggles supported hand equipment, persists bag/equipment state, and creates
+  attached hand objects for the owner and nearby players. Armor composition,
+  equipment bonuses, general item use and native acceptance remain unfinished.
+  World entry now supplies a once-only racial starter loadout: three bag weapons
+  and worn starter clothing, with per-race equipment slots. Human and Lugian
+  creation captures establish their loadouts; the Tumerok profile uses restored
+  starter definitions and matching DATs. Existing possessions and occupied slots
+  are retained. The old single-sword journal grants remain readable.
+  Basic racial attacks restore to an empty hotbar; full per-weapon combat
+  mechanics and native acceptance remain incomplete.
+- Native object examination for visible players, owned inventory, visible hand
+  equipment and active same-cell content. Names use supported DAT localization
+  references; live health and the owner's private progression come from server
+  state. Full original item descriptions and native acceptance remain open.
+- The explicit training profile supports learned human Ease Suffering (`55`)
+  through native skill use: 30 health for 10 vigor, with an 8-second cooldown.
+  The catalog's level/training requirements remain enforced. Healing and vigor
+  spending commit together; cooldowns remain active across reconnects during
+  the same server run. This is authored development balance, without native
+  cast animation/cooldown-bar acceptance or original effect formulas.
+- Initialized players can use eight supported native emotes: Wave, Yawn, Moose,
+  four dances and the AFK gesture. Behavior messages use current avatar lifetime
+  stamps and are delivered to same-cell players. Dead/in-combat use and request
+  flooding are rejected. Broader social/away-state semantics remain unfinished.
+- A persistent Training Grounds quest appears in the native journal when the
+  training profile includes its target creatures. Three qualifying kills unlock
+  a once-only 120 XP / 10 gold reward. Use `@quest` for status and `@quest claim`
+  out of combat to claim it. Objective progress commits with combat payouts;
+  claiming commits rewards with completion. Original quest content, NPC dialogue,
+  branching, abandonment and repeat rules remain unfinished.
+- Training encounters can grant one unstacked health potion directly into a
+  supported bag. Native acquisition/removal messages update inventory; using
+  the potion consumes it and restores up to 25 health in one durable transaction,
+  with a five-second world-use cooldown. A full/unsupported bag skips the item
+  with a message while preserving XP, gold and quest credit. This is authored
+  development loot; corpse containers, general loot tables and native acceptance
+  remain unfinished.
+- Checked journal compaction coalesces repeated combat/regeneration state while
+  retaining transaction barriers, verifying replay and keeping a previous-journal
+  backup. `compact-data --data PATH` provides offline maintenance under the store lock.
+- Combat and regeneration send changed private progression fields; full state
+  restoration remains available for login and resurrection. Regeneration builds
+  one set of engaged players per pass instead of scanning every creature for
+  each player. These reductions are compile checked, without runtime benchmarks.
+- Bounded read-only DAT and extracted terrain readers. The supplied corpus of
+  **65,025 terrain records** passed full validation with no missing/empty linked
+  info records. Terrain decoding is not yet server physics.
+
+## Build and run
+
+Requires Rust with edition 2024 support (minimum 1.85; development checks used
+1.94). The runtime uses the standard library, no third-party Rust dependencies,
+and forbids unsafe Rust.
+
+From this directory:
+
+```powershell
+cargo test
+cargo clippy --all-targets -- -D warnings
+cargo build --release --target-dir target/local-build
+.\target\local-build\release\pyrealium.exe serve --account local --data data
+```
+
+The default ports are **127.0.0.1:9000/9001**. Use `--bind 127.0.0.1:19070` for a
+different pair. This is local developer authentication, not a password or public
+account service. Default mode does not supply a world bootstrap.
+
+Use `--seconds 30` for a timed run. To stop gracefully from another terminal:
+
+```powershell
+.\target\local-build\release\pyrealium.exe stop --data data
+```
+
+Use the same data directory for both commands. Separate build directories let you
+compile without replacing an executable already in use by a test server.
+
+### One-command local server
+
+If the launcher already points at a prepared `compat-7148` game folder, run this
+from this directory and leave the window open:
+
+```powershell
+.\Start-Server.ps1
+```
+
+It reads the account, host, port and game folder from the launcher settings
+(`%LOCALAPPDATA%\Pyrealium\launcher.xml`), refuses non-loopback hosts, clears a
+stale `data\server.lock` only when no server is running, and starts
+`serve --game-data`. With game data, `serve` enables the HUD, training kit,
+lifestones, portals, the full world content and combat; any of those can still be
+turned off with its own flag (for example `--portals false`). It uses
+`target\debug` first, then the release builds, so rebuild the one it will pick.
+
+## Native world experiment
+
+Close the previous test client and stop its server before running:
+
+```powershell
+.\start-world-test.ps1 -GameDirectory "C:\Asheron's Call 2" -ClientExecutable "C:\path\to\ac2client.exe"
+```
+
+This starts a bounded local experiment on **19270/19271**, account **local**, with
+a persisted human test character. It prepares a separate `target/compat-7148`
+asset directory when needed. The installed build-7230 player-state records are
+incompatible with 7148; conversion accepts only pinned known records and refuses
+an existing destination. The original installation stays untouched.
+
+Preparation requires about 1.6 GB for a portal.dat copy. Other large DATs are
+hardlinked for **read-only** use: `--rodat` is mandatory. Never open this test asset
+directory with an updater or writable client session. Windows executable-launch
+warnings must be reviewed directly by the user.
+
+The portable [launcher](../launcher/README.md) accepts the server, account, port,
+assets folder and recovered executable separately. For this experiment select
+`target/compat-7148`, the original recovered 7148 executable, and port 19270. Game
+files are not included in the launcher distribution.
+
+## The 7230 data and 7230 clients
+
+The installed 7230 DATs are served as they are, as the 7230 profile: logons must carry data
+version `7230`. That is the 7230 executable, and clients that read the 7230 records (for example
+the AC2_Rusted Rust client, `ac2 --version 7230`). It includes the version-6
+GameplayOptionsProfile table, which the original 7148 executable cannot parse.
+
+```sh
+pyrealium serve --game-data <7230 DATs> --initialize-ui true --training-kit false \
+    --content <prepared world> ...
+```
+
+The skill tables come from the 7230 data (`content/7230/skills.tsv` and
+`skill-advancement.tsv`, from `tools/import_skill_catalog.py` and
+`tools/import_skill_advancement.py`). Prepare the world with `tests/network/prepare_content.py` against
+the same DATs. The original 7148 executable still needs the converted `target/compat-7148` set
+above.
+
+## Character recovery and durability
+
+Run offline against the same data directory:
+
+```powershell
+.\target\local-build\release\pyrealium.exe character-create-human --account local --name Explorer --data data
+.\target\local-build\release\pyrealium.exe character-list --account local --data data
+.\target\local-build\release\pyrealium.exe character-restore --account local --character-id 1 --data data
+```
+
+Creation and deletion/restoration events are flushed before acknowledgment.
+Deletion preserves identity, appearance and saved position; IDs and names remain
+reserved. This retention policy is local, not a claim of original timed deletion.
+Placement checkpoints occur every five seconds, on character logout, connection
+logoff and clean shutdown. A crash can lose movement since the latest checkpoint.
+
+The store uses an exclusive writer lock. Prefer graceful shutdown. If a process
+is killed, verify that no server using that directory remains before removing a
+stale `server.lock`. Preserve a damaged journal for inspection; startup fails on
+corruption rather than silently discarding progress.
+
+## Validation and measured performance
+
+The last executed standard suite passed **57 unit tests and seven integration checks**,
+including one real-UDP test. Three additional opt-in UDP tests cover the converted bootstrap, rejection
+of incompatible installed assets, and two-player movement/look/logout/re-entry,
+deletion and connection-logoff behavior. They passed on the supplied assets.
+These peers are synthetic; they do not establish native gameplay acceptance.
+The subsequent window-preference and hotbar persistence changes were compile checked only;
+automated tests were skipped at the user's request.
+The later inventory-state implementation is also compile checked only.
+
+```powershell
+$env:AC2_TEST_COMPAT_DATA = 'C:\path\to\emulator\target\compat-7148'
+$env:AC2_TEST_GAME_DATA = "C:\Asheron's Call 2"
+cargo test --test udp_flow -- --ignored
+cargo test --test multiplayer -- --ignored
+cargo bench --bench transport --target-dir target/bench-build
+cargo bench --bench scene --target-dir target/bench-build
+```
+
+A separate opt-in unit test uses `AC2_TEST_LANDBLOCKS` for the extracted terrain
+corpus. The `legacy-inspect` and `legacy-validate` commands inspect that corpus
+without changing it. The latter checks terrain records and linked info-file
+presence; it does not decode every info record or envcell.
+
+The ACK fast path avoids copying outstanding payloads. In the recorded warmed
+microbenchmark with 64 outstanding 1 KiB messages, median duplicate-ACK processing
+fell from 10,230 ns to 31 ns. Direct iteration of the cell index reduced 64-player
+same-cell movement replication from 1,832 ns to 1,358 ns (about 26%) and head look
+from 1,701 ns to 1,298 ns (about 24%). These are isolated processing costs, not
+player latency, full-server throughput or capacity claims.
+
+Sharing immutable retry bytes also reduced fresh encrypted-message processing
+with 64 outstanding messages from 16,205 ns to 10,482 ns (about 35%) while retaining
+transactional validation. The zero-pending case showed no improvement. See the
+checksum evidence for the full measurements and benchmark boundaries.
+
+Optional verification scripts execute selected original x86 routines offline:
+`tools/crypto_binary_vectors.py` and `tools/movement_binary_vectors.py`. They need
+Python's pefile and unicorn packages plus the matching original executable; these
+are verification dependencies, not server runtime dependencies.
+
+Pass `--client C:\path\to\ac2client.exe` when the original is outside this
+checkout. `tools/qualities_binary_vectors.py` also accepts `--game-data PATH` for
+the converted DAT directory. Original game binaries and DATs are not included.
+
+Exact addresses, identities, policies, test boundaries and open work:
+
+- [Authentication and wire format](auth-evidence.md)
+- [Checksum generation and reliability](crypto-evidence.md)
+- [World entry, movement, persistence and native observations](world-evidence.md)
+
+## Development gameplay profile
+
+`serve-training --game-data PATH` selects the bundled starter encounter, initialized
+HUD, once-per-character development hand item and an authored nearby lifestone.
+The preset enables development binding, native Recall skill use, `@recall` and
+bound resurrection, plus an authored gateway to a retained human bootcamp exit
+telepad. The training pack includes the base world placements. Binding grants the locked development Recall skill for use
+from the skill list or hotbar. Add the normal account, bind
+and data options as needed. The rules and placement are embedded, so this preset
+does not depend on launching from the emulator directory. It is an authored
+development slice; full original progression and native acceptance remain open.
+
+When its target encounters are present, this preset also accepts Training Grounds
+into the native quest journal. Three qualifying kills unlock `@quest claim` for
+a once-only 120 XP / 10 gold reward. `@quest` reports status. Training encounters
+can grant unstacked health potions; use restores up to 25 health and consumes the
+item atomically. The learned human Ease Suffering skill (`55`) provides the
+separate 30-health / 10-vigor development heal with an eight-second cooldown.
+Original quest/loot definitions and the full native skill-effect system are not
+implemented by these authored profiles.
+
+An explicit development encounter loop is available with `--content training
+--initialize-ui true --encounters content/development-encounters.tsv` alongside
+the normal game-data/account/bind/data options. It connects native attack targets
+to server health/vigor changes, stationary retaliation, XP/gold rewards, levels,
+regeneration and timed creature respawn. Saved player state is restored on entry.
+Death and the native Resurrect button now share persisted vitals, the client Dead
+flag, death notice and UI locking, including reconnect while dead. Resurrection
+restores the character in place unless development lifestones are enabled and
+the character has a saved binding, in which case it returns to that bind point.
+The rules and starter placement are development content; original combat formulas,
+most skill effects, combat animations, collision, corpse/general loot and native
+acceptance are unfinished.
+See [player systems integration](player-systems.md).
+
+Every placed creature in `content/creature-entities.txt` can be fought. The 152
+whose `portal.dat` records carry combat stats use them: health
+(`GameplayStatistics_MaxHealth`), natural damage, armor (`NPC_ArmorLevel`) and
+death experience, extracted into `content/creature-combat.tsv`. The other 40 use
+a 60-health / 6-damage starter profile. Explicit rows in the encounter file win,
+so the four training creatures keep beginner stats (the retail Idol Spawn is
+level 24 and would one-hit a new character). Creature armor reduces your hits and
+your level armor reduces theirs, never below 1. Attack speed, range, gold and the
+original hit formula are still development values.
+
+The opt-in HUD path also restores a persistent skill book and handles captured
+native training/untraining requests with imported level/species/credit/dependency
+rules for the supported human profile. The catalog contains 1,952 definitions;
+192 unresolved definitions are recorded separately. Raise requests now use 30
+imported cumulative XP tables and atomically persist investment with the available
+XP debit. Beyond the development basic attack and self-heal, most active skill
+effects, adjusted-level bonuses and native advancement acceptance remain unfinished.
+
+Game-data mode (`serve --game-data PATH`) now loads the bundled stationary world
+pack automatically. Use `--content content/world.tsv` for an editable external
+pack, or `--content none` to disable content, alongside normal bind/account/data options.
+The combined pack contains 89 lifestones and 158 portals with DAT-backed visuals.
+The server creates/removes them as players enter/leave their cell. Two additional
+portal locations remain in the unresolved report because their terrain is missing.
+A 7,583-entry entity/visual catalog and offline placement tool support explicit
+NPC/object authoring. Double-click `OpenContentEditor.cmd` for the graphical
+catalog browser, native creature/interior/outdoor 3D preview and position map (Python with Tk required), or run
+`python tools/content_editor.py --game-data PATH`. The editing workflow has
+automated Tk coverage, and a fresh desktop native-scene load is verified; full
+interactive/rendering acceptance remains pending. The Windows renderer now supports actual UV textures and depth
+buffering, with a software fallback; native shader parity remains unfinished.
+Native clip playback supports play/pause, clip selection and playback speed.
+The editor supports updating saved objects without changing their IDs, duplicating,
+deleting, session undo/redo, name/ID placement search, and a current-cell filter.
+It remembers paths/window size, reuses the launcher's DAT folder on first use,
+keeps a rolling `.bak` file, and rejects saves if the content file changed externally.
+See the [editor workflow and recovery guide](content-editor.md).
+Outdoor height blocks use DAT terrain textures, native vertex colors and a
+neighbor ring; road/corner blending, water and procedural scenery remain open.
+`--lifestones true` enables development binding/recall;
+`--portals true` enables 156 imported portal routes plus the authored training
+gateway when that source is loaded. Four source/destination entries remain
+unresolved. Original binding/portal presentation and rules, NPC
+behavior and other interactions remain unfinished; native appearance is unverified.
+See [content format and provenance](../content/README.md).
+
+An additional snapshot is available with `--content observed`: it adds 30
+capture-observed stationary actors to the 247-object pack, including Banderlings,
+Idol/Surrogate Spawns, a named NPC, eggs and chests. It retains observed positions,
+rotations and scale overrides. The snapshot supplies placements; selected
+encounter profiles provide their separate development gameplay. It does not
+supply original NPC AI, merchants, loot tables, quest interactions or respawn
+rules. Original capture build identity and native appearance remain unverified.
+
+Offline inventory management is available through the `inventory-*` commands in
+`--help`; use the normal `--account`, `--character-id` and `--data` arguments.
+The server must be stopped. Development grants require existing definition and
+visual records in `--game-data`, with operator-supplied stack/equipment rules.
+`inventory-reorder --character-id N --request PATH` imports one reassembled
+296-byte native sorting request while offline. It requires matching owner/item
+identities and a dense bag list. Live sorting is separately handled by the
+initialized HUD for the supported whole-item/whole-stack profile described above.
+Existence of a DAT definition does not establish starter entitlement or balance.
+See [inventory storage boundaries](world-evidence.md#transactional-inventory-storage-2026-10-24).
+
+An opt-in player HUD profile is available with
+`serve --initialize-ui true --game-data PATH` alongside the normal bind/account/data
+options. It requires the converted 7148 assets, emits UI_Load once after scene
+completion, and restores saved progression, skills, owned inventory, window
+settings, gameplay preferences (radar, shortcut height and damage-text range)
+and hotbar bindings. Saved training quests restore through the native
+journal; story and active-effect graphs remain empty.
+HUD initialization itself grants no items, skills, gold or progress. Separate
+training, encounter and binding profiles enable their authored grants and
+gameplay actions. The initializer is not enabled by default: native UI acceptance
+and backing gameplay systems remain unfinished.
+
+## Racial starter equipment
+
+New characters receive all three racial weapons in their bag; no weapon is
+forced into the hand. Starter clothing uses its actual equipment slots:
+
+- Human: bow, sword, staff; shirt, pants and boots.
+- Lugian: short sword, chuck, scepter; sash, kilt and sandals.
+- Tumerok: hook sword, javelin, drum; jerkin and leggings.
+
+The immutable `t4` grant also upgrades older characters once. It skips starter
+items already owned, keeps the old training sword and other possessions, and
+leaves a new clothing piece in the bag if its equipment slot is occupied. A full
+bag defers the entire grant instead of saving only part of it. Reconnecting does
+not replenish consumed, sold or moved starter gear after the grant is recorded.
+The extra potion/mushroom/Tallow pack remains separate custom training content.
+
+`inventory-starter --account NAME --character-id N --data PATH --game-data PATH`
+uses the same grant while the server is stopped. Back up the store before an
+upgrade; older binaries do not understand the new `t4` record. The source/asset
+and capture limits are recorded in [world evidence](world-evidence.md).
+
+## Training merchants, crafting and groups
+
+`serve-training` (and `serve --game-data`) loads 15,127 placed objects: the 247
+base placements, 525 actors from the older captures, 14,340 objects from the
+2012–2017 retail captures and 15 authored training objects. There are exits in the start and corridor rooms,
+an outdoor return gateway, quartermasters, clickable training mentors and four
+training creatures. Interior
+visibility uses the DAT's native visible-room arrays. Outdoors, the surrounding
+3x3 landblocks are an explicit development view policy. These placements and
+view settings do not reconstruct the complete original population or progression.
+
+Near a quartermaster, use `@shop`, `@buy potion`, `@buy weapon`,
+`@buy mushroom`, `@buy tallow`, or `@sell SLOT` (1-based bag position).
+Prices and stock are authored. Purchases/sales commit ownership and gold together;
+the native shop catalog, refresh request and Buy button are wired, and inventory selling requires
+a fresh nearby shop context. Tallow is sold as a 100-unit bundle. Consignment
+listing/escrow remains unfinished and is explicitly rejected without charging a fee.
+
+The native crafting panel now receives the training skill and two potion recipes.
+Crafting consumes one Mucor Mushroom and a complete 100-unit Tallow bundle, matching
+the actual ingredient requirements, and grants one potion atomically. The
+`@craft health` / `@craft vigor` fallback uses those same rules. Unrestricted training
+entitlement, guaranteed success, prices and lack of crafting XP remain authored
+policy. Full original crafting rules and native client acceptance remain incomplete. Health/vigor potions restore up to 25 of their vital and share
+a five-second use cooldown.
+
+Use `@group create NAME`, `@group invite PLAYER`, `@group accept PLAYER`,
+`@group decline PLAYER`, `@group dismiss PLAYER`, `@group leave`, and
+`@group disband`. Native requests, invitation dialogs and member snapshots are
+also wired. Groups have at most eight members and invitations expire in 30 seconds.
+Only individual XP/personal rewards are supported. The leader leaving or logging
+out disbands the session group. Member vitals/location use changed-field native
+updates while online; full roster snapshots are retained for initial state and
+name/level changes. Updates are admitted for every recipient before the sent-state
+cache advances, so a busy connection can retry without silently missing a change;
+`@g MESSAGE` sends group chat. Original native group-chat routing, shared rewards
+and persistent groups are not implemented. Fresh two-client UI acceptance is pending.
+
+Sword auto-attack now sends an attacker-owned combat story and orders its stance
+change before the swing. The story adds no damage hooks; original combat timing
+and native animation acceptance remain incomplete.
+
+Queued player attacks are cancelled on disconnect or session replacement, with
+attack cooldowns retained. Stale socket cleanup cannot remove a newer session's
+avatar. If a queued strike loses its target or range, the player receives a
+reason instead of a silent stop. This does not establish full combat parity.
+
+## Still missing before general players
+
+- Fresh matching-client acceptance of the integrated HUD, equipment, combat,
+  quest, potion, death/return and travel loop, plus native two-client visibility.
+- Most active abilities, buffs/debuffs, effect persistence, cast/cooldown UI,
+  projectiles and original combat formulas/animations.
+- Full appearance customization, armor composition, equipment bonuses and
+  broader inventory/stacking/ground-item behavior.
+- Corpse containers, ownership/loot-sharing rules and original loot tables.
+- Original quests, NPC conversations, branching, abandonment and repeat rules.
+- Native acceptance of merchant/crafting interfaces, original crafting rules,
+  merchant inventories, consignment escrow/listings and a complete economy.
+- Group XP/loot sharing, native group chat and broader social systems.
+- NPC movement/pathfinding, authoritative movement speed, collision and line of
+  sight, and complete native outdoor/interior boundary visibility behavior.
+- Original portal/binding eligibility and presentation, death penalties and
+  broader supported races/classes.
+- Public deployment/native ticket-login acceptance, account recovery and email
+  verification, production operations and demonstrated multiplayer capacity.
+
+The content editor's 3D rendering is a separate authoring feature. A fresh
+OpenGL scene load completed after the paint-callback repair; renderer progress
+does not establish completion of any missing gameplay system. Each native milestone
+needs fresh client evidence; compilation or packet checks alone do not close it.
+
+## Online account registration
+
+Account registration, Argon2id password storage and native one-time-ticket login
+are implemented for an initial hosted alpha. Public mode uses per-account
+characters and rejects developer/no-ticket login. The account backend stays on
+loopback behind HTTPS; the existing local mode remains loopback-only.
+See [online hosting](online-hosting.md) for the account page, separate online
+launcher, service templates, sizing and remaining acceptance/security boundaries.
+No public host or native internet login has been verified yet.
+
+## License and source offer
+
+Original server code is **AGPL-3.0-only**. See the repository [LICENSE](../LICENSE)
+and [licensing requirements](../LICENSING.md). Startup and in-game chat identify
+the source; `@source` / `@license` repeat the offer, and `license` / `--license`
+print the full license. Git builds link to their commit. Modified distributors
+and operators must publish their complete corresponding version and can set
+`PYREALIUM_SOURCE_URL` at build time to its public HTTP(S) location.
+
+### Placement-independent training NPC services
+
+The training pack includes an authored mentor, quartermaster and portal near the
+supported Tumerok start (`03fd0113`) and Lugian fallback start (`58740039`).
+These two one-way development routes arrive at the established Human training
+room. The new placements use small offsets from the bootstrap anchor and its
+elevation. Native appearance, collision and interaction acceptance remain pending;
+these are not original spawns.
+
+The pinned training mentor (`47001699`) and quartermaster (`47003724`) now
+resolve from the active, visible scene rather than a list of three placement IDs.
+Placed copies of those NPC types receive the existing authored training services.
+A clicked merchant is used exactly; purchases, sales, refreshes and automatic shop
+closure revalidate that same merchant instead of switching to a different nearby
+shop. Chat-based opening chooses the nearest eligible quartermaster, with a stable
+ID tie-break. Services still require a living player out of combat, visibility,
+the same cell and a four-metre range. This is explicit development behavior; it
+does not recover original dialogue, merchant stock or quest scripts for other NPCs.
+Compile checks passed; fresh native interaction acceptance remains pending.
+
+### Authored training quest chain
+
+After claiming Training Grounds, use a mentor again to accept **Field Supplies**.
+Buy one Mucor Mushroom and one 100-unit Tallow bundle from the quartermaster
+(2 gold each), keep them in your bag, and use the mentor to deliver them.
+The once-only reward is one health potion, 80 XP and 6 gold. Bought ingredients
+qualify: this is a supply-delivery objective, not proof that a potion was crafted.
+
+Acceptance uses a new `q3` journal record. Delivery consumes both supplies, grants
+the potion, awards XP/gold and completes the objective in one validated `a2`
+transaction. Replay requires the same canonical exchange and a living owner;
+old `q1`/`q2`/`a1` meanings are unchanged. Both quests restore into the native
+journal, and level-derived skill credits refresh when rewards change them.
+This profile is authored development content, not an original AC2 quest.
+Source compilation passed; native journal, speech and turn-in acceptance remain
+pending. Old executables cannot read the new records; preserve the updated build
+when reopening a store that has accepted the follow-up quest.
+
+### Training conversations and racial round trips
+
+Use a training mentor normally to progress the two authored lessons. Nearby
+players may ask `@mentor help`, `gear`, `combat`, `healing`, `supplies`,
+`crafting`, `travel` or `quests` for native NPC speech. Topic requests require
+a visible mentor in the same cell within four metres and a living player out
+of combat. This uses the supported native speech/use-completion presentation;
+a branching dialogue-choice window is not implemented.
+
+Human, Lugian and Tumerok starting hubs now each have three simultaneous Idol
+Spawn practice targets, a mentor, a quartermaster and a lifestone. The Lugian
+start remains the supported Linvak Tukal fallback, not the absent original
+Lugian dungeon. The shared outdoor hub now has return routes to the Tumerok
+and Lugian starts as well as the existing Human return. Examine these portals
+for destination-specific names. The added placements share the known start
+anchor elevation; collision, attack reach and native presentation need player
+acceptance before the full area can be called verified playable.
+
+### Native mentor dialogue window
+
+Mentor interactions and nearby conversation topics now also open build 7148's
+native MessageDialog using private event `82120024`: priority integer zero,
+then a literal StringInfo. Native EFun `85000c` reaches
+`CM_Character::SendNotice_DisplayMessage` (`00724be0`) and
+`gmGamePlayUI::RecvNotice_DisplayMessage` (`00408080`). The native layout is
+`41000009` with its own OK button. OK closes locally; no server reply or reward
+is inferred from dismissing the window. Priority zero preserves existing modals,
+and mentor dialogue openings are limited to one per second per session. Shop
+interactions keep their dedicated shop panel. The retained quest captures and
+7148 code do not establish a generic branching-choice response protocol.
+Native window rendering and mouse-look restoration require player acceptance.
+
+### Four-lesson training progression for every supported race
+
+Use a mentor after each completed lesson to claim its reward, then use the
+mentor again to accept the next lesson. Human, Lugian and Tumerok characters
+share this explicit authored progression:
+
+1. **Training Grounds**: defeat three Idol Spawn, then claim 120 XP and 10 gold.
+2. **Field Supplies**: deliver one Mucor Mushroom and a full 100-unit Tallow
+   bundle for a health potion, 80 XP and 6 gold.
+3. **Potion Practice**: after acceptance, craft a health or vigor potion through
+   the crafting panel, then claim 80 XP and 8 gold. A bought or granted potion
+   does not count; the crafted potion remains yours.
+4. **A Safe Journey**: after acceptance, bind or rebind a lifestone, use an
+   authored training portal, then speak to a mentor at the destination for
+   80 XP and 10 gold. Binding before acceptance and ordinary movement/recall
+   do not complete the lesson.
+
+The new `q4` revision saves lesson acceptance and once-only claims. `a3` saves
+a canonical two-ingredient crafting exchange with its objective credit; replay
+revalidates the ingredients, output and allocation. `l3` saves a lifestone bind,
+recall skill and travel-lesson credit together, including rebinding the same
+stone. `p3` saves a recognized training portal movement with travel credit.
+Historical record meanings and rewards are unchanged. All four journal entries
+restore from the save; skill-credit refresh accompanies level-changing rewards.
+
+These four lessons are development content, not recovered original racial
+quest scripts. Source compilation is distinct from native crafting/window,
+quest journal, collision and complete per-race player acceptance.

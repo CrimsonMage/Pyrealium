@@ -1,7 +1,7 @@
 # Third-party dependency notices
 
 These dependencies retain their own licenses. They are not relicensed by the project AGPL grant.
-The source version is pinned by emulator/Cargo.lock.
+The source version is pinned by Cargo.lock.
 
 - argon2 0.5.3 — MIT OR Apache-2.0; [source](https://crates.io/crates/argon2/0.5.3). Notices in argon2-0.5.3/ .
 - ascii 1.1.0 — Apache-2.0 OR MIT; [source](https://crates.io/crates/ascii/1.1.0). Notices in ascii-1.1.0/ .

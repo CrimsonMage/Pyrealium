@@ -1,0 +1,464 @@
+//! Client -> server script calls (`InterpSEvent`).
+
+use super::{craft, function, literal, Args};
+use crate::protocol::client_event::ClientEvent;
+use crate::protocol::inventory::{InvEquipDesc, InvMoveDesc};
+use crate::protocol::inventory_bulk::{InvTakeAllDesc, InvTransmuteAllDesc};
+use crate::protocol::native::{ExaminationRequest, NativeObject};
+use crate::protocol::pack::{pack_values, PackValue, PackedReference};
+use crate::protocol::string_info::StringInfo;
+use crate::protocol::usage::UsageDesc;
+use crate::protocol::ProtocolError;
+
+/// A message the client's scripts send to the server.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ScriptRequest {
+    /// [`function::SET_TARGET`].
+    SetTarget(u64),
+    /// [`function::EXAMINE`]: the request to examine, or a cleared request to stop.
+    Examine(ExaminationRequest),
+    /// [`function::SAY`]: `CPlayer` 0xDB passes 0 for `mode`.
+    Say { mode: u32, text: StringInfo },
+    /// [`function::TELL`]: `CPlayer` 0x112 passes 0 for `mode`.
+    Tell {
+        mode: u32,
+        text: StringInfo,
+        recipient: StringInfo,
+    },
+    /// [`function::EMOTE`].
+    Emote(u32),
+    /// [`function::EMOTE_TEXT`].
+    EmoteText(String),
+    /// [`function::USE`].
+    Use(UsageDesc),
+    /// [`function::MOVE_ITEM`].
+    MoveItem(InvMoveDesc),
+    /// [`function::REORGANIZE_CONTENTS`].
+    ReorganizeContents(InvMoveDesc),
+    /// [`function::EQUIP_ITEM`].
+    EquipItem(InvEquipDesc),
+    /// [`function::UNEQUIP_ITEM`].
+    UnequipItem(InvEquipDesc),
+    /// [`function::OPEN_CONTAINER`].
+    OpenContainer(u64),
+    /// [`function::CLOSE_CONTAINER`].
+    CloseContainer(u64),
+    /// [`function::LOOT_ALL`].
+    LootAll(InvTakeAllDesc),
+    /// [`function::TRANSMUTE_ALL`].
+    TransmuteAll(InvTransmuteAllDesc),
+    /// [`function::OPEN_TRADE`]: the other party.
+    OpenTrade(u64),
+    /// [`function::CLOSE_TRADE`].
+    CloseTrade,
+    /// [`function::ACCEPT_TRADE`]: the reference the stub packs.
+    AcceptTrade(PackedReference),
+    /// [`function::DECLINE_TRADE`].
+    DeclineTrade,
+    /// [`function::OFFER_ITEM`]: `item` at `amount`.
+    OfferItem { item: u64, amount: u32 },
+    /// [`function::REVOKE_ITEM`].
+    RevokeItem(u64),
+    /// [`function::STORE_ENTER`]: the store (int), then the storekeeper (long int).
+    EnterStore { store: u32, vendor: u64 },
+    /// [`function::STORE_LEAVE`]: the storekeeper (long int).
+    LeaveStore(u64),
+    /// [`function::STORE_ENTER_CONSIGNMENT`]: the storekeeper (long int).
+    EnterConsignment(u64),
+    /// [`function::STORE_LEAVE_CONSIGNMENT`]: the storekeeper (long int).
+    LeaveConsignment(u64),
+    /// [`function::STORE_PURCHASE`]: the purchase's `TransactionBlob` (a package reference).
+    Purchase(PackedReference),
+    /// [`function::CRAFT_ADD_INGREDIENT`]: `object` into slot `ordinal` of `recipe`, at `spinner`.
+    CraftAddIngredient {
+        recipe: u32,
+        ordinal: u32,
+        object: u64,
+        spinner: u32,
+    },
+    /// [`function::CRAFT_EXECUTE`]: craft `recipe` from `ingredients` (slot ordinal, object) at
+    /// `spinner`; `helper` is the stub's leading long int (its `PackageIDTable` helper).
+    CraftExecute {
+        helper: u64,
+        recipe: u32,
+        spinner: u32,
+        ingredients: Vec<(u32, u64)>,
+    },
+    /// [`function::CRAFT_RAISE_SKILL`]: raise craft skill `skill`.
+    CraftRaiseSkill(u32),
+}
+
+impl ScriptRequest {
+    pub fn function(&self) -> u32 {
+        match self {
+            Self::SetTarget(_) => function::SET_TARGET,
+            Self::Examine(_) => function::EXAMINE,
+            Self::Say { .. } => function::SAY,
+            Self::Tell { .. } => function::TELL,
+            Self::Emote(_) => function::EMOTE,
+            Self::EmoteText(_) => function::EMOTE_TEXT,
+            Self::Use(_) => function::USE,
+            Self::MoveItem(_) => function::MOVE_ITEM,
+            Self::ReorganizeContents(_) => function::REORGANIZE_CONTENTS,
+            Self::EquipItem(_) => function::EQUIP_ITEM,
+            Self::UnequipItem(_) => function::UNEQUIP_ITEM,
+            Self::OpenContainer(_) => function::OPEN_CONTAINER,
+            Self::CloseContainer(_) => function::CLOSE_CONTAINER,
+            Self::LootAll(_) => function::LOOT_ALL,
+            Self::TransmuteAll(_) => function::TRANSMUTE_ALL,
+            Self::OpenTrade(_) => function::OPEN_TRADE,
+            Self::CloseTrade => function::CLOSE_TRADE,
+            Self::AcceptTrade(_) => function::ACCEPT_TRADE,
+            Self::DeclineTrade => function::DECLINE_TRADE,
+            Self::OfferItem { .. } => function::OFFER_ITEM,
+            Self::RevokeItem(_) => function::REVOKE_ITEM,
+            Self::EnterStore { .. } => function::STORE_ENTER,
+            Self::LeaveStore(_) => function::STORE_LEAVE,
+            Self::EnterConsignment(_) => function::STORE_ENTER_CONSIGNMENT,
+            Self::LeaveConsignment(_) => function::STORE_LEAVE_CONSIGNMENT,
+            Self::Purchase(_) => function::STORE_PURCHASE,
+            Self::CraftAddIngredient { .. } => function::CRAFT_ADD_INGREDIENT,
+            Self::CraftExecute { .. } => function::CRAFT_EXECUTE,
+            Self::CraftRaiseSkill(_) => function::CRAFT_RAISE_SKILL,
+        }
+    }
+
+    /// The packed arguments, in the stub's pack order.
+    pub fn arguments(&self) -> Vec<PackValue> {
+        match self {
+            Self::SetTarget(id) => vec![PackValue::LongInt(*id)],
+            Self::Examine(request) => {
+                vec![PackValue::native(NativeObject::ExaminationRequest(
+                    *request,
+                ))]
+            }
+            Self::Say { mode, text } => vec![PackValue::Int(*mode), literal(text)],
+            Self::Tell {
+                mode,
+                text,
+                recipient,
+            } => vec![PackValue::Int(*mode), literal(text), literal(recipient)],
+            Self::Emote(emote) => vec![PackValue::Int(*emote)],
+            Self::EmoteText(text) => vec![PackValue::native(NativeObject::WString(text.clone()))],
+            Self::Use(desc) => vec![PackValue::Reference(desc.to_reference())],
+            Self::MoveItem(desc) | Self::ReorganizeContents(desc) => {
+                vec![PackValue::Reference(desc.to_reference())]
+            }
+            Self::EquipItem(desc) | Self::UnequipItem(desc) => {
+                vec![PackValue::Reference(desc.to_reference())]
+            }
+            Self::OpenContainer(id) | Self::CloseContainer(id) => vec![PackValue::LongInt(*id)],
+            Self::LootAll(desc) => vec![PackValue::Reference(desc.to_reference())],
+            Self::TransmuteAll(desc) => vec![PackValue::Reference(desc.to_reference())],
+            Self::OpenTrade(id) | Self::RevokeItem(id) => vec![PackValue::LongInt(*id)],
+            Self::CloseTrade | Self::DeclineTrade => Vec::new(),
+            Self::AcceptTrade(reference) => vec![PackValue::Reference(reference.clone())],
+            Self::OfferItem { item, amount } => {
+                vec![PackValue::Int(*amount), PackValue::LongInt(*item)]
+            }
+            Self::EnterStore { store, vendor } => {
+                vec![PackValue::Int(*store), PackValue::LongInt(*vendor)]
+            }
+            Self::LeaveStore(vendor) => vec![PackValue::LongInt(*vendor)],
+            Self::EnterConsignment(vendor) | Self::LeaveConsignment(vendor) => {
+                vec![PackValue::LongInt(*vendor)]
+            }
+            Self::Purchase(reference) => vec![PackValue::Reference(reference.clone())],
+            Self::CraftAddIngredient {
+                recipe,
+                ordinal,
+                object,
+                spinner,
+            } => vec![
+                PackValue::Int(*spinner),
+                PackValue::LongInt(*object),
+                PackValue::Int(*ordinal),
+                PackValue::Int(*recipe),
+            ],
+            Self::CraftExecute {
+                helper,
+                recipe,
+                spinner,
+                ingredients,
+            } => vec![
+                PackValue::LongInt(*helper),
+                craft::ingredient_table(ingredients),
+                PackValue::Int(*spinner),
+                PackValue::Int(*recipe),
+            ],
+            Self::CraftRaiseSkill(skill) => vec![PackValue::Int(*skill)],
+        }
+    }
+
+    /// The `InterpSEvent` the stub's `SendServerEvt` produces.
+    pub fn to_event(&self) -> ClientEvent {
+        ClientEvent::Interp {
+            function: self.function(),
+            arguments: pack_values(&self.arguments()),
+            encrypted: false,
+        }
+    }
+
+    /// The server's side: a known request from an `InterpSEvent`, or `None` for another
+    /// function id.
+    pub fn decode(function: u32, arguments: &[u8]) -> Option<Result<Self, ProtocolError>> {
+        let decode = |read: fn(&mut Args) -> Result<Self, ProtocolError>| {
+            let mut args = Args::new(arguments)?;
+            let request = read(&mut args)?;
+            args.finish()?;
+            Ok(request)
+        };
+        Some(match function {
+            function::SET_TARGET => decode(|a| Ok(Self::SetTarget(a.long()?))),
+            function::EXAMINE => decode(|a| match a.native()? {
+                NativeObject::ExaminationRequest(request) => Ok(Self::Examine(request)),
+                _ => Err(ProtocolError::Invalid("examination request")),
+            }),
+            function::SAY => decode(|a| {
+                Ok(Self::Say {
+                    mode: a.int()?,
+                    text: a.string_info()?,
+                })
+            }),
+            function::TELL => decode(|a| {
+                Ok(Self::Tell {
+                    mode: a.int()?,
+                    text: a.string_info()?,
+                    recipient: a.string_info()?,
+                })
+            }),
+            function::EMOTE => decode(|a| Ok(Self::Emote(a.int()?))),
+            function::EMOTE_TEXT => decode(|a| match a.native()? {
+                NativeObject::WString(text) => Ok(Self::EmoteText(text)),
+                _ => Err(ProtocolError::Invalid("emote text")),
+            }),
+            function::USE => decode(|a| Ok(Self::Use(UsageDesc::from_reference(&a.reference()?)?))),
+            function::MOVE_ITEM => decode(|a| {
+                Ok(Self::MoveItem(InvMoveDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::REORGANIZE_CONTENTS => decode(|a| {
+                Ok(Self::ReorganizeContents(InvMoveDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::EQUIP_ITEM => decode(|a| {
+                Ok(Self::EquipItem(InvEquipDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::UNEQUIP_ITEM => decode(|a| {
+                Ok(Self::UnequipItem(InvEquipDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::OPEN_CONTAINER => decode(|a| Ok(Self::OpenContainer(a.long()?))),
+            function::CLOSE_CONTAINER => decode(|a| Ok(Self::CloseContainer(a.long()?))),
+            function::LOOT_ALL => decode(|a| {
+                Ok(Self::LootAll(InvTakeAllDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::TRANSMUTE_ALL => decode(|a| {
+                Ok(Self::TransmuteAll(InvTransmuteAllDesc::from_reference(
+                    &a.reference()?,
+                )?))
+            }),
+            function::OPEN_TRADE => decode(|a| Ok(Self::OpenTrade(a.long()?))),
+            function::CLOSE_TRADE => decode(|_| Ok(Self::CloseTrade)),
+            function::ACCEPT_TRADE => decode(|a| Ok(Self::AcceptTrade(a.reference()?))),
+            function::DECLINE_TRADE => decode(|_| Ok(Self::DeclineTrade)),
+            function::OFFER_ITEM => decode(|a| {
+                Ok(Self::OfferItem {
+                    amount: a.int()?,
+                    item: a.long()?,
+                })
+            }),
+            function::REVOKE_ITEM => decode(|a| Ok(Self::RevokeItem(a.long()?))),
+            function::STORE_ENTER => decode(|a| {
+                let store = a.int()?;
+                Ok(Self::EnterStore {
+                    store,
+                    vendor: a.long()?,
+                })
+            }),
+            function::STORE_LEAVE => decode(|a| Ok(Self::LeaveStore(a.long()?))),
+            function::STORE_ENTER_CONSIGNMENT => decode(|a| Ok(Self::EnterConsignment(a.long()?))),
+            function::STORE_LEAVE_CONSIGNMENT => decode(|a| Ok(Self::LeaveConsignment(a.long()?))),
+            function::STORE_PURCHASE => decode(|a| Ok(Self::Purchase(a.reference()?))),
+            function::CRAFT_ADD_INGREDIENT => decode(|a| {
+                let spinner = a.int()?;
+                let object = a.long()?;
+                let ordinal = a.int()?;
+                Ok(Self::CraftAddIngredient {
+                    recipe: a.int()?,
+                    ordinal,
+                    object,
+                    spinner,
+                })
+            }),
+            function::CRAFT_EXECUTE => decode(|a| {
+                let helper = a.long()?;
+                let table = a.reference()?;
+                let ingredients = craft::ingredient_entries(&table)
+                    .ok_or(ProtocolError::Invalid("craft ingredients"))?;
+                let spinner = a.int()?;
+                Ok(Self::CraftExecute {
+                    helper,
+                    recipe: a.int()?,
+                    spinner,
+                    ingredients,
+                })
+            }),
+            function::CRAFT_RAISE_SKILL => decode(|a| Ok(Self::CraftRaiseSkill(a.int()?))),
+            _ => return None,
+        })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::protocol::reader::Writer;
+
+    fn words(w: &[u32]) -> Vec<u8> {
+        w.iter().flat_map(|w| w.to_le_bytes()).collect()
+    }
+
+    fn literal_bytes(text: &str) -> Vec<u8> {
+        let mut w = Writer::new();
+        StringInfo {
+            literal: Some(text.into()),
+            ..StringInfo::default()
+        }
+        .write(&mut w);
+        let mut b = words(&[5, 1, 1, 0x4400_0100, 0, 0xFFFF_006A]);
+        b.extend(w.bytes);
+        b.extend(words(&[0]));
+        b
+    }
+
+    fn round_trip(request: ScriptRequest, args: Vec<u8>) {
+        let (queue, bytes) = request.to_event().encode();
+        assert_eq!(queue, 3);
+        let mut expected = words(&[0x0001_0053, request.function(), args.len() as u32]);
+        expected.extend(&args);
+        assert_eq!(bytes, expected);
+        assert_eq!(
+            ScriptRequest::decode(request.function(), &args),
+            Some(Ok(request))
+        );
+    }
+
+    #[test]
+    fn set_target_is_one_long_int() {
+        let mut args = words(&[2]);
+        args.extend(0x8000_0001_0000_0123u64.to_le_bytes());
+        round_trip(ScriptRequest::SetTarget(0x8000_0001_0000_0123), args);
+        assert!(ScriptRequest::decode(0x8212_0016, &words(&[1, 5]))
+            .unwrap()
+            .is_err());
+        assert!(ScriptRequest::decode(0x8212_0017, &[]).is_none());
+    }
+
+    #[test]
+    fn examine_packs_the_request_as_a_native_reference() {
+        let mut args = words(&[5, 1, 1, 0x4400_0100, 0, 0xFFFF_009A]);
+        args.extend(words(&[0x4000_0002, 0, 0x55, 0, 0x203, 0]));
+        round_trip(
+            ScriptRequest::Examine(ExaminationRequest::object(0x55)),
+            args,
+        );
+    }
+
+    #[test]
+    fn chat_packs_the_mode_then_literal_strings() {
+        let text = |s: &str| StringInfo {
+            literal: Some(s.into()),
+            ..StringInfo::default()
+        };
+        let mut args = words(&[1, 0]);
+        args.extend(literal_bytes("Hello"));
+        round_trip(
+            ScriptRequest::Say {
+                mode: 0,
+                text: text("Hello"),
+            },
+            args,
+        );
+        let mut args = words(&[1, 0]);
+        args.extend(literal_bytes("hi"));
+        args.extend(literal_bytes("Explorer"));
+        round_trip(
+            ScriptRequest::Tell {
+                mode: 0,
+                text: text("hi"),
+                recipient: text("Explorer"),
+            },
+            args.clone(),
+        );
+        // A missing recipient or an extra value fails.
+        let mut extra = args.clone();
+        extra.extend(words(&[1, 0]));
+        assert!(ScriptRequest::decode(0x8205_0002, &extra).unwrap().is_err());
+        round_trip(ScriptRequest::Emote(0x1D), words(&[1, 0x1D]));
+        // The emote command's text is a bare `wpstring` (native type 0x76):
+        // `PStringBase::Pack`'s unit count, the four units scrambled
+        // (`crypto_uint32_munge`), padded to a word.
+        let args = words(&[
+            5,
+            1,
+            1,
+            0x4400_0100,
+            0,
+            0xFFFF_0076,
+            0x924F_0004,
+            0x761A_E592,
+            0x0000_EB7B,
+            0,
+        ]);
+        round_trip(ScriptRequest::EmoteText("wave".into()), args);
+    }
+
+    #[test]
+    fn trade_requests_pack_their_values() {
+        let long = |v: u64| {
+            let mut w = words(&[2]);
+            w.extend(v.to_le_bytes());
+            w
+        };
+        round_trip(
+            ScriptRequest::OpenTrade(0x2000_0000_0000_0030),
+            long(0x2000_0000_0000_0030),
+        );
+        round_trip(
+            ScriptRequest::RevokeItem(0x8000_0002_0000_0021),
+            long(0x8000_0002_0000_0021),
+        );
+        round_trip(ScriptRequest::CloseTrade, Vec::new());
+        round_trip(ScriptRequest::DeclineTrade, Vec::new());
+        // The amount (an int), then the item (a long int): `OfferItemForTrade`'s stub order.
+        let mut args = words(&[1, 3]);
+        args.extend(long(0x8000_0002_0000_0021));
+        round_trip(
+            ScriptRequest::OfferItem {
+                item: 0x8000_0002_0000_0021,
+                amount: 3,
+            },
+            args,
+        );
+        assert_eq!(ScriptRequest::CloseTrade.function(), 0x8215_003E);
+        assert!(ScriptRequest::decode(0x8215_0015, &words(&[2, 3]))
+            .unwrap()
+            .is_err());
+    }
+
+    #[test]
+    fn use_packs_the_usage_desc_graph() {
+        let desc = UsageDesc::new(0x2000_0000_0000_0001, 0x42, 0x43);
+        let args = pack_values(&[PackValue::Reference(desc.to_reference())]);
+        assert_eq!(&args[..20], &words(&[5, 2, 1, 2, 0x4400_0100]));
+        round_trip(ScriptRequest::Use(desc), args);
+    }
+}

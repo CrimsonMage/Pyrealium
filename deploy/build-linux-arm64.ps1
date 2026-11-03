@@ -17,7 +17,7 @@ try {
     $env:CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER = $linker
     $env:CARGO_BUILD_JOBS = '2'
     $env:CARGO_INCREMENTAL = '0'
-    $buildArgs = @('build', '--locked', '--release', '--target', 'aarch64-unknown-linux-musl', '--manifest-path', (Join-Path $SourceRoot 'emulator/Cargo.toml'))
+    $buildArgs = @('build', '--locked', '--release', '--target', 'aarch64-unknown-linux-musl', '--manifest-path', (Join-Path $SourceRoot 'Cargo.toml'))
     if ($TargetDirectory) { $buildArgs += @('--target-dir', $TargetDirectory) }
     & cargo @buildArgs
     if ($LASTEXITCODE -ne 0) { throw "ARM64 compilation failed ($LASTEXITCODE)." }
