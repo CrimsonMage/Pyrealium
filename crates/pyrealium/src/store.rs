@@ -78,6 +78,28 @@ fn valid_name(s: &str) -> bool {
             .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b' ' || b == b'-')
 }
 
+/// A character name the server stores: 1 to 32 UTF-16 units, each an ASCII letter or digit,
+/// `_`, space, `-`, or a character the client's name field takes in any of its languages
+/// (`gmCharNameCharacterValidator::IsCharacterValid` / `IsCharacterValidForTransitions` and
+/// their `LanguageLetters` table, Legions 0x005CD990 / 0x005CDA50 / 0x00A3B7D0): `'`, the French
+/// accents (e, a, c and retail's U-acute), the German umlauts, the Hangul syllables
+/// AC00-D7A3 and compatibility jamo 3131-3163, and the CJK range 3400-9FB0. The server does not
+/// know the client's language, so it takes the union. What the retail server checked is not
+/// known (Pyrealium policy); digits and `_` stay accepted for names made before this rule.
+fn valid_character_name(s: &str) -> bool {
+    const LETTERS: &[char] = &[
+        '\'', 'è', 'È', 'é', 'É', 'à', 'À', 'ç', 'Ç', 'ù', 'Ú', 'ü', 'Ü', 'ö', 'Ö', 'ä', 'Ä',
+    ];
+    let units = s.encode_utf16().count();
+    (1..=32).contains(&units)
+        && s.chars().all(|c| {
+            c.is_ascii_alphanumeric()
+                || matches!(c, '_' | ' ' | '-')
+                || LETTERS.contains(&c)
+                || matches!(u32::from(c), 0xAC00..=0xD7A3 | 0x3131..=0x3163 | 0x3400..=0x9FB0)
+        })
+}
+
 impl Store {
     /// Connects (creating and migrating the database when needed), takes the server lock and
     /// loads every saved character and ground item.
@@ -997,9 +1019,14 @@ impl Store {
         name: &str,
         creation: Option<&CharacterCreationRequest>,
     ) -> io::Result<Character> {
-        if !valid_name(account) || !valid_name(name) {
+        if !valid_name(account) {
             return Err(invalid(
-                "account and character names must contain 1-32 ASCII letters, digits, spaces, hyphens or underscores",
+                "account names must contain 1-32 ASCII letters, digits, spaces, hyphens or underscores",
+            ));
+        }
+        if !valid_character_name(name) {
+            return Err(invalid(
+                "character names must be 1-32 letters the client's name field takes (any of its languages), digits, spaces, hyphens, apostrophes or underscores",
             ));
         }
         if let Some(request) = creation {
@@ -1420,6 +1447,16 @@ mod tests {
             assert_eq!(store.characters[&5].creation, Some(request("Hero 5")));
             assert_eq!(store.placement(5), Some(Placement::HUMAN_START));
         }
+    }
+    #[test]
+    fn character_names_take_every_client_language_s_letters() {
+        for name in ["Hero 5", "D'Artagnan", "Émile", "Jürgen", "한글이", "ㅎㅏㄴ", "龍", &"한".repeat(32)] {
+            assert!(super::valid_character_name(name), "{name}");
+        }
+        for name in ["", "Zoë", "a\tb", "Ñandú", &"한".repeat(33)] {
+            assert!(!super::valid_character_name(name), "{name}");
+        }
+        assert!(!super::valid_name("Jürgen"), "accounts stay ASCII");
     }
     fn request(name: &str) -> CharacterCreationRequest {
         CharacterCreationRequest {
