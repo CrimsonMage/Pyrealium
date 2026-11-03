@@ -1,0 +1,18 @@
+{
+  "existing_outdoor_sha256": "97b79f1f408559ee25e4c85edb58780e3e59439e10dc73619d286c398c520740",
+  "groups": [],
+  "included": 27,
+  "inferred": true,
+  "manifest_sha256": "baaad566eea3f01ddd6512c6ea6ab31b28f5fec927374ec2060602176eb2c16c",
+  "native_ground_verified": true,
+  "rejected": [
+    {
+      "entity": 1191192469,
+      "group": 9313677127058466709,
+      "reason": "no reachable walkable native ground within 32m",
+      "slot": 0
+    }
+  ],
+  "source_sha256": "f68933b98dffb3a64b1abb376cdfaf8a8fe9479f6b98dd8ca0433b6ea1323484",
+  "version": 1
+}

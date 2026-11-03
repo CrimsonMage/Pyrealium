@@ -1,0 +1,142 @@
+# Build products, test output (Saved/) and machine-local editor state
+Saved/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+.vs/
+.idea/
+.vscode/
+*.xcodeproj
+*.xcworkspace
+
+# Rust, Python, packaging and diagnostics
+target/
+dist/
+bin/
+obj/
+__pycache__/
+*.py[cod]
+*.dmp
+*.pcap
+*.pcapng
+*.jsonl
+*.log
+*.pdb
+*.exe
+*.dll
+*.target
+*.modules
+
+# Ad-hoc validation/capture output outside the usual Saved directory.
+/Automation/
+/Validation/
+/Captures/
+/Testing/
+
+# AC2 reference inputs and generated outputs; not distributable game content.
+/References/Pyrealium/
+/Tools/Rust/
+/Tools/Pyrealium/
+/Network/Bridge/target/
+/target/
+__pycache__/
+/Asheron's Call 2 - Legions/
+/decompiled-*.zip
+
+# Retail archives and reverse-engineering inputs are local, never published.
+*.dat
+*.sdat
+*.zip
+*.7z
+*.rar
+*.iso
+decompile/
+decompiled/
+research/
+captures/
+
+# Accounts, character saves, credentials and private host configuration
+data/
+*.journal
+*.lock
+!Cargo.lock
+.env
+.env.*
+*.env
+!*.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.credentials.json
+
+# Local agent/editor metadata
+.codex/
+.agents/
+.claude/
+.cursor/
+Thumbs.db
+.DS_Store
+
+# From the server folder
+# Build products and local state
+**/target/
+**/dist/
+**/bin/
+**/obj/
+**/data/
+**/__pycache__/
+*.py[cod]
+*.log
+*.journal
+*.lock
+!Cargo.lock
+
+# Game files, symbols, captures and release archives
+*.exe
+*.dll
+*.pdb
+*.dat
+*.sdat
+*.dmp
+examination-wlib-before-repair*.bin
+*.pcap
+*.pcapng
+*.zip
+*.7z
+*.rar
+*.iso
+*.jpg
+*.jpeg
+*.png
+!launcher/assets/*.png
+*.jsonl
+recovery/
+decompile/
+decompiled/
+research/
+captures/
+
+# Local credentials, editor settings and assistant metadata
+.env
+.env.*
+*.pem
+*.key
+.vs/
+.vscode/
+.idea/
+.codex/
+.agents/
+.claude/
+.cursor/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+Thumbs.db
+.DS_Store
+
+# Versioned local launcher builds while the current executable is open
+/launcher/dist-*/

@@ -1,0 +1,301 @@
+{
+  "version": 1,
+  "policy": "Reconstructed New Arwic Mines roster. Captured interior anchors checked against installed native collision; guide identifies Outcasts and Edge Beetles. Group capacities follow the accepted anchor count, regeneration uses the existing 30-second point policy. Exact retail populations and regeneration are unknown. Existing captured Taskmaster retained.",
+  "evidence_url": "https://www.20oz.net/index.php/Arwic_Mines_and_Crafting_Quest.html",
+  "npcs": [],
+  "camps": [],
+  "interiors": [
+    {
+      "id": 9313673827332390913,
+      "entity": 1191187884,
+      "cell": 2092499250,
+      "position": [
+        98.958519,
+        7.33717442,
+        77.0920334
+      ],
+      "evidence": {
+        "capture_id": "8140dbc88b567d7a",
+        "row_sha256": "45b0cb5b78c11bf8bbc80f37d5e2b13504d63c9c766d410b7dbd64e5c2d6f3c9",
+        "old_entity": "47002381",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390914,
+      "entity": 1191187884,
+      "cell": 2092499247,
+      "position": [
+        67.6505737,
+        28.4866581,
+        79.8360443
+      ],
+      "evidence": {
+        "capture_id": "8140ee5b45aff31e",
+        "row_sha256": "e9dca7c1806df7c3c55411d969c7c1609c24669da88c3584b13d28cdbfae2f4c",
+        "old_entity": "47002381",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390915,
+      "entity": 1191187884,
+      "cell": 2092499253,
+      "position": [
+        90.5458374,
+        -35.2208519,
+        69.9613953
+      ],
+      "evidence": {
+        "capture_id": "8140f10cd101e029",
+        "row_sha256": "9c3dbce581326263256e704a27bb901859fa5593c3455c30d29cd3814c7a4422",
+        "old_entity": "47002381",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390916,
+      "entity": 1191187884,
+      "cell": 2092499220,
+      "position": [
+        74.4403,
+        86.9869995,
+        74.6095734
+      ],
+      "evidence": {
+        "capture_id": "8140e20514306530",
+        "row_sha256": "08728733f97cb10ddf1a02b5a09cbdcf47226ab9528a09fbd7139e1e1ea9ec43",
+        "old_entity": "47002381",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390917,
+      "entity": 1191187884,
+      "cell": 2092499245,
+      "position": [
+        90.6650009,
+        14.6871986,
+        79.8360443
+      ],
+      "evidence": {
+        "capture_id": "8140f51ea6cdd05f",
+        "row_sha256": "fa6508a1facd5fd671cd063710185af0a4e7f61ed36f8f2df7cc7299085e413a",
+        "old_entity": "47002381",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390918,
+      "entity": 1191184524,
+      "cell": 2092499201,
+      "position": [
+        162.324997,
+        8.55963993,
+        56.2764664
+      ],
+      "evidence": {
+        "capture_id": "8140e92dc8ec7ed2",
+        "row_sha256": "b512fc8cb4392461dbdb125ed59c36d3a10bbe768b86c86179ca7f9b39707ece",
+        "old_entity": "47002225",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390919,
+      "entity": 1191184524,
+      "cell": 2092499205,
+      "position": [
+        153.117996,
+        54.661499,
+        66.2464752
+      ],
+      "evidence": {
+        "capture_id": "8140f4b28213f85f",
+        "row_sha256": "396606a4ffcdc4ec459cfd80bdc48be075afbc742bf13ce421616bc5a248d18f",
+        "old_entity": "47002225",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    },
+    {
+      "id": 9313673827332390920,
+      "entity": 1191184524,
+      "cell": 2092499215,
+      "position": [
+        153.421005,
+        145.501999,
+        59.7261238
+      ],
+      "evidence": {
+        "capture_id": "8140d651cccd2924",
+        "row_sha256": "4a4dce4d53440a1c48953c5699c3d77be04b759943b865e48ade6cf68066ee70",
+        "old_entity": "47002225",
+        "basis": "Historical New Arwic Mines roster applied to a captured room anchor; old template IDs are incompatible with installed DAT."
+      }
+    }
+  ],
+  "interior_groups": [
+    {
+      "id": 9313673827332391168,
+      "members": [
+        9313673827332390918,
+        9313673827332390919,
+        9313673827332390920
+      ]
+    },
+    {
+      "id": 9313673827332391169,
+      "members": [
+        9313673827332390913,
+        9313673827332390914,
+        9313673827332390915,
+        9313673827332390916,
+        9313673827332390917
+      ]
+    }
+  ],
+  "templates": {
+    "1191184524": {
+      "name": "Edge Beetle",
+      "visual": 520093745,
+      "base": 4457,
+      "props": {
+        "AI_NPCTable": "NPCTable_Beetle",
+        "AICombat_NaturalDamage": 13,
+        "AICombat_NaturalVariance": 1056964608,
+        "NPC_DeathLootProfile": 413,
+        "NPC_ArmorLevel": 2,
+        "NPC_DeathEffect1": "Eff_IncrementQuestBeetleHunt",
+        "NPC_DeathEffect1Stat": 1,
+        "NPC_StartingSkill1": 1,
+        "NPC_StartingSkill1Level": 38,
+        "NPC_StartingSkill2": 7,
+        "NPC_StartingSkill2Level": 38,
+        "NPC_StartingSkill3": 12,
+        "NPC_StartingSkill3Level": 38,
+        "NPC_StartingSkill4": 2,
+        "NPC_StartingSkill4Level": 27,
+        "NPC_StartingSkill5": 8,
+        "NPC_StartingSkill5Level": 27,
+        "NPC_StartingSkill6": 13,
+        "NPC_StartingSkill6Level": 27,
+        "NPC_StartingSkill7": 492,
+        "NPC_StartingSkill7Level": 1,
+        "NPC_StartingSkill7_IsBase": 1,
+        "NPC_StartingSkill8": 490,
+        "NPC_StartingSkill8Level": 1,
+        "NPC_StartingSkill8_IsBase": 1,
+        "NPC_StartingSkill9": 491,
+        "NPC_StartingSkill9Level": 1,
+        "NPC_StartingSkill9_IsBase": 1,
+        "NPC_StartingSkill10": 497,
+        "NPC_StartingSkill10Level": 1,
+        "NPC_StartingSkill10_IsBase": 1,
+        "NPC_StartingSkill11": 499,
+        "NPC_StartingSkill11Level": 1,
+        "NPC_StartingSkill11_IsBase": 1,
+        "GameplayStatistics_Level": 3,
+        "GameplayStatistics_MaxHealth": 59,
+        "GameplayStatistics_MaxVigor": 59,
+        "GameplayStatistics_DeathExperience": "0b00000000000000",
+        "Placeable": 1,
+        "Name": [
+          2824895724,
+          620757033
+        ],
+        "PhysObj": 1191182785,
+        "Scale": 1061997773,
+        "AI_AISuperClass": 3,
+        "AI_LoveTable": 22,
+        "AI_PerceptionRadius": 1103626240,
+        "NPC_DamageType": 1,
+        "NPC_TSysCoarseItemClass": 1073741867,
+        "NPC_TSysFineItemClass": 1073741874,
+        "ButcheryProfile": 1862281336,
+        "EnterWorldFX": 1090520500
+      },
+      "ai": "NPCTable_Beetle",
+      "role": "monster",
+      "signature": [
+        null,
+        null,
+        null,
+        null,
+        4
+      ]
+    },
+    "1191187884": {
+      "name": "Drudge Outcast",
+      "visual": 520093750,
+      "base": 15591,
+      "props": {
+        "AI_NPCTable": "NPCTable_DrudgeRobber",
+        "AI_HomesickRadius": 1114636288,
+        "AI_CanUseDoors": 0,
+        "AICombat_NaturalDamage": 28,
+        "AICombat_NaturalVariance": 1060320051,
+        "NPC_DeathLootProfile": 948,
+        "NPC_ArmorLevel": 4,
+        "NPC_DeathEffect1": "Eff_IncrementQuestKanten2",
+        "NPC_DeathEffect1Stat": 1,
+        "NPC_StartingSkill1": 1,
+        "NPC_StartingSkill1Level": 79,
+        "NPC_StartingSkill2": 7,
+        "NPC_StartingSkill2Level": 79,
+        "NPC_StartingSkill3": 12,
+        "NPC_StartingSkill3Level": 79,
+        "NPC_StartingSkill4": 2,
+        "NPC_StartingSkill4Level": 55,
+        "NPC_StartingSkill5": 8,
+        "NPC_StartingSkill5Level": 55,
+        "NPC_StartingSkill6": 13,
+        "NPC_StartingSkill6Level": 55,
+        "NPC_StartingSkill7": 492,
+        "NPC_StartingSkill7Level": 1,
+        "NPC_StartingSkill7_IsBase": 1,
+        "NPC_StartingSkill8": 490,
+        "NPC_StartingSkill8Level": 1,
+        "NPC_StartingSkill8_IsBase": 1,
+        "NPC_StartingSkill9": 491,
+        "NPC_StartingSkill9Level": 1,
+        "NPC_StartingSkill9_IsBase": 1,
+        "NPC_StartingSkill10": 502,
+        "NPC_StartingSkill10Level": 1,
+        "NPC_StartingSkill10_IsBase": 1,
+        "NPC_StartingSkill11": 463,
+        "NPC_StartingSkill11Level": 1,
+        "GameplayStatistics_Level": 6,
+        "GameplayStatistics_MaxHealth": 164,
+        "GameplayStatistics_MaxVigor": 164,
+        "GameplayStatistics_DeathExperience": "1300000000000000",
+        "Placeable": 1,
+        "Name": [
+          2824895724,
+          620763059
+        ],
+        "Description": [
+          1816499044,
+          620763059
+        ],
+        "PhysObj": 1191182535,
+        "Scale": 1063675494,
+        "AI_AISuperClass": 6,
+        "AI_LoveTable": 6,
+        "AI_PerceptionRadius": 1106247680,
+        "NPC_TSysCoarseItemClass": 1073741867,
+        "NPC_TSysFineItemClass": 1073741878,
+        "ButcheryProfile": 1862281404,
+        "EnterWorldFX": 1090520500
+      },
+      "ai": "NPCTable_DrudgeRobber",
+      "role": "monster",
+      "signature": [
+        null,
+        null,
+        null,
+        null,
+        4
+      ]
+    }
+  }
+}

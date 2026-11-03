@@ -1,0 +1,4908 @@
+[
+  {
+    "definition": 1191186135,
+    "visual": 520095141,
+    "physical": 1191183836,
+    "appearance": 536871001,
+    "race": 1,
+    "slot": 2,
+    "male": 536871001,
+    "female": 536871002,
+    "armor": null,
+    "hash": 8755329767482477575,
+    "entity_hash": 1363857401362952633,
+    "evidence": [
+      1191193330
+    ],
+    "name": "Platemail Hauberk",
+    "tradable": true
+  },
+  {
+    "definition": 1191186145,
+    "visual": 520095149,
+    "physical": 1191183844,
+    "appearance": 536871343,
+    "race": 4,
+    "slot": 2,
+    "male": 536871343,
+    "female": 536871343,
+    "armor": null,
+    "hash": 11468912479001143738,
+    "entity_hash": 12666410243530335711,
+    "evidence": [
+      1191193345
+    ],
+    "name": "Bone Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191186146,
+    "visual": 520095153,
+    "physical": 1191183848,
+    "appearance": 536871344,
+    "race": 4,
+    "slot": 8,
+    "male": 536871344,
+    "female": 536871344,
+    "armor": null,
+    "hash": 2639379684985004641,
+    "entity_hash": 13326433705648950748,
+    "evidence": [
+      1191193348
+    ],
+    "name": "Bone Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191186147,
+    "visual": 520095145,
+    "physical": 1191183840,
+    "appearance": 536871342,
+    "race": 4,
+    "slot": 32,
+    "male": 536871342,
+    "female": 536871342,
+    "armor": null,
+    "hash": 9603266719502079096,
+    "entity_hash": 8424417557623617997,
+    "evidence": [
+      1191193347
+    ],
+    "name": "Bone Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191186148,
+    "visual": 520095158,
+    "physical": 1191183853,
+    "appearance": 536871345,
+    "race": 4,
+    "slot": 16,
+    "male": 536871345,
+    "female": 536871345,
+    "armor": null,
+    "hash": 5507298140460574006,
+    "entity_hash": 16771635126932880873,
+    "evidence": [
+      1191193346
+    ],
+    "name": "Bone Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191186385,
+    "visual": 520095129,
+    "physical": 1191183824,
+    "appearance": 536871008,
+    "race": 2,
+    "slot": 2,
+    "male": 536871008,
+    "female": 536871043,
+    "armor": null,
+    "hash": 15473906860402095369,
+    "entity_hash": 17982976426475280218,
+    "evidence": [
+      1191193371
+    ],
+    "name": "Studded Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191186386,
+    "visual": 520095121,
+    "physical": 1191183816,
+    "appearance": 536871011,
+    "race": 2,
+    "slot": 8,
+    "male": 536871011,
+    "female": 536871045,
+    "armor": null,
+    "hash": 12080106209745926639,
+    "entity_hash": 6231108266359784569,
+    "evidence": [
+      1191193383
+    ],
+    "name": "Studded Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191186387,
+    "visual": 520095120,
+    "physical": 1191183815,
+    "appearance": 536871010,
+    "race": 2,
+    "slot": 32,
+    "male": 536871010,
+    "female": 536871044,
+    "armor": null,
+    "hash": 10103731158918840181,
+    "entity_hash": 621288365937815941,
+    "evidence": [
+      1191193377
+    ],
+    "name": "Studded Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191186388,
+    "visual": 520095122,
+    "physical": 1191183817,
+    "appearance": 536871009,
+    "race": 2,
+    "slot": 16,
+    "male": 536871009,
+    "female": 536871042,
+    "armor": null,
+    "hash": 7771993062370351697,
+    "entity_hash": 6973705816876265712,
+    "evidence": [
+      1191193374
+    ],
+    "name": "Studded Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191186389,
+    "visual": 520095142,
+    "physical": 1191183837,
+    "appearance": 536870953,
+    "race": 1,
+    "slot": 2,
+    "male": 536870953,
+    "female": 536870961,
+    "armor": null,
+    "hash": 5400779006952962164,
+    "entity_hash": 1321663153893964539,
+    "evidence": [
+      1191193331,
+      1191193332
+    ],
+    "name": "Hard Leather Jacket",
+    "tradable": true
+  },
+  {
+    "definition": 1191186391,
+    "visual": 520095133,
+    "physical": 1191183828,
+    "appearance": 536870952,
+    "race": 1,
+    "slot": 32,
+    "male": 536870952,
+    "female": 536870962,
+    "armor": null,
+    "hash": 7501077272983007273,
+    "entity_hash": 9195587430994610210,
+    "evidence": [
+      1191193337,
+      1191193338
+    ],
+    "name": "Hard Leather Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191186393,
+    "visual": 520095143,
+    "physical": 1191183838,
+    "appearance": 536870988,
+    "race": 1,
+    "slot": 2,
+    "male": 536870988,
+    "female": 536870989,
+    "armor": null,
+    "hash": 2439311015043404100,
+    "entity_hash": 8026852634265307762,
+    "evidence": [
+      1191193325
+    ],
+    "name": "Padded Jacket",
+    "tradable": true
+  },
+  {
+    "definition": 1191186394,
+    "visual": 520095138,
+    "physical": 1191183833,
+    "appearance": 536870992,
+    "race": 1,
+    "slot": 8,
+    "male": 536870992,
+    "female": 536870993,
+    "armor": null,
+    "hash": 5817457083646374878,
+    "entity_hash": 17075334058273111500,
+    "evidence": [
+      1191193329
+    ],
+    "name": "Padded Greaves",
+    "tradable": true
+  },
+  {
+    "definition": 1191186395,
+    "visual": 520095134,
+    "physical": 1191183829,
+    "appearance": 536870990,
+    "race": 1,
+    "slot": 32,
+    "male": 536870990,
+    "female": 536870991,
+    "armor": null,
+    "hash": 3061398554612712173,
+    "entity_hash": 14651495210815491853,
+    "evidence": [
+      1191193327
+    ],
+    "name": "Padded Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191186396,
+    "visual": 520095116,
+    "physical": 1191183811,
+    "appearance": 536870937,
+    "race": 1,
+    "slot": 16,
+    "male": 536870937,
+    "female": 536870938,
+    "armor": null,
+    "hash": 14602697543902961192,
+    "entity_hash": 12051181084313352465,
+    "evidence": [
+      1191193326
+    ],
+    "name": "Leather Boots",
+    "tradable": true
+  },
+  {
+    "definition": 1191186401,
+    "visual": 520095128,
+    "physical": 1191183823,
+    "appearance": 536871029,
+    "race": 2,
+    "slot": 2,
+    "male": 536871029,
+    "female": 536871032,
+    "armor": null,
+    "hash": 16100442710236347942,
+    "entity_hash": 10132847918609075524,
+    "evidence": [
+      1191193364
+    ],
+    "name": "Quilted Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191186402,
+    "visual": 520095127,
+    "physical": 1191183822,
+    "appearance": 536871026,
+    "race": 2,
+    "slot": 8,
+    "male": 536871026,
+    "female": 536871034,
+    "armor": null,
+    "hash": 3278802979623733896,
+    "entity_hash": 2617028480524669639,
+    "evidence": [
+      1191193368
+    ],
+    "name": "Quilted Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191186403,
+    "visual": 520095125,
+    "physical": 1191183820,
+    "appearance": 536871027,
+    "race": 2,
+    "slot": 32,
+    "male": 536871027,
+    "female": 536871033,
+    "armor": null,
+    "hash": 2544632517360034848,
+    "entity_hash": 10157627909363934483,
+    "evidence": [
+      1191193366
+    ],
+    "name": "Quilted Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191186404,
+    "visual": 520095131,
+    "physical": 1191183826,
+    "appearance": 536871028,
+    "race": 2,
+    "slot": 16,
+    "male": 536871028,
+    "female": 536871031,
+    "armor": null,
+    "hash": 13362315749309742636,
+    "entity_hash": 3777904025342141538,
+    "evidence": [
+      1191193365
+    ],
+    "name": "Quilted Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191186435,
+    "visual": 520095164,
+    "physical": 1191183859,
+    "appearance": 536871147,
+    "race": 2,
+    "slot": 8,
+    "male": 536871147,
+    "female": 536871127,
+    "armor": null,
+    "hash": 12846296193803999854,
+    "entity_hash": 11316964584009734696,
+    "evidence": [
+      1191193382
+    ],
+    "name": "Bandolier Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191186436,
+    "visual": 520095162,
+    "physical": 1191183857,
+    "appearance": 536871122,
+    "race": 2,
+    "slot": 32,
+    "male": 536871122,
+    "female": 536871123,
+    "armor": null,
+    "hash": 7233764440711173656,
+    "entity_hash": 8843754102742823584,
+    "evidence": [
+      1191193376
+    ],
+    "name": "Bandolier Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191186438,
+    "visual": 520095149,
+    "physical": 1191183844,
+    "appearance": 536871343,
+    "race": 4,
+    "slot": 2,
+    "male": 536871343,
+    "female": 536871343,
+    "armor": null,
+    "hash": 16870235618502690640,
+    "entity_hash": 17792722545896628409,
+    "evidence": [
+      1191193345
+    ],
+    "name": "Initiate Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191186439,
+    "visual": 520095153,
+    "physical": 1191183848,
+    "appearance": 536871344,
+    "race": 4,
+    "slot": 8,
+    "male": 536871344,
+    "female": 536871344,
+    "armor": null,
+    "hash": 8474352854449786743,
+    "entity_hash": 11731109471656234664,
+    "evidence": [
+      1191193348
+    ],
+    "name": "Initiate Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191186440,
+    "visual": 520095145,
+    "physical": 1191183840,
+    "appearance": 536871342,
+    "race": 4,
+    "slot": 32,
+    "male": 536871342,
+    "female": 536871342,
+    "armor": null,
+    "hash": 11507356565351613028,
+    "entity_hash": 12747013770448373383,
+    "evidence": [
+      1191193347
+    ],
+    "name": "Initiate Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191186441,
+    "visual": 520095158,
+    "physical": 1191183853,
+    "appearance": 536871345,
+    "race": 4,
+    "slot": 16,
+    "male": 536871345,
+    "female": 536871345,
+    "armor": null,
+    "hash": 4443068265228818662,
+    "entity_hash": 1015361603238574307,
+    "evidence": [
+      1191193346
+    ],
+    "name": "Initiate Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191186446,
+    "visual": 520095152,
+    "physical": 1191183847,
+    "appearance": 536871141,
+    "race": 4,
+    "slot": 2,
+    "male": 536871141,
+    "female": 536871141,
+    "armor": null,
+    "hash": 2291247516861507416,
+    "entity_hash": 888149720873488659,
+    "evidence": [
+      1191193349
+    ],
+    "name": "Spirit Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191186447,
+    "visual": 520095156,
+    "physical": 1191183851,
+    "appearance": 536871143,
+    "race": 4,
+    "slot": 8,
+    "male": 536871143,
+    "female": 536871143,
+    "armor": null,
+    "hash": 11371985428490773498,
+    "entity_hash": 9217008343421384898,
+    "evidence": [
+      1191193361
+    ],
+    "name": "Spirit Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191186448,
+    "visual": 520095148,
+    "physical": 1191183843,
+    "appearance": 536871139,
+    "race": 4,
+    "slot": 32,
+    "male": 536871139,
+    "female": 536871139,
+    "armor": null,
+    "hash": 7116927334206486907,
+    "entity_hash": 1381222452088546989,
+    "evidence": [
+      1191193355
+    ],
+    "name": "Spirit Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191186449,
+    "visual": 520095160,
+    "physical": 1191183855,
+    "appearance": 536871145,
+    "race": 4,
+    "slot": 16,
+    "male": 536871145,
+    "female": 536871145,
+    "armor": null,
+    "hash": 16030909162727442049,
+    "entity_hash": 13488619778504511369,
+    "evidence": [
+      1191193352
+    ],
+    "name": "Spirit Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191188562,
+    "visual": 520097106,
+    "physical": 1191187724,
+    "appearance": 536871542,
+    "race": 4,
+    "slot": 1,
+    "male": 536871542,
+    "female": 536871542,
+    "armor": 10,
+    "hash": 3194145633126706008,
+    "entity_hash": 10263421175907203345,
+    "evidence": [
+      1191188562,
+      1191193360
+    ],
+    "name": "Horned Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191189296,
+    "visual": 520097800,
+    "physical": 1191189303,
+    "appearance": 536871649,
+    "race": 4,
+    "slot": 1,
+    "male": 536871649,
+    "female": 536871650,
+    "armor": 10,
+    "hash": 4086432293141053519,
+    "entity_hash": 14925116253368057639,
+    "evidence": [
+      1191189296,
+      1191193358
+    ],
+    "name": "Plumed Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191193325,
+    "visual": 520098930,
+    "physical": 1191193137,
+    "appearance": 536870988,
+    "race": 1,
+    "slot": 2,
+    "male": 536870988,
+    "female": 536870989,
+    "armor": 10,
+    "hash": 9138504671206103866,
+    "entity_hash": 13786634132481869700,
+    "evidence": [
+      1191193325
+    ],
+    "name": "Soft Leather Jacket",
+    "tradable": true
+  },
+  {
+    "definition": 1191193326,
+    "visual": 520098908,
+    "physical": 1191193115,
+    "appearance": 536870937,
+    "race": 1,
+    "slot": 16,
+    "male": 536870937,
+    "female": 536870938,
+    "armor": 10,
+    "hash": 4634614636780521111,
+    "entity_hash": 9348695226895883362,
+    "evidence": [
+      1191193326
+    ],
+    "name": "Soft Leather Boots",
+    "tradable": true
+  },
+  {
+    "definition": 1191193329,
+    "visual": 520098929,
+    "physical": 1191193136,
+    "appearance": 536870992,
+    "race": 1,
+    "slot": 8,
+    "male": 536870992,
+    "female": 536870993,
+    "armor": 10,
+    "hash": 17351920300065400383,
+    "entity_hash": 5225654271980120983,
+    "evidence": [
+      1191193329
+    ],
+    "name": "Soft Leather Greaves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193327,
+    "visual": 520098928,
+    "physical": 1191193135,
+    "appearance": 536870990,
+    "race": 1,
+    "slot": 32,
+    "male": 536870990,
+    "female": 536870991,
+    "armor": 10,
+    "hash": 12001710206195277594,
+    "entity_hash": 2380796528894845688,
+    "evidence": [
+      1191193327
+    ],
+    "name": "Soft Leather Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193330,
+    "visual": 520098944,
+    "physical": 1191193151,
+    "appearance": 536871001,
+    "race": 1,
+    "slot": 2,
+    "male": 536871001,
+    "female": 536871002,
+    "armor": 10,
+    "hash": 17252424879847486443,
+    "entity_hash": 15562183690396807642,
+    "evidence": [
+      1191193330
+    ],
+    "name": "Augmented Hauberk",
+    "tradable": true
+  },
+  {
+    "definition": 1191193331,
+    "visual": 520098939,
+    "physical": 1191193146,
+    "appearance": 536870953,
+    "race": 1,
+    "slot": 2,
+    "male": 536870953,
+    "female": 536870961,
+    "armor": 10,
+    "hash": 15594580073795926112,
+    "entity_hash": 5238614493538937657,
+    "evidence": [
+      1191193331,
+      1191193332
+    ],
+    "name": "Brigandine Jacket",
+    "tradable": true
+  },
+  {
+    "definition": 1191193332,
+    "visual": 520098939,
+    "physical": 1191193146,
+    "appearance": 536870953,
+    "race": 1,
+    "slot": 2,
+    "male": 536870953,
+    "female": 536870961,
+    "armor": 10,
+    "hash": 16989576885054134390,
+    "entity_hash": 10870796780594905214,
+    "evidence": [
+      1191193331,
+      1191193332
+    ],
+    "name": "Cuirboulli Hauberk",
+    "tradable": true
+  },
+  {
+    "definition": 1191193333,
+    "visual": 520098943,
+    "physical": 1191193150,
+    "appearance": 536870999,
+    "race": 1,
+    "slot": 16,
+    "male": 536870999,
+    "female": 536871000,
+    "armor": 10,
+    "hash": 4997475360714595481,
+    "entity_hash": 18432152332413503438,
+    "evidence": [
+      1191193333
+    ],
+    "name": "Augmented Boots",
+    "tradable": true
+  },
+  {
+    "definition": 1191193334,
+    "visual": 520098938,
+    "physical": 1191193145,
+    "appearance": 536871191,
+    "race": 1,
+    "slot": 16,
+    "male": 536871191,
+    "female": 536871191,
+    "armor": 10,
+    "hash": 15467486221736205539,
+    "entity_hash": 1492747951835225530,
+    "evidence": [
+      1191193334
+    ],
+    "name": "Brigandine Boots",
+    "tradable": true
+  },
+  {
+    "definition": 1191193336,
+    "visual": 520098945,
+    "physical": 1191193152,
+    "appearance": 536871003,
+    "race": 1,
+    "slot": 32,
+    "male": 536871003,
+    "female": 536871004,
+    "armor": 10,
+    "hash": 13102624834572321317,
+    "entity_hash": 16441749800985456755,
+    "evidence": [
+      1191193336
+    ],
+    "name": "Augmented Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193337,
+    "visual": 520098940,
+    "physical": 1191193147,
+    "appearance": 536870952,
+    "race": 1,
+    "slot": 32,
+    "male": 536870952,
+    "female": 536870962,
+    "armor": 10,
+    "hash": 13227295200489033723,
+    "entity_hash": 14062618354563322499,
+    "evidence": [
+      1191193337,
+      1191193338
+    ],
+    "name": "Brigandine Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193338,
+    "visual": 520098940,
+    "physical": 1191193147,
+    "appearance": 536870952,
+    "race": 1,
+    "slot": 32,
+    "male": 536870952,
+    "female": 536870962,
+    "armor": 10,
+    "hash": 12611754595031486653,
+    "entity_hash": 1618668512483711180,
+    "evidence": [
+      1191193337,
+      1191193338
+    ],
+    "name": "Cuirboulli Gloves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193342,
+    "visual": 520098950,
+    "physical": 1191193157,
+    "appearance": 536871005,
+    "race": 1,
+    "slot": 8,
+    "male": 536871005,
+    "female": 536871006,
+    "armor": 10,
+    "hash": 13602779617278888206,
+    "entity_hash": 2103256901155938518,
+    "evidence": [
+      1191193342
+    ],
+    "name": "Augmented Greaves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193343,
+    "visual": 520098937,
+    "physical": 1191193144,
+    "appearance": 536871016,
+    "race": 1,
+    "slot": 8,
+    "male": 536871016,
+    "female": 536871017,
+    "armor": 10,
+    "hash": 17600894480934922212,
+    "entity_hash": 4978015411000500857,
+    "evidence": [
+      1191188818,
+      1191193343
+    ],
+    "name": "Brigandine Greaves",
+    "tradable": true
+  },
+  {
+    "definition": 1191193344,
+    "visual": 520098941,
+    "physical": 1191193148,
+    "appearance": 536870951,
+    "race": 1,
+    "slot": 8,
+    "male": 536870951,
+    "female": 536870963,
+    "armor": 10,
+    "hash": 5929118725949928438,
+    "entity_hash": 2185584635061496691,
+    "evidence": [
+      1191193344
+    ],
+    "name": "Cuirboulli Greaves",
+    "tradable": true
+  },
+  {
+    "definition": 1191188044,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 10201639785593768085,
+    "entity_hash": 3616266630959342342,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Exquisite Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188045,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 9110120901098724371,
+    "entity_hash": 3864745749135736999,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Luminous Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188046,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 9085364317118940545,
+    "entity_hash": 11009276802785621640,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Glimmering Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188047,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 12443578178098329891,
+    "entity_hash": 2468039082452059857,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Radiant Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188048,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 17224397456062865291,
+    "entity_hash": 7473732069127449902,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Royal Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188049,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 215409914274900375,
+    "entity_hash": 15473567572089785755,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Extravagant Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188050,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 15036647222740251610,
+    "entity_hash": 14861099535499426708,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Fine Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188051,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 2648588940804766153,
+    "entity_hash": 4298314442283372593,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Silken Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188052,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 2918532282476134929,
+    "entity_hash": 195827803375701502,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Patchwork Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188053,
+    "visual": 520095174,
+    "physical": 1191183869,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 1036624124729272652,
+    "entity_hash": 6413278089648216903,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Woven Human Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191188813,
+    "visual": 520095136,
+    "physical": 1191183831,
+    "appearance": 536871014,
+    "race": 1,
+    "slot": 32,
+    "male": 536871014,
+    "female": 536871015,
+    "armor": 3,
+    "hash": 13874245952833896442,
+    "entity_hash": 16317254780802858771,
+    "evidence": [
+      1191188813
+    ],
+    "name": "Reinforced Gloves",
+    "tradable": false
+  },
+  {
+    "definition": 1191188818,
+    "visual": 520095140,
+    "physical": 1191183835,
+    "appearance": 536871016,
+    "race": 1,
+    "slot": 8,
+    "male": 536871016,
+    "female": 536871017,
+    "armor": 6,
+    "hash": 12806588329561448075,
+    "entity_hash": 15216610054924052553,
+    "evidence": [
+      1191188818,
+      1191193343
+    ],
+    "name": "Reinforced Greaves",
+    "tradable": false
+  },
+  {
+    "definition": 1191188820,
+    "visual": 520095144,
+    "physical": 1191183839,
+    "appearance": 536871012,
+    "race": 1,
+    "slot": 2,
+    "male": 536871012,
+    "female": 536871013,
+    "armor": 12,
+    "hash": 7764244967626363214,
+    "entity_hash": 11938222790869895944,
+    "evidence": [
+      1191188820
+    ],
+    "name": "Reinforced Jacket",
+    "tradable": false
+  },
+  {
+    "definition": 1191189061,
+    "visual": 520097675,
+    "physical": 1191189062,
+    "appearance": 536871450,
+    "race": 1,
+    "slot": 32,
+    "male": 536871450,
+    "female": 536871458,
+    "armor": 20,
+    "hash": 9996830129558137593,
+    "entity_hash": 11379241472143160779,
+    "evidence": [
+      1191189061,
+      1191192258
+    ],
+    "name": "Singularity Gloves",
+    "tradable": false
+  },
+  {
+    "definition": 1191189063,
+    "visual": 520097676,
+    "physical": 1191189064,
+    "appearance": 536871443,
+    "race": 1,
+    "slot": 16,
+    "male": 536871443,
+    "female": 536871463,
+    "armor": 20,
+    "hash": 17628817259881517713,
+    "entity_hash": 15344615805615563359,
+    "evidence": [
+      1191189063,
+      1191192260
+    ],
+    "name": "Celestial Order Boots",
+    "tradable": false
+  },
+  {
+    "definition": 1191189065,
+    "visual": 520097677,
+    "physical": 1191189066,
+    "appearance": 536871444,
+    "race": 1,
+    "slot": 16,
+    "male": 536871444,
+    "female": 536871467,
+    "armor": 20,
+    "hash": 8032476944042905661,
+    "entity_hash": 7026069499279180244,
+    "evidence": [
+      1191189065,
+      1191192265
+    ],
+    "name": "Boots of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189067,
+    "visual": 520097678,
+    "physical": 1191189068,
+    "appearance": 536871448,
+    "race": 1,
+    "slot": 16,
+    "male": 536871448,
+    "female": 536871456,
+    "armor": 20,
+    "hash": 10340485545635995836,
+    "entity_hash": 6524425207816090422,
+    "evidence": [
+      1191189067,
+      1191192255
+    ],
+    "name": "Singularity Boots",
+    "tradable": false
+  },
+  {
+    "definition": 1191189069,
+    "visual": 520097679,
+    "physical": 1191189070,
+    "appearance": 536871442,
+    "race": 1,
+    "slot": 32,
+    "male": 536871442,
+    "female": 536871462,
+    "armor": 20,
+    "hash": 5676134068787741,
+    "entity_hash": 1286261366791848337,
+    "evidence": [
+      1191189069,
+      1191192264
+    ],
+    "name": "Celestial Order Gloves",
+    "tradable": false
+  },
+  {
+    "definition": 1191189071,
+    "visual": 520097680,
+    "physical": 1191189072,
+    "appearance": 536871446,
+    "race": 1,
+    "slot": 32,
+    "male": 536871446,
+    "female": 536871466,
+    "armor": 20,
+    "hash": 14762551766431979868,
+    "entity_hash": 11133774762694126758,
+    "evidence": [
+      1191189071,
+      1191192269
+    ],
+    "name": "Gloves of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189073,
+    "visual": 520097681,
+    "physical": 1191189074,
+    "appearance": 536871451,
+    "race": 1,
+    "slot": 8,
+    "male": 536871451,
+    "female": 536871459,
+    "armor": 47,
+    "hash": 16612963564299578058,
+    "entity_hash": 184403317856363492,
+    "evidence": [
+      1191189073,
+      1191192257
+    ],
+    "name": "Singularity Greaves",
+    "tradable": false
+  },
+  {
+    "definition": 1191189075,
+    "visual": 520097682,
+    "physical": 1191189076,
+    "appearance": 536871440,
+    "race": 1,
+    "slot": 8,
+    "male": 536871440,
+    "female": 536871460,
+    "armor": 47,
+    "hash": 6495698284598775456,
+    "entity_hash": 17397820143990181577,
+    "evidence": [
+      1191189075,
+      1191192262
+    ],
+    "name": "Celestial Order Greaves",
+    "tradable": false
+  },
+  {
+    "definition": 1191189077,
+    "visual": 520097683,
+    "physical": 1191189078,
+    "appearance": 536871447,
+    "race": 1,
+    "slot": 8,
+    "male": 536871447,
+    "female": 536871464,
+    "armor": 47,
+    "hash": 2230912910895126992,
+    "entity_hash": 7710286834961848962,
+    "evidence": [
+      1191189077,
+      1191192267
+    ],
+    "name": "Greaves of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189079,
+    "visual": 520097684,
+    "physical": 1191189080,
+    "appearance": 536871445,
+    "race": 1,
+    "slot": 2,
+    "male": 536871445,
+    "female": 536871465,
+    "armor": 80,
+    "hash": 13828412270679241879,
+    "entity_hash": 3502299512020037754,
+    "evidence": [
+      1191189079,
+      1191192268
+    ],
+    "name": "Hauberk of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189081,
+    "visual": 520097685,
+    "physical": 1191189082,
+    "appearance": 536871441,
+    "race": 1,
+    "slot": 2,
+    "male": 536871441,
+    "female": 536871461,
+    "armor": 80,
+    "hash": 17314020689561264980,
+    "entity_hash": 16798939648645845145,
+    "evidence": [
+      1191189081,
+      1191192263
+    ],
+    "name": "Celestial Order Hauberk",
+    "tradable": false
+  },
+  {
+    "definition": 1191189083,
+    "visual": 520097686,
+    "physical": 1191189084,
+    "appearance": 536871449,
+    "race": 1,
+    "slot": 2,
+    "male": 536871449,
+    "female": 536871457,
+    "armor": 80,
+    "hash": 16924348963178963113,
+    "entity_hash": 13565855258760442307,
+    "evidence": [
+      1191189083,
+      1191192259
+    ],
+    "name": "Singularity Hauberk",
+    "tradable": false
+  },
+  {
+    "definition": 1191189133,
+    "visual": 520098067,
+    "physical": 1191190193,
+    "appearance": 536871584,
+    "race": 1,
+    "slot": 1,
+    "male": 536871584,
+    "female": 536871585,
+    "armor": 20,
+    "hash": 11828557284401086792,
+    "entity_hash": 3567742564719357454,
+    "evidence": [
+      1191189133,
+      1191192266
+    ],
+    "name": "Helm of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189134,
+    "visual": 520098068,
+    "physical": 1191190194,
+    "appearance": 536871586,
+    "race": 1,
+    "slot": 1,
+    "male": 536871586,
+    "female": 536871587,
+    "armor": 20,
+    "hash": 16635606160684430251,
+    "entity_hash": 2871781949347438435,
+    "evidence": [
+      1191189134,
+      1191192261
+    ],
+    "name": "Celestial Order Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191189135,
+    "visual": 520098069,
+    "physical": 1191190195,
+    "appearance": 536871588,
+    "race": 1,
+    "slot": 1,
+    "male": 536871588,
+    "female": 536871589,
+    "armor": 20,
+    "hash": 9344965754321322110,
+    "entity_hash": 13027507467701972355,
+    "evidence": [
+      1191189135,
+      1191192256
+    ],
+    "name": "Singularity Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191189589,
+    "visual": 520097863,
+    "physical": 1191189596,
+    "appearance": 536871721,
+    "race": 1,
+    "slot": 1,
+    "male": 536871721,
+    "female": 536871725,
+    "armor": 25,
+    "hash": 9952917480631790684,
+    "entity_hash": 3740003862497132107,
+    "evidence": [
+      1191189589
+    ],
+    "name": "Tyrant Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191192255,
+    "visual": 520097678,
+    "physical": 1191189068,
+    "appearance": 536871448,
+    "race": 1,
+    "slot": 16,
+    "male": 536871448,
+    "female": 536871456,
+    "armor": 32,
+    "hash": 3643380662699203379,
+    "entity_hash": 2879285667521950503,
+    "evidence": [
+      1191189067,
+      1191192255
+    ],
+    "name": "Augmented Singularity Boots",
+    "tradable": false
+  },
+  {
+    "definition": 1191192256,
+    "visual": 520098069,
+    "physical": 1191190195,
+    "appearance": 536871588,
+    "race": 1,
+    "slot": 1,
+    "male": 536871588,
+    "female": 536871589,
+    "armor": 32,
+    "hash": 3748285724962020848,
+    "entity_hash": 14650185635877484538,
+    "evidence": [
+      1191189135,
+      1191192256
+    ],
+    "name": "Augmented Singularity Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191192257,
+    "visual": 520097681,
+    "physical": 1191189074,
+    "appearance": 536871451,
+    "race": 1,
+    "slot": 8,
+    "male": 536871451,
+    "female": 536871459,
+    "armor": 81,
+    "hash": 4500022157192315250,
+    "entity_hash": 5316047061431432793,
+    "evidence": [
+      1191189073,
+      1191192257
+    ],
+    "name": "Augmented Singularity Greaves",
+    "tradable": false
+  },
+  {
+    "definition": 1191192258,
+    "visual": 520097675,
+    "physical": 1191189062,
+    "appearance": 536871450,
+    "race": 1,
+    "slot": 32,
+    "male": 536871450,
+    "female": 536871458,
+    "armor": 32,
+    "hash": 1431904091757381547,
+    "entity_hash": 9343916802597775309,
+    "evidence": [
+      1191189061,
+      1191192258
+    ],
+    "name": "Augmented Singularity Gloves",
+    "tradable": false
+  },
+  {
+    "definition": 1191192259,
+    "visual": 520097686,
+    "physical": 1191189084,
+    "appearance": 536871449,
+    "race": 1,
+    "slot": 2,
+    "male": 536871449,
+    "female": 536871457,
+    "armor": 132,
+    "hash": 14125564626869576466,
+    "entity_hash": 10156176849765108484,
+    "evidence": [
+      1191189083,
+      1191192259
+    ],
+    "name": "Augmented Singularity Hauberk",
+    "tradable": false
+  },
+  {
+    "definition": 1191192260,
+    "visual": 520097676,
+    "physical": 1191189064,
+    "appearance": 536871443,
+    "race": 1,
+    "slot": 16,
+    "male": 536871443,
+    "female": 536871463,
+    "armor": 32,
+    "hash": 16346390826665410784,
+    "entity_hash": 2959118512844533149,
+    "evidence": [
+      1191189063,
+      1191192260
+    ],
+    "name": "Augmented Celestial Order Boots",
+    "tradable": false
+  },
+  {
+    "definition": 1191192261,
+    "visual": 520098068,
+    "physical": 1191190194,
+    "appearance": 536871586,
+    "race": 1,
+    "slot": 1,
+    "male": 536871586,
+    "female": 536871587,
+    "armor": 32,
+    "hash": 11788827532482762091,
+    "entity_hash": 14769188472480737982,
+    "evidence": [
+      1191189134,
+      1191192261
+    ],
+    "name": "Augmented Celestial Order Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191192262,
+    "visual": 520097682,
+    "physical": 1191189076,
+    "appearance": 536871440,
+    "race": 1,
+    "slot": 8,
+    "male": 536871440,
+    "female": 536871460,
+    "armor": 81,
+    "hash": 2890333068387349163,
+    "entity_hash": 12228846246402469765,
+    "evidence": [
+      1191189075,
+      1191192262
+    ],
+    "name": "Augmented Celestial Order Greaves",
+    "tradable": false
+  },
+  {
+    "definition": 1191192263,
+    "visual": 520097685,
+    "physical": 1191189082,
+    "appearance": 536871441,
+    "race": 1,
+    "slot": 2,
+    "male": 536871441,
+    "female": 536871461,
+    "armor": 132,
+    "hash": 6955203565948810932,
+    "entity_hash": 1481095686072256624,
+    "evidence": [
+      1191189081,
+      1191192263
+    ],
+    "name": "Augmented Celestial Order Hauberk",
+    "tradable": false
+  },
+  {
+    "definition": 1191192264,
+    "visual": 520097679,
+    "physical": 1191189070,
+    "appearance": 536871442,
+    "race": 1,
+    "slot": 32,
+    "male": 536871442,
+    "female": 536871462,
+    "armor": 32,
+    "hash": 16800018254473210515,
+    "entity_hash": 8707065000818518657,
+    "evidence": [
+      1191189069,
+      1191192264
+    ],
+    "name": "Augmented Celestial Order Gloves",
+    "tradable": false
+  },
+  {
+    "definition": 1191192265,
+    "visual": 520097677,
+    "physical": 1191189066,
+    "appearance": 536871444,
+    "race": 1,
+    "slot": 16,
+    "male": 536871444,
+    "female": 536871467,
+    "armor": 32,
+    "hash": 4093330443663598289,
+    "entity_hash": 14655262976884577957,
+    "evidence": [
+      1191189065,
+      1191192265
+    ],
+    "name": "Augmented Boots of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192266,
+    "visual": 520098067,
+    "physical": 1191190193,
+    "appearance": 536871584,
+    "race": 1,
+    "slot": 1,
+    "male": 536871584,
+    "female": 536871585,
+    "armor": 32,
+    "hash": 16419787040059881030,
+    "entity_hash": 15644909157214917567,
+    "evidence": [
+      1191189133,
+      1191192266
+    ],
+    "name": "Augmented Helm of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192267,
+    "visual": 520097683,
+    "physical": 1191189078,
+    "appearance": 536871447,
+    "race": 1,
+    "slot": 8,
+    "male": 536871447,
+    "female": 536871464,
+    "armor": 81,
+    "hash": 4613154975049112522,
+    "entity_hash": 9774290693527126813,
+    "evidence": [
+      1191189077,
+      1191192267
+    ],
+    "name": "Augmented Greaves of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192268,
+    "visual": 520097684,
+    "physical": 1191189080,
+    "appearance": 536871445,
+    "race": 1,
+    "slot": 2,
+    "male": 536871445,
+    "female": 536871465,
+    "armor": 132,
+    "hash": 16194995646065451890,
+    "entity_hash": 8270151831920383034,
+    "evidence": [
+      1191189079,
+      1191192268
+    ],
+    "name": "Augmented Hauberk of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192269,
+    "visual": 520097680,
+    "physical": 1191189072,
+    "appearance": 536871446,
+    "race": 1,
+    "slot": 32,
+    "male": 536871446,
+    "female": 536871466,
+    "armor": 32,
+    "hash": 15023627667008826209,
+    "entity_hash": 11284292580780388869,
+    "evidence": [
+      1191189071,
+      1191192269
+    ],
+    "name": "Augmented Gloves of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192517,
+    "visual": 520098683,
+    "physical": 1191192520,
+    "appearance": 536871770,
+    "race": 1,
+    "slot": 2,
+    "male": 536871770,
+    "female": 536871771,
+    "armor": 0,
+    "hash": 15118331657761173393,
+    "entity_hash": 6145033726629169964,
+    "evidence": [
+      1191192517
+    ],
+    "name": "Envoy Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191192566,
+    "visual": 520098701,
+    "physical": 1191192567,
+    "appearance": 536871780,
+    "race": 1,
+    "slot": 2,
+    "male": 536871780,
+    "female": 536871781,
+    "armor": 10,
+    "hash": 8006903537455901536,
+    "entity_hash": 16217618732311846382,
+    "evidence": [
+      1191192566
+    ],
+    "name": "Robe of Sustentation",
+    "tradable": false
+  },
+  {
+    "definition": 1191192657,
+    "visual": 520098798,
+    "physical": 1191192911,
+    "appearance": 536871794,
+    "race": 1,
+    "slot": 2,
+    "male": 536871794,
+    "female": 536871795,
+    "armor": 175,
+    "hash": 9440924568044160563,
+    "entity_hash": 13825271914603813501,
+    "evidence": [
+      1191192657,
+      1191195457
+    ],
+    "name": "Guardian of Dereth Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191195228,
+    "visual": 520098942,
+    "physical": 1191193149,
+    "appearance": 536871171,
+    "race": 1,
+    "slot": 2,
+    "male": 536871171,
+    "female": 536871172,
+    "armor": 10,
+    "hash": 16185859858198285792,
+    "entity_hash": 5510616664312389171,
+    "evidence": [
+      1191188044,
+      1191188045,
+      1191188046,
+      1191188047,
+      1191188048,
+      1191188049,
+      1191188050,
+      1191188051,
+      1191188052,
+      1191188053,
+      1191195228
+    ],
+    "name": "Human Robe",
+    "tradable": true
+  },
+  {
+    "definition": 1191195452,
+    "visual": 520097564,
+    "physical": 1191182945,
+    "appearance": 536871844,
+    "race": 1,
+    "slot": 1,
+    "male": 536871844,
+    "female": 536871845,
+    "armor": 1,
+    "hash": 554532072682749439,
+    "entity_hash": 12201228703537045678,
+    "evidence": [
+      1191195452
+    ],
+    "name": "Sun Glasses",
+    "tradable": false
+  },
+  {
+    "definition": 1191195457,
+    "visual": 520098798,
+    "physical": 1191192911,
+    "appearance": 536871794,
+    "race": 1,
+    "slot": 2,
+    "male": 536871794,
+    "female": 536871795,
+    "armor": 1,
+    "hash": 14578072817412523,
+    "entity_hash": 10416019987423420447,
+    "evidence": [
+      1191192657,
+      1191195457
+    ],
+    "name": "Swimwear",
+    "tradable": false
+  },
+  {
+    "definition": 1191188054,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 11689215088148355740,
+    "entity_hash": 4895880852409469575,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Exquisite Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188055,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 13678253745561255880,
+    "entity_hash": 5461834608355942234,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Luminous Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188056,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 7275791616785357084,
+    "entity_hash": 5053119570945526625,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Glimmering Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188057,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 5967639015193114096,
+    "entity_hash": 4946602957678233932,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Radiant Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188058,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 4703427038187961398,
+    "entity_hash": 17257484042007627711,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Royal Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188059,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 17932702645518221060,
+    "entity_hash": 14978702243122756614,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Extravagant Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188060,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 10854461588820507673,
+    "entity_hash": 6295531368388937665,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Fine Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188061,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 8296889186835621778,
+    "entity_hash": 1942145677148161036,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Silken Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188062,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 16386995838988623368,
+    "entity_hash": 9886506083800837207,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Patchwork Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188063,
+    "visual": 520095348,
+    "physical": 1191184013,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 13398785315844712765,
+    "entity_hash": 1628517023587005934,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Woven Lugian Pallium",
+    "tradable": false
+  },
+  {
+    "definition": 1191188560,
+    "visual": 520097109,
+    "physical": 1191187727,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 10,
+    "hash": 12588961414982323521,
+    "entity_hash": 3232083700713293939,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Storm Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191188825,
+    "visual": 520095161,
+    "physical": 1191183856,
+    "appearance": 536871124,
+    "race": 2,
+    "slot": 32,
+    "male": 536871124,
+    "female": 536871125,
+    "armor": 3,
+    "hash": 8146183426540358815,
+    "entity_hash": 17896339241469173189,
+    "evidence": [
+      1191188825,
+      1191193378
+    ],
+    "name": "Guardian Gauntlets",
+    "tradable": false
+  },
+  {
+    "definition": 1191188829,
+    "visual": 520097109,
+    "physical": 1191187727,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 3,
+    "hash": 9696292304917062977,
+    "entity_hash": 7253609214842135330,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Storm Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191188830,
+    "visual": 520095163,
+    "physical": 1191183858,
+    "appearance": 536871128,
+    "race": 2,
+    "slot": 8,
+    "male": 536871128,
+    "female": 536871129,
+    "armor": 6,
+    "hash": 10567874498123573556,
+    "entity_hash": 6344132850029954595,
+    "evidence": [
+      1191188830,
+      1191193384
+    ],
+    "name": "Guardian Kilt",
+    "tradable": false
+  },
+  {
+    "definition": 1191188831,
+    "visual": 520095165,
+    "physical": 1191183860,
+    "appearance": 536871132,
+    "race": 2,
+    "slot": 2,
+    "male": 536871132,
+    "female": 536871133,
+    "armor": 12,
+    "hash": 13612683842218659353,
+    "entity_hash": 16210660503880176049,
+    "evidence": [
+      1191188831,
+      1191193372
+    ],
+    "name": "Guardian Pauldron",
+    "tradable": false
+  },
+  {
+    "definition": 1191188832,
+    "visual": 520095167,
+    "physical": 1191183862,
+    "appearance": 536871136,
+    "race": 2,
+    "slot": 16,
+    "male": 536871136,
+    "female": 536871137,
+    "armor": 3,
+    "hash": 10638669535223412270,
+    "entity_hash": 7290688170929908405,
+    "evidence": [
+      1191188832,
+      1191193375
+    ],
+    "name": "Guardian Sandals",
+    "tradable": false
+  },
+  {
+    "definition": 1191189085,
+    "visual": 520097702,
+    "physical": 1191189086,
+    "appearance": 536871491,
+    "race": 2,
+    "slot": 16,
+    "male": 536871491,
+    "female": 536871576,
+    "armor": 20,
+    "hash": 15764594083263762632,
+    "entity_hash": 3381273926299709857,
+    "evidence": [
+      1191189085,
+      1191192285
+    ],
+    "name": "Sandals of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189087,
+    "visual": 520097687,
+    "physical": 1191189088,
+    "appearance": 536871572,
+    "race": 2,
+    "slot": 2,
+    "male": 536871572,
+    "female": 536871498,
+    "armor": 80,
+    "hash": 5156305343280096390,
+    "entity_hash": 16272804384712913142,
+    "evidence": [
+      1191189087,
+      1191192293
+    ],
+    "name": "Celestial Order Cuirass",
+    "tradable": false
+  },
+  {
+    "definition": 1191189089,
+    "visual": 520097703,
+    "physical": 1191189090,
+    "appearance": 536871489,
+    "race": 2,
+    "slot": 2,
+    "male": 536871489,
+    "female": 536871577,
+    "armor": 80,
+    "hash": 5660932521969532896,
+    "entity_hash": 2342727003548590882,
+    "evidence": [
+      1191189089,
+      1191192288
+    ],
+    "name": "Cuirass of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189091,
+    "visual": 520097704,
+    "physical": 1191189092,
+    "appearance": 536871494,
+    "race": 2,
+    "slot": 32,
+    "male": 536871494,
+    "female": 536871578,
+    "armor": 20,
+    "hash": 2085203777680296894,
+    "entity_hash": 14408788235466430785,
+    "evidence": [
+      1191189091,
+      1191192299
+    ],
+    "name": "Singularity Gauntlets",
+    "tradable": false
+  },
+  {
+    "definition": 1191189093,
+    "visual": 520097688,
+    "physical": 1191189094,
+    "appearance": 536871573,
+    "race": 2,
+    "slot": 32,
+    "male": 536871573,
+    "female": 536871499,
+    "armor": 20,
+    "hash": 10896273887040348034,
+    "entity_hash": 12600798533002139086,
+    "evidence": [
+      1191189093,
+      1191192294
+    ],
+    "name": "Celestial Order Gauntlets",
+    "tradable": false
+  },
+  {
+    "definition": 1191189095,
+    "visual": 520097705,
+    "physical": 1191189096,
+    "appearance": 536871490,
+    "race": 2,
+    "slot": 32,
+    "male": 536871490,
+    "female": 536871579,
+    "armor": 20,
+    "hash": 12144366065245496020,
+    "entity_hash": 15757346852305299549,
+    "evidence": [
+      1191189095,
+      1191192289
+    ],
+    "name": "Gauntlets of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189097,
+    "visual": 520097708,
+    "physical": 1191189098,
+    "appearance": 536871495,
+    "race": 2,
+    "slot": 8,
+    "male": 536871495,
+    "female": 536871580,
+    "armor": 47,
+    "hash": 10808472754527819994,
+    "entity_hash": 18338577782193286625,
+    "evidence": [
+      1191189097,
+      1191192297
+    ],
+    "name": "Singularity Kilt",
+    "tradable": false
+  },
+  {
+    "definition": 1191189099,
+    "visual": 520097709,
+    "physical": 1191189100,
+    "appearance": 536871574,
+    "race": 2,
+    "slot": 8,
+    "male": 536871574,
+    "female": 536871497,
+    "armor": 47,
+    "hash": 6437343495632942402,
+    "entity_hash": 4388243661845737314,
+    "evidence": [
+      1191189099,
+      1191192292
+    ],
+    "name": "Celestial Order Kilt",
+    "tradable": false
+  },
+  {
+    "definition": 1191189101,
+    "visual": 520097710,
+    "physical": 1191189102,
+    "appearance": 536871488,
+    "race": 2,
+    "slot": 8,
+    "male": 536871488,
+    "female": 536871581,
+    "armor": 47,
+    "hash": 17394337069669281471,
+    "entity_hash": 4215986997095157605,
+    "evidence": [
+      1191189101,
+      1191192287
+    ],
+    "name": "Kilt of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189103,
+    "visual": 520097706,
+    "physical": 1191189104,
+    "appearance": 536871492,
+    "race": 2,
+    "slot": 16,
+    "male": 536871492,
+    "female": 536871582,
+    "armor": 20,
+    "hash": 17333243428553368134,
+    "entity_hash": 17294328635586740938,
+    "evidence": [
+      1191189103,
+      1191192295
+    ],
+    "name": "Singularity Sandals",
+    "tradable": false
+  },
+  {
+    "definition": 1191189105,
+    "visual": 520097689,
+    "physical": 1191189106,
+    "appearance": 536871575,
+    "race": 2,
+    "slot": 16,
+    "male": 536871575,
+    "female": 536871496,
+    "armor": 20,
+    "hash": 11539214704086566926,
+    "entity_hash": 6414127088163895702,
+    "evidence": [
+      1191189105,
+      1191192290
+    ],
+    "name": "Celestial Order Sandals",
+    "tradable": false
+  },
+  {
+    "definition": 1191189107,
+    "visual": 520097707,
+    "physical": 1191189108,
+    "appearance": 536871493,
+    "race": 2,
+    "slot": 2,
+    "male": 536871493,
+    "female": 536871583,
+    "armor": 80,
+    "hash": 7278917897831132113,
+    "entity_hash": 4966761554008327153,
+    "evidence": [
+      1191189107,
+      1191192298
+    ],
+    "name": "Singularity Cuirass",
+    "tradable": false
+  },
+  {
+    "definition": 1191189136,
+    "visual": 520097108,
+    "physical": 1191187726,
+    "appearance": 536871590,
+    "race": 2,
+    "slot": 1,
+    "male": 536871590,
+    "female": 536871590,
+    "armor": 20,
+    "hash": 12033344701597518250,
+    "entity_hash": 16694887712119968859,
+    "evidence": [
+      1191189136,
+      1191192291
+    ],
+    "name": "Celestial Order Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191189137,
+    "visual": 520097111,
+    "physical": 1191187729,
+    "appearance": 536871591,
+    "race": 2,
+    "slot": 1,
+    "male": 536871591,
+    "female": 536871591,
+    "armor": 20,
+    "hash": 17335638945188603350,
+    "entity_hash": 11623725563867338646,
+    "evidence": [
+      1191189137,
+      1191192296
+    ],
+    "name": "Singularity Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191189138,
+    "visual": 520097110,
+    "physical": 1191187728,
+    "appearance": 536871592,
+    "race": 2,
+    "slot": 1,
+    "male": 536871592,
+    "female": 536871592,
+    "armor": 20,
+    "hash": 4623967191611452490,
+    "entity_hash": 11108173315451793490,
+    "evidence": [
+      1191189138,
+      1191192286
+    ],
+    "name": "Heaume of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189590,
+    "visual": 520097863,
+    "physical": 1191189596,
+    "appearance": 536871722,
+    "race": 2,
+    "slot": 1,
+    "male": 536871722,
+    "female": 536871723,
+    "armor": 25,
+    "hash": 8362597342119996133,
+    "entity_hash": 16542871137023763953,
+    "evidence": [
+      1191189590
+    ],
+    "name": "Tyrant Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191192285,
+    "visual": 520097702,
+    "physical": 1191189086,
+    "appearance": 536871491,
+    "race": 2,
+    "slot": 16,
+    "male": 536871491,
+    "female": 536871576,
+    "armor": 32,
+    "hash": 1689775787422868134,
+    "entity_hash": 11365200755852061955,
+    "evidence": [
+      1191189085,
+      1191192285
+    ],
+    "name": "Augmented Sandals of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192286,
+    "visual": 520097110,
+    "physical": 1191187728,
+    "appearance": 536871592,
+    "race": 2,
+    "slot": 1,
+    "male": 536871592,
+    "female": 536871592,
+    "armor": 32,
+    "hash": 8207006189670921634,
+    "entity_hash": 7387147457003978227,
+    "evidence": [
+      1191189138,
+      1191192286
+    ],
+    "name": "Augmented Heaume of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192287,
+    "visual": 520097710,
+    "physical": 1191189102,
+    "appearance": 536871488,
+    "race": 2,
+    "slot": 8,
+    "male": 536871488,
+    "female": 536871581,
+    "armor": 81,
+    "hash": 9594796033681814233,
+    "entity_hash": 1051349300586569718,
+    "evidence": [
+      1191189101,
+      1191192287
+    ],
+    "name": "Augmented Kilt of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192288,
+    "visual": 520097703,
+    "physical": 1191189090,
+    "appearance": 536871489,
+    "race": 2,
+    "slot": 2,
+    "male": 536871489,
+    "female": 536871577,
+    "armor": 132,
+    "hash": 6655929716936501412,
+    "entity_hash": 17636606352574254436,
+    "evidence": [
+      1191189089,
+      1191192288
+    ],
+    "name": "Augmented Cuirass of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192289,
+    "visual": 520097705,
+    "physical": 1191189096,
+    "appearance": 536871490,
+    "race": 2,
+    "slot": 32,
+    "male": 536871490,
+    "female": 536871579,
+    "armor": 32,
+    "hash": 12749470436918796661,
+    "entity_hash": 6795359971259240281,
+    "evidence": [
+      1191189095,
+      1191192289
+    ],
+    "name": "Augmented Gauntlets of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192290,
+    "visual": 520097689,
+    "physical": 1191189106,
+    "appearance": 536871575,
+    "race": 2,
+    "slot": 16,
+    "male": 536871575,
+    "female": 536871496,
+    "armor": 32,
+    "hash": 7566063665673832030,
+    "entity_hash": 12274573525679508523,
+    "evidence": [
+      1191189105,
+      1191192290
+    ],
+    "name": "Augmented Celestial Order Sandals",
+    "tradable": false
+  },
+  {
+    "definition": 1191192291,
+    "visual": 520097108,
+    "physical": 1191187726,
+    "appearance": 536871590,
+    "race": 2,
+    "slot": 1,
+    "male": 536871590,
+    "female": 536871590,
+    "armor": 32,
+    "hash": 12422646161981762390,
+    "entity_hash": 4056676458439621713,
+    "evidence": [
+      1191189136,
+      1191192291
+    ],
+    "name": "Augmented Celestial Order Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191192292,
+    "visual": 520097709,
+    "physical": 1191189100,
+    "appearance": 536871574,
+    "race": 2,
+    "slot": 8,
+    "male": 536871574,
+    "female": 536871497,
+    "armor": 81,
+    "hash": 13280347762531409885,
+    "entity_hash": 17615481865529394312,
+    "evidence": [
+      1191189099,
+      1191192292
+    ],
+    "name": "Augmented Celestial Order Kilt",
+    "tradable": false
+  },
+  {
+    "definition": 1191192293,
+    "visual": 520097687,
+    "physical": 1191189088,
+    "appearance": 536871572,
+    "race": 2,
+    "slot": 2,
+    "male": 536871572,
+    "female": 536871498,
+    "armor": 132,
+    "hash": 16027592542942827471,
+    "entity_hash": 4765546322650991387,
+    "evidence": [
+      1191189087,
+      1191192293
+    ],
+    "name": "Augmented Celestial Order Cuirass",
+    "tradable": false
+  },
+  {
+    "definition": 1191192294,
+    "visual": 520097688,
+    "physical": 1191189094,
+    "appearance": 536871573,
+    "race": 2,
+    "slot": 32,
+    "male": 536871573,
+    "female": 536871499,
+    "armor": 32,
+    "hash": 16359873746129701216,
+    "entity_hash": 4829454230171949747,
+    "evidence": [
+      1191189093,
+      1191192294
+    ],
+    "name": "Augmented Celestial Order Gauntlets",
+    "tradable": false
+  },
+  {
+    "definition": 1191192295,
+    "visual": 520097706,
+    "physical": 1191189104,
+    "appearance": 536871492,
+    "race": 2,
+    "slot": 16,
+    "male": 536871492,
+    "female": 536871582,
+    "armor": 32,
+    "hash": 14344812334005712355,
+    "entity_hash": 16732782662651356596,
+    "evidence": [
+      1191189103,
+      1191192295
+    ],
+    "name": "Augmented Singularity Sandals",
+    "tradable": false
+  },
+  {
+    "definition": 1191192296,
+    "visual": 520097111,
+    "physical": 1191187729,
+    "appearance": 536871591,
+    "race": 2,
+    "slot": 1,
+    "male": 536871591,
+    "female": 536871591,
+    "armor": 32,
+    "hash": 6790129277125050780,
+    "entity_hash": 6013286845190289606,
+    "evidence": [
+      1191189137,
+      1191192296
+    ],
+    "name": "Augmented Singularity Heaume",
+    "tradable": false
+  },
+  {
+    "definition": 1191192297,
+    "visual": 520097708,
+    "physical": 1191189098,
+    "appearance": 536871495,
+    "race": 2,
+    "slot": 8,
+    "male": 536871495,
+    "female": 536871580,
+    "armor": 81,
+    "hash": 13322399560832650350,
+    "entity_hash": 15926158463151783532,
+    "evidence": [
+      1191189097,
+      1191192297
+    ],
+    "name": "Augmented Singularity Kilt",
+    "tradable": false
+  },
+  {
+    "definition": 1191192298,
+    "visual": 520097707,
+    "physical": 1191189108,
+    "appearance": 536871493,
+    "race": 2,
+    "slot": 2,
+    "male": 536871493,
+    "female": 536871583,
+    "armor": 132,
+    "hash": 7730644152570998118,
+    "entity_hash": 15760695158136444599,
+    "evidence": [
+      1191189107,
+      1191192298
+    ],
+    "name": "Augmented Singularity Cuirass",
+    "tradable": false
+  },
+  {
+    "definition": 1191192299,
+    "visual": 520097704,
+    "physical": 1191189092,
+    "appearance": 536871494,
+    "race": 2,
+    "slot": 32,
+    "male": 536871494,
+    "female": 536871578,
+    "armor": 32,
+    "hash": 2066145312732726797,
+    "entity_hash": 17493298901882479163,
+    "evidence": [
+      1191189091,
+      1191192299
+    ],
+    "name": "Augmented Singularity Gauntlets",
+    "tradable": false
+  },
+  {
+    "definition": 1191192518,
+    "visual": 520098684,
+    "physical": 1191192521,
+    "appearance": 536871773,
+    "race": 2,
+    "slot": 2,
+    "male": 536871773,
+    "female": 536871774,
+    "armor": 0,
+    "hash": 8742449794763039913,
+    "entity_hash": 10718573360691677686,
+    "evidence": [
+      1191192518
+    ],
+    "name": "Envoy Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191192568,
+    "visual": 520098703,
+    "physical": 1191192569,
+    "appearance": 536871784,
+    "race": 2,
+    "slot": 2,
+    "male": 536871784,
+    "female": 536871782,
+    "armor": 10,
+    "hash": 5102069544934424668,
+    "entity_hash": 17378050838123797710,
+    "evidence": [
+      1191192568
+    ],
+    "name": "Robe of Sustentation",
+    "tradable": false
+  },
+  {
+    "definition": 1191192658,
+    "visual": 520098799,
+    "physical": 1191192912,
+    "appearance": 536871796,
+    "race": 2,
+    "slot": 2,
+    "male": 536871796,
+    "female": 536871797,
+    "armor": 175,
+    "hash": 4657613792490640861,
+    "entity_hash": 1453581674344480704,
+    "evidence": [
+      1191192658,
+      1191195456
+    ],
+    "name": "Guardian of Dereth Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191193364,
+    "visual": 520099001,
+    "physical": 1191193209,
+    "appearance": 536871029,
+    "race": 2,
+    "slot": 2,
+    "male": 536871029,
+    "female": 536871032,
+    "armor": 10,
+    "hash": 17213000403837313961,
+    "entity_hash": 13431338838590888602,
+    "evidence": [
+      1191193364
+    ],
+    "name": "Scout Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191193365,
+    "visual": 520099000,
+    "physical": 1191193208,
+    "appearance": 536871028,
+    "race": 2,
+    "slot": 16,
+    "male": 536871028,
+    "female": 536871031,
+    "armor": 10,
+    "hash": 1251437182993579731,
+    "entity_hash": 12407983315741062443,
+    "evidence": [
+      1191193365
+    ],
+    "name": "Scout Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191193366,
+    "visual": 520099002,
+    "physical": 1191193210,
+    "appearance": 536871027,
+    "race": 2,
+    "slot": 32,
+    "male": 536871027,
+    "female": 536871033,
+    "armor": 10,
+    "hash": 9247230381147373536,
+    "entity_hash": 9345586437454795355,
+    "evidence": [
+      1191193366
+    ],
+    "name": "Scout Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191193367,
+    "visual": 520098984,
+    "physical": 1191193192,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 10,
+    "hash": 8899104785550361085,
+    "entity_hash": 2164569937551292408,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Scout Heaume",
+    "tradable": true
+  },
+  {
+    "definition": 1191193368,
+    "visual": 520099003,
+    "physical": 1191193211,
+    "appearance": 536871026,
+    "race": 2,
+    "slot": 8,
+    "male": 536871026,
+    "female": 536871034,
+    "armor": 10,
+    "hash": 11852458253945324588,
+    "entity_hash": 3765959413834116906,
+    "evidence": [
+      1191193368
+    ],
+    "name": "Scout Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191193370,
+    "visual": 520098969,
+    "physical": 1191193177,
+    "appearance": 536871130,
+    "race": 2,
+    "slot": 2,
+    "male": 536871130,
+    "female": 536871131,
+    "armor": 10,
+    "hash": 8286430304129328171,
+    "entity_hash": 17437628331995983638,
+    "evidence": [
+      1191193370
+    ],
+    "name": "Stalwart Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191193371,
+    "visual": 520099014,
+    "physical": 1191193222,
+    "appearance": 536871008,
+    "race": 2,
+    "slot": 2,
+    "male": 536871008,
+    "female": 536871043,
+    "armor": 10,
+    "hash": 8184073698377580562,
+    "entity_hash": 2212375776292315867,
+    "evidence": [
+      1191193371
+    ],
+    "name": "Skirmisher Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191193372,
+    "visual": 520099020,
+    "physical": 1191193228,
+    "appearance": 536871132,
+    "race": 2,
+    "slot": 2,
+    "male": 536871132,
+    "female": 536871133,
+    "armor": 10,
+    "hash": 12284493807232375412,
+    "entity_hash": 6955728849921946159,
+    "evidence": [
+      1191188831,
+      1191193372
+    ],
+    "name": "Warrior Pauldron",
+    "tradable": true
+  },
+  {
+    "definition": 1191193373,
+    "visual": 520098968,
+    "physical": 1191193176,
+    "appearance": 536871134,
+    "race": 2,
+    "slot": 16,
+    "male": 536871134,
+    "female": 536871135,
+    "armor": 10,
+    "hash": 8803195411549004198,
+    "entity_hash": 3071675523095092374,
+    "evidence": [
+      1191193373
+    ],
+    "name": "Stalwart Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191193374,
+    "visual": 520099013,
+    "physical": 1191193221,
+    "appearance": 536871009,
+    "race": 2,
+    "slot": 16,
+    "male": 536871009,
+    "female": 536871042,
+    "armor": 10,
+    "hash": 7039080590839493844,
+    "entity_hash": 6791835604945809882,
+    "evidence": [
+      1191193374
+    ],
+    "name": "Skirmisher Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191193375,
+    "visual": 520099019,
+    "physical": 1191193227,
+    "appearance": 536871136,
+    "race": 2,
+    "slot": 16,
+    "male": 536871136,
+    "female": 536871137,
+    "armor": 10,
+    "hash": 6022164116246610711,
+    "entity_hash": 5117678366900350237,
+    "evidence": [
+      1191188832,
+      1191193375
+    ],
+    "name": "Warrior Sandals",
+    "tradable": true
+  },
+  {
+    "definition": 1191193376,
+    "visual": 520098970,
+    "physical": 1191193178,
+    "appearance": 536871122,
+    "race": 2,
+    "slot": 32,
+    "male": 536871122,
+    "female": 536871123,
+    "armor": 10,
+    "hash": 8691697305445354756,
+    "entity_hash": 5034703583845813194,
+    "evidence": [
+      1191193376
+    ],
+    "name": "Stalwart Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191193377,
+    "visual": 520099015,
+    "physical": 1191193223,
+    "appearance": 536871010,
+    "race": 2,
+    "slot": 32,
+    "male": 536871010,
+    "female": 536871044,
+    "armor": 10,
+    "hash": 6318806333498743365,
+    "entity_hash": 144478850001996594,
+    "evidence": [
+      1191193377
+    ],
+    "name": "Skirmisher Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191193378,
+    "visual": 520099021,
+    "physical": 1191193229,
+    "appearance": 536871124,
+    "race": 2,
+    "slot": 32,
+    "male": 536871124,
+    "female": 536871125,
+    "armor": 10,
+    "hash": 14207721366024096169,
+    "entity_hash": 2403302331695377277,
+    "evidence": [
+      1191188825,
+      1191193378
+    ],
+    "name": "Warrior Gauntlets",
+    "tradable": true
+  },
+  {
+    "definition": 1191193379,
+    "visual": 520098984,
+    "physical": 1191193192,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 10,
+    "hash": 9827998166617319042,
+    "entity_hash": 12928793134847717428,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Stalwart Heaume",
+    "tradable": true
+  },
+  {
+    "definition": 1191193380,
+    "visual": 520098984,
+    "physical": 1191193192,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 10,
+    "hash": 13530818539285892586,
+    "entity_hash": 14009389397150060033,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Skirmisher Heaume",
+    "tradable": true
+  },
+  {
+    "definition": 1191193381,
+    "visual": 520098984,
+    "physical": 1191193192,
+    "appearance": 536871540,
+    "race": 2,
+    "slot": 1,
+    "male": 536871540,
+    "female": 536871540,
+    "armor": 10,
+    "hash": 245455240821602518,
+    "entity_hash": 18076006296687854846,
+    "evidence": [
+      1191188560,
+      1191188829,
+      1191193367,
+      1191193379,
+      1191193380,
+      1191193381
+    ],
+    "name": "Warrior Heaume",
+    "tradable": true
+  },
+  {
+    "definition": 1191193382,
+    "visual": 520098975,
+    "physical": 1191193183,
+    "appearance": 536871147,
+    "race": 2,
+    "slot": 8,
+    "male": 536871147,
+    "female": 536871127,
+    "armor": 10,
+    "hash": 7167983595188547620,
+    "entity_hash": 14406220736121141128,
+    "evidence": [
+      1191193382
+    ],
+    "name": "Stalwart Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191193383,
+    "visual": 520099016,
+    "physical": 1191193224,
+    "appearance": 536871011,
+    "race": 2,
+    "slot": 8,
+    "male": 536871011,
+    "female": 536871045,
+    "armor": 10,
+    "hash": 17508300532622421815,
+    "entity_hash": 9349961327657187023,
+    "evidence": [
+      1191193383
+    ],
+    "name": "Skirmisher Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191193384,
+    "visual": 520099022,
+    "physical": 1191193230,
+    "appearance": 536871128,
+    "race": 2,
+    "slot": 8,
+    "male": 536871128,
+    "female": 536871129,
+    "armor": 10,
+    "hash": 12451220725552596618,
+    "entity_hash": 2238807356484917613,
+    "evidence": [
+      1191188830,
+      1191193384
+    ],
+    "name": "Warrior Kilt",
+    "tradable": true
+  },
+  {
+    "definition": 1191195229,
+    "visual": 520099012,
+    "physical": 1191193220,
+    "appearance": 536871188,
+    "race": 2,
+    "slot": 2,
+    "male": 536871188,
+    "female": 536871189,
+    "armor": 10,
+    "hash": 13417236640249639352,
+    "entity_hash": 4276339394418926005,
+    "evidence": [
+      1191188054,
+      1191188055,
+      1191188056,
+      1191188057,
+      1191188058,
+      1191188059,
+      1191188060,
+      1191188061,
+      1191188062,
+      1191188063,
+      1191195229
+    ],
+    "name": "Lugian Robe",
+    "tradable": true
+  },
+  {
+    "definition": 1191195454,
+    "visual": 520097564,
+    "physical": 1191182945,
+    "appearance": 536871848,
+    "race": 2,
+    "slot": 1,
+    "male": 536871848,
+    "female": 536871849,
+    "armor": 1,
+    "hash": 12366458998488444145,
+    "entity_hash": 7732338790402713299,
+    "evidence": [
+      1191195454
+    ],
+    "name": "Sun Glasses",
+    "tradable": false
+  },
+  {
+    "definition": 1191195456,
+    "visual": 520098799,
+    "physical": 1191192912,
+    "appearance": 536871796,
+    "race": 2,
+    "slot": 2,
+    "male": 536871796,
+    "female": 536871797,
+    "armor": 1,
+    "hash": 5922897975849877991,
+    "entity_hash": 15847281640826649487,
+    "evidence": [
+      1191192658,
+      1191195456
+    ],
+    "name": "Swimwear",
+    "tradable": false
+  },
+  {
+    "definition": 1191188064,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 10679891323619877415,
+    "entity_hash": 11630651524021536274,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Exquisite Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188065,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 13327931885225259981,
+    "entity_hash": 9031539381758596147,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Luminous Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188066,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 1423560332522848967,
+    "entity_hash": 13929337624872239900,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Glimmering Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188067,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 5201590052934082393,
+    "entity_hash": 16271379783279034717,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Radiant Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188068,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 11763608945210223797,
+    "entity_hash": 4710902648304100930,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Royal Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188069,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 7474577874057890345,
+    "entity_hash": 471842727628162239,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Extravagant Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188070,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 13904962894901163664,
+    "entity_hash": 1043973156194207040,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Fine Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188071,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 6878870784823621487,
+    "entity_hash": 15224837903602572461,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Silken Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188072,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 7555018152661573803,
+    "entity_hash": 6198027866249959194,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Patchwork Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188073,
+    "visual": 520095173,
+    "physical": 1191183868,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 8659891703692668246,
+    "entity_hash": 17632195904067059515,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Woven Tumerok Vestment",
+    "tradable": false
+  },
+  {
+    "definition": 1191188561,
+    "visual": 520097102,
+    "physical": 1191187720,
+    "appearance": 536871541,
+    "race": 4,
+    "slot": 1,
+    "male": 536871541,
+    "female": 536871541,
+    "armor": 10,
+    "hash": 3638007750103657597,
+    "entity_hash": 5202580976689871501,
+    "evidence": [
+      1191188561,
+      1191188844,
+      1191193310,
+      1191193359
+    ],
+    "name": "Thorned Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191188840,
+    "visual": 520095151,
+    "physical": 1191183846,
+    "appearance": 536871140,
+    "race": 4,
+    "slot": 2,
+    "male": 536871140,
+    "female": 536871140,
+    "armor": 12,
+    "hash": 14358929114003298217,
+    "entity_hash": 8649506950921505029,
+    "evidence": [
+      1191188840,
+      1191193350
+    ],
+    "name": "Reed Breastplate",
+    "tradable": false
+  },
+  {
+    "definition": 1191188843,
+    "visual": 520095147,
+    "physical": 1191183842,
+    "appearance": 536871138,
+    "race": 4,
+    "slot": 32,
+    "male": 536871138,
+    "female": 536871138,
+    "armor": 3,
+    "hash": 12856707914171315173,
+    "entity_hash": 3682174678654417724,
+    "evidence": [
+      1191188843,
+      1191193356
+    ],
+    "name": "Reed Bracers",
+    "tradable": false
+  },
+  {
+    "definition": 1191188844,
+    "visual": 520097102,
+    "physical": 1191187720,
+    "appearance": 536871541,
+    "race": 4,
+    "slot": 1,
+    "male": 536871541,
+    "female": 536871541,
+    "armor": 3,
+    "hash": 10996428612112206929,
+    "entity_hash": 4023863196696248163,
+    "evidence": [
+      1191188561,
+      1191188844,
+      1191193310,
+      1191193359
+    ],
+    "name": "Thorned Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191188845,
+    "visual": 520095155,
+    "physical": 1191183850,
+    "appearance": 536871142,
+    "race": 4,
+    "slot": 8,
+    "male": 536871142,
+    "female": 536871142,
+    "armor": 6,
+    "hash": 18022230086808339481,
+    "entity_hash": 18073414051447676681,
+    "evidence": [
+      1191188845,
+      1191193362
+    ],
+    "name": "Reed Leggings",
+    "tradable": false
+  },
+  {
+    "definition": 1191188846,
+    "visual": 520095159,
+    "physical": 1191183854,
+    "appearance": 536871144,
+    "race": 4,
+    "slot": 16,
+    "male": 536871144,
+    "female": 536871144,
+    "armor": 3,
+    "hash": 18325010236534347505,
+    "entity_hash": 16900499351897644308,
+    "evidence": [
+      1191188846,
+      1191193353
+    ],
+    "name": "Reed Moccasins",
+    "tradable": false
+  },
+  {
+    "definition": 1191189109,
+    "visual": 520097690,
+    "physical": 1191189110,
+    "appearance": 536871483,
+    "race": 4,
+    "slot": 16,
+    "male": 536871483,
+    "female": 536871483,
+    "armor": 20,
+    "hash": 731894005481395380,
+    "entity_hash": 13730038717692551691,
+    "evidence": [
+      1191189109,
+      1191192270
+    ],
+    "name": "Moccasins of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189111,
+    "visual": 520097691,
+    "physical": 1191189112,
+    "appearance": 536871478,
+    "race": 4,
+    "slot": 32,
+    "male": 536871478,
+    "female": 536871478,
+    "armor": 20,
+    "hash": 2414429361657595472,
+    "entity_hash": 7979877766482112746,
+    "evidence": [
+      1191189111,
+      1191192279
+    ],
+    "name": "Celestial Order Bracers",
+    "tradable": false
+  },
+  {
+    "definition": 1191189113,
+    "visual": 520097692,
+    "physical": 1191189114,
+    "appearance": 536871482,
+    "race": 4,
+    "slot": 32,
+    "male": 536871482,
+    "female": 536871482,
+    "armor": 20,
+    "hash": 15435631702666506843,
+    "entity_hash": 12121158141140219937,
+    "evidence": [
+      1191189113,
+      1191192274
+    ],
+    "name": "Bracers of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189115,
+    "visual": 520097693,
+    "physical": 1191189116,
+    "appearance": 536871473,
+    "race": 4,
+    "slot": 2,
+    "male": 536871473,
+    "female": 536871473,
+    "armor": 80,
+    "hash": 9633065304047364865,
+    "entity_hash": 1779542601819845340,
+    "evidence": [
+      1191189115,
+      1191192283
+    ],
+    "name": "Singularity Breastplate",
+    "tradable": false
+  },
+  {
+    "definition": 1191189117,
+    "visual": 520097694,
+    "physical": 1191189118,
+    "appearance": 536871477,
+    "race": 4,
+    "slot": 2,
+    "male": 536871477,
+    "female": 536871477,
+    "armor": 80,
+    "hash": 6250137348596593278,
+    "entity_hash": 17998706221213459538,
+    "evidence": [
+      1191189117,
+      1191192278
+    ],
+    "name": "Celestial Order Breastplate",
+    "tradable": false
+  },
+  {
+    "definition": 1191189119,
+    "visual": 520097695,
+    "physical": 1191189120,
+    "appearance": 536871481,
+    "race": 4,
+    "slot": 2,
+    "male": 536871481,
+    "female": 536871481,
+    "armor": 80,
+    "hash": 10347291065699173671,
+    "entity_hash": 5865787917985689557,
+    "evidence": [
+      1191189119,
+      1191192273
+    ],
+    "name": "Breastplate of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189121,
+    "visual": 520097696,
+    "physical": 1191189122,
+    "appearance": 536871475,
+    "race": 4,
+    "slot": 8,
+    "male": 536871475,
+    "female": 536871475,
+    "armor": 47,
+    "hash": 4333783642936283306,
+    "entity_hash": 11066328488998156655,
+    "evidence": [
+      1191189121,
+      1191192282
+    ],
+    "name": "Singularity Leggings",
+    "tradable": false
+  },
+  {
+    "definition": 1191189123,
+    "visual": 520097697,
+    "physical": 1191189124,
+    "appearance": 536871476,
+    "race": 4,
+    "slot": 8,
+    "male": 536871476,
+    "female": 536871476,
+    "armor": 47,
+    "hash": 14015654321839622724,
+    "entity_hash": 5081726221761530178,
+    "evidence": [
+      1191189123,
+      1191192277
+    ],
+    "name": "Celestial Order Leggings",
+    "tradable": false
+  },
+  {
+    "definition": 1191189125,
+    "visual": 520097698,
+    "physical": 1191189126,
+    "appearance": 536871480,
+    "race": 4,
+    "slot": 8,
+    "male": 536871480,
+    "female": 536871480,
+    "armor": 47,
+    "hash": 9960860237994472251,
+    "entity_hash": 11794219920870574585,
+    "evidence": [
+      1191189125,
+      1191192272
+    ],
+    "name": "Leggings of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189127,
+    "visual": 520097699,
+    "physical": 1191189128,
+    "appearance": 536871472,
+    "race": 4,
+    "slot": 16,
+    "male": 536871472,
+    "female": 536871472,
+    "armor": 20,
+    "hash": 14947928572752071902,
+    "entity_hash": 6614421026358391993,
+    "evidence": [
+      1191189127,
+      1191192280
+    ],
+    "name": "Singularity Moccasins",
+    "tradable": false
+  },
+  {
+    "definition": 1191189129,
+    "visual": 520097700,
+    "physical": 1191189130,
+    "appearance": 536871479,
+    "race": 4,
+    "slot": 16,
+    "male": 536871479,
+    "female": 536871479,
+    "armor": 20,
+    "hash": 2722616247282936202,
+    "entity_hash": 5283519326839667640,
+    "evidence": [
+      1191189129,
+      1191192275
+    ],
+    "name": "Celestial Order Moccasins",
+    "tradable": false
+  },
+  {
+    "definition": 1191189131,
+    "visual": 520097701,
+    "physical": 1191189132,
+    "appearance": 536871474,
+    "race": 4,
+    "slot": 32,
+    "male": 536871474,
+    "female": 536871474,
+    "armor": 20,
+    "hash": 5230887116478715662,
+    "entity_hash": 11897547455655703308,
+    "evidence": [
+      1191189131,
+      1191192284
+    ],
+    "name": "Singularity Bracers",
+    "tradable": false
+  },
+  {
+    "definition": 1191189139,
+    "visual": 520097103,
+    "physical": 1191187721,
+    "appearance": 536871593,
+    "race": 4,
+    "slot": 1,
+    "male": 536871593,
+    "female": 536871593,
+    "armor": 20,
+    "hash": 17085752649362751400,
+    "entity_hash": 5786832992023460597,
+    "evidence": [
+      1191189139,
+      1191192276
+    ],
+    "name": "Celestial Order Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191189140,
+    "visual": 520097105,
+    "physical": 1191187723,
+    "appearance": 536871594,
+    "race": 4,
+    "slot": 1,
+    "male": 536871594,
+    "female": 536871594,
+    "armor": 20,
+    "hash": 5080935410404014967,
+    "entity_hash": 103138292684894821,
+    "evidence": [
+      1191189140,
+      1191192281
+    ],
+    "name": "Singularity Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191189141,
+    "visual": 520097104,
+    "physical": 1191187722,
+    "appearance": 536871595,
+    "race": 4,
+    "slot": 1,
+    "male": 536871595,
+    "female": 536871595,
+    "armor": 20,
+    "hash": 439774565659505929,
+    "entity_hash": 5910237161223339837,
+    "evidence": [
+      1191189141,
+      1191192271
+    ],
+    "name": "Shako of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191189591,
+    "visual": 520097863,
+    "physical": 1191189596,
+    "appearance": 536871724,
+    "race": 4,
+    "slot": 1,
+    "male": 536871724,
+    "female": 536871724,
+    "armor": 25,
+    "hash": 17497565929262531561,
+    "entity_hash": 13523300380935005857,
+    "evidence": [
+      1191189591
+    ],
+    "name": "Tyrant Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191192270,
+    "visual": 520097690,
+    "physical": 1191189110,
+    "appearance": 536871483,
+    "race": 4,
+    "slot": 16,
+    "male": 536871483,
+    "female": 536871483,
+    "armor": 32,
+    "hash": 5242590579434092478,
+    "entity_hash": 9073991368019399614,
+    "evidence": [
+      1191189109,
+      1191192270
+    ],
+    "name": "Augmented Moccasins of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192271,
+    "visual": 520097104,
+    "physical": 1191187722,
+    "appearance": 536871595,
+    "race": 4,
+    "slot": 1,
+    "male": 536871595,
+    "female": 536871595,
+    "armor": 32,
+    "hash": 12220716741470289915,
+    "entity_hash": 9222235773356876234,
+    "evidence": [
+      1191189141,
+      1191192271
+    ],
+    "name": "Augmented Shako of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192272,
+    "visual": 520097698,
+    "physical": 1191189126,
+    "appearance": 536871480,
+    "race": 4,
+    "slot": 8,
+    "male": 536871480,
+    "female": 536871480,
+    "armor": 81,
+    "hash": 13173248773162439073,
+    "entity_hash": 4337529053177360957,
+    "evidence": [
+      1191189125,
+      1191192272
+    ],
+    "name": "Augmented Leggings of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192273,
+    "visual": 520097695,
+    "physical": 1191189120,
+    "appearance": 536871481,
+    "race": 4,
+    "slot": 2,
+    "male": 536871481,
+    "female": 536871481,
+    "armor": 132,
+    "hash": 13705789179291739382,
+    "entity_hash": 13616551905277464044,
+    "evidence": [
+      1191189119,
+      1191192273
+    ],
+    "name": "Augmented Breastplate of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192274,
+    "visual": 520097692,
+    "physical": 1191189114,
+    "appearance": 536871482,
+    "race": 4,
+    "slot": 32,
+    "male": 536871482,
+    "female": 536871482,
+    "armor": 32,
+    "hash": 4954041731442513031,
+    "entity_hash": 15826055587902220584,
+    "evidence": [
+      1191189113,
+      1191192274
+    ],
+    "name": "Augmented Bracers of the Abyss",
+    "tradable": false
+  },
+  {
+    "definition": 1191192275,
+    "visual": 520097700,
+    "physical": 1191189130,
+    "appearance": 536871479,
+    "race": 4,
+    "slot": 16,
+    "male": 536871479,
+    "female": 536871479,
+    "armor": 32,
+    "hash": 11452293429508075934,
+    "entity_hash": 6774127131006024260,
+    "evidence": [
+      1191189129,
+      1191192275
+    ],
+    "name": "Augmented Celestial Order Moccasins",
+    "tradable": false
+  },
+  {
+    "definition": 1191192276,
+    "visual": 520097103,
+    "physical": 1191187721,
+    "appearance": 536871593,
+    "race": 4,
+    "slot": 1,
+    "male": 536871593,
+    "female": 536871593,
+    "armor": 32,
+    "hash": 15022084939607276146,
+    "entity_hash": 10132314835923916795,
+    "evidence": [
+      1191189139,
+      1191192276
+    ],
+    "name": "Augmented Celestial Order Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191192277,
+    "visual": 520097697,
+    "physical": 1191189124,
+    "appearance": 536871476,
+    "race": 4,
+    "slot": 8,
+    "male": 536871476,
+    "female": 536871476,
+    "armor": 81,
+    "hash": 10305735941915439415,
+    "entity_hash": 2318143677348903573,
+    "evidence": [
+      1191189123,
+      1191192277
+    ],
+    "name": "Augmented Celestial Order Leggings",
+    "tradable": false
+  },
+  {
+    "definition": 1191192278,
+    "visual": 520097694,
+    "physical": 1191189118,
+    "appearance": 536871477,
+    "race": 4,
+    "slot": 2,
+    "male": 536871477,
+    "female": 536871477,
+    "armor": 132,
+    "hash": 9032254621419419676,
+    "entity_hash": 6299148847351222238,
+    "evidence": [
+      1191189117,
+      1191192278
+    ],
+    "name": "Augmented Celestial Order Breastplate",
+    "tradable": false
+  },
+  {
+    "definition": 1191192279,
+    "visual": 520097691,
+    "physical": 1191189112,
+    "appearance": 536871478,
+    "race": 4,
+    "slot": 32,
+    "male": 536871478,
+    "female": 536871478,
+    "armor": 32,
+    "hash": 5431498715180709561,
+    "entity_hash": 10915484539187274336,
+    "evidence": [
+      1191189111,
+      1191192279
+    ],
+    "name": "Augmented Celestial Order Bracers",
+    "tradable": false
+  },
+  {
+    "definition": 1191192280,
+    "visual": 520097699,
+    "physical": 1191189128,
+    "appearance": 536871472,
+    "race": 4,
+    "slot": 16,
+    "male": 536871472,
+    "female": 536871472,
+    "armor": 32,
+    "hash": 2216976813611620135,
+    "entity_hash": 6529790854930853248,
+    "evidence": [
+      1191189127,
+      1191192280
+    ],
+    "name": "Augmented Singularity Moccasins",
+    "tradable": false
+  },
+  {
+    "definition": 1191192281,
+    "visual": 520097105,
+    "physical": 1191187723,
+    "appearance": 536871594,
+    "race": 4,
+    "slot": 1,
+    "male": 536871594,
+    "female": 536871594,
+    "armor": 32,
+    "hash": 966185688227967115,
+    "entity_hash": 18185416351147006425,
+    "evidence": [
+      1191189140,
+      1191192281
+    ],
+    "name": "Augmented Singularity Shako",
+    "tradable": false
+  },
+  {
+    "definition": 1191192282,
+    "visual": 520097696,
+    "physical": 1191189122,
+    "appearance": 536871475,
+    "race": 4,
+    "slot": 8,
+    "male": 536871475,
+    "female": 536871475,
+    "armor": 81,
+    "hash": 16259581804169729794,
+    "entity_hash": 2791686442163311025,
+    "evidence": [
+      1191189121,
+      1191192282
+    ],
+    "name": "Augmented Singularity Leggings",
+    "tradable": false
+  },
+  {
+    "definition": 1191192283,
+    "visual": 520097693,
+    "physical": 1191189116,
+    "appearance": 536871473,
+    "race": 4,
+    "slot": 2,
+    "male": 536871473,
+    "female": 536871473,
+    "armor": 132,
+    "hash": 10702496078685292650,
+    "entity_hash": 2803261482550644215,
+    "evidence": [
+      1191189115,
+      1191192283
+    ],
+    "name": "Augmented Singularity Breastplate",
+    "tradable": false
+  },
+  {
+    "definition": 1191192284,
+    "visual": 520097701,
+    "physical": 1191189132,
+    "appearance": 536871474,
+    "race": 4,
+    "slot": 32,
+    "male": 536871474,
+    "female": 536871474,
+    "armor": 32,
+    "hash": 18209701835619957993,
+    "entity_hash": 764685048644283573,
+    "evidence": [
+      1191189131,
+      1191192284
+    ],
+    "name": "Augmented Singularity Bracers",
+    "tradable": false
+  },
+  {
+    "definition": 1191192519,
+    "visual": 520098685,
+    "physical": 1191192522,
+    "appearance": 536871777,
+    "race": 4,
+    "slot": 2,
+    "male": 536871777,
+    "female": 536871777,
+    "armor": 0,
+    "hash": 7492668303420211496,
+    "entity_hash": 11040111019106213957,
+    "evidence": [
+      1191192519
+    ],
+    "name": "Envoy Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191192570,
+    "visual": 520098702,
+    "physical": 1191192571,
+    "appearance": 536871783,
+    "race": 4,
+    "slot": 2,
+    "male": 536871783,
+    "female": 536871783,
+    "armor": 10,
+    "hash": 7166463271106111519,
+    "entity_hash": 2836334702802534799,
+    "evidence": [
+      1191192570
+    ],
+    "name": "Robe of Sustentation",
+    "tradable": false
+  },
+  {
+    "definition": 1191192659,
+    "visual": 520098800,
+    "physical": 1191192913,
+    "appearance": 536871798,
+    "race": 4,
+    "slot": 2,
+    "male": 536871798,
+    "female": 536871798,
+    "armor": 175,
+    "hash": 884282173716085242,
+    "entity_hash": 15420160118530994501,
+    "evidence": [
+      1191192659,
+      1191195458
+    ],
+    "name": "Guardian of Dereth Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191193310,
+    "visual": 520099038,
+    "physical": 1191193246,
+    "appearance": 536871541,
+    "race": 4,
+    "slot": 1,
+    "male": 536871541,
+    "female": 536871541,
+    "armor": 10,
+    "hash": 12816575591123916191,
+    "entity_hash": 13631790917848894497,
+    "evidence": [
+      1191188561,
+      1191188844,
+      1191193310,
+      1191193359
+    ],
+    "name": "Vine Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191193345,
+    "visual": 520099027,
+    "physical": 1191193235,
+    "appearance": 536871343,
+    "race": 4,
+    "slot": 2,
+    "male": 536871343,
+    "female": 536871343,
+    "armor": 10,
+    "hash": 14615921232769069008,
+    "entity_hash": 1672772992760248623,
+    "evidence": [
+      1191193345
+    ],
+    "name": "Vine Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191193346,
+    "visual": 520099026,
+    "physical": 1191193234,
+    "appearance": 536871345,
+    "race": 4,
+    "slot": 16,
+    "male": 536871345,
+    "female": 536871345,
+    "armor": 10,
+    "hash": 1292075505979298693,
+    "entity_hash": 5379359295987625075,
+    "evidence": [
+      1191193346
+    ],
+    "name": "Vine Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191193347,
+    "visual": 520099028,
+    "physical": 1191193236,
+    "appearance": 536871342,
+    "race": 4,
+    "slot": 32,
+    "male": 536871342,
+    "female": 536871342,
+    "armor": 10,
+    "hash": 4519379702598295482,
+    "entity_hash": 15724340601956325847,
+    "evidence": [
+      1191193347
+    ],
+    "name": "Vine Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191193348,
+    "visual": 520099029,
+    "physical": 1191193237,
+    "appearance": 536871344,
+    "race": 4,
+    "slot": 8,
+    "male": 536871344,
+    "female": 536871344,
+    "armor": 10,
+    "hash": 14882321929564919835,
+    "entity_hash": 14436372037845612893,
+    "evidence": [
+      1191193348
+    ],
+    "name": "Vine Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191193349,
+    "visual": 520099070,
+    "physical": 1191193278,
+    "appearance": 536871141,
+    "race": 4,
+    "slot": 2,
+    "male": 536871141,
+    "female": 536871141,
+    "armor": 10,
+    "hash": 11169570437412581620,
+    "entity_hash": 18400954786565144935,
+    "evidence": [
+      1191193349
+    ],
+    "name": "Savage Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191193350,
+    "visual": 520099057,
+    "physical": 1191193265,
+    "appearance": 536871140,
+    "race": 4,
+    "slot": 2,
+    "male": 536871140,
+    "female": 536871140,
+    "armor": 10,
+    "hash": 1480470390320762156,
+    "entity_hash": 4385545822137406774,
+    "evidence": [
+      1191188840,
+      1191193350
+    ],
+    "name": "Tribal Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191193351,
+    "visual": 520099066,
+    "physical": 1191193274,
+    "appearance": 536870950,
+    "race": 4,
+    "slot": 2,
+    "male": 536870950,
+    "female": 536870950,
+    "armor": 10,
+    "hash": 3585427553438373947,
+    "entity_hash": 390893415020315950,
+    "evidence": [
+      1191193351
+    ],
+    "name": "Ritual Breastplate",
+    "tradable": true
+  },
+  {
+    "definition": 1191193352,
+    "visual": 520099069,
+    "physical": 1191193277,
+    "appearance": 536871145,
+    "race": 4,
+    "slot": 16,
+    "male": 536871145,
+    "female": 536871145,
+    "armor": 10,
+    "hash": 18008551687038224345,
+    "entity_hash": 17383534577276056865,
+    "evidence": [
+      1191193352
+    ],
+    "name": "Savage Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191193353,
+    "visual": 520099056,
+    "physical": 1191193264,
+    "appearance": 536871144,
+    "race": 4,
+    "slot": 16,
+    "male": 536871144,
+    "female": 536871144,
+    "armor": 10,
+    "hash": 17521466274582771087,
+    "entity_hash": 16528139397689219440,
+    "evidence": [
+      1191188846,
+      1191193353
+    ],
+    "name": "Tribal Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191193354,
+    "visual": 520099065,
+    "physical": 1191193273,
+    "appearance": 536870949,
+    "race": 4,
+    "slot": 16,
+    "male": 536870949,
+    "female": 536870949,
+    "armor": 10,
+    "hash": 9242564864188120949,
+    "entity_hash": 17953439633473832387,
+    "evidence": [
+      1191193354
+    ],
+    "name": "Ritual Moccasins",
+    "tradable": true
+  },
+  {
+    "definition": 1191193355,
+    "visual": 520099071,
+    "physical": 1191193279,
+    "appearance": 536871139,
+    "race": 4,
+    "slot": 32,
+    "male": 536871139,
+    "female": 536871139,
+    "armor": 10,
+    "hash": 15233297206300398163,
+    "entity_hash": 8442037436361154874,
+    "evidence": [
+      1191193355
+    ],
+    "name": "Savage Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191193356,
+    "visual": 520099058,
+    "physical": 1191193266,
+    "appearance": 536871138,
+    "race": 4,
+    "slot": 32,
+    "male": 536871138,
+    "female": 536871138,
+    "armor": 10,
+    "hash": 11627685594334993189,
+    "entity_hash": 10617842175869546837,
+    "evidence": [
+      1191188843,
+      1191193356
+    ],
+    "name": "Tribal Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191193357,
+    "visual": 520099067,
+    "physical": 1191193275,
+    "appearance": 536870948,
+    "race": 4,
+    "slot": 32,
+    "male": 536870948,
+    "female": 536870948,
+    "armor": 10,
+    "hash": 12213751310995130272,
+    "entity_hash": 9078930587729878939,
+    "evidence": [
+      1191193357
+    ],
+    "name": "Ritual Bracers",
+    "tradable": true
+  },
+  {
+    "definition": 1191193358,
+    "visual": 520099874,
+    "physical": 1191195231,
+    "appearance": 536871649,
+    "race": 4,
+    "slot": 1,
+    "male": 536871649,
+    "female": 536871650,
+    "armor": 10,
+    "hash": 12016442119912859938,
+    "entity_hash": 15296523906303733045,
+    "evidence": [
+      1191189296,
+      1191193358
+    ],
+    "name": "Savage Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191193359,
+    "visual": 520099038,
+    "physical": 1191193246,
+    "appearance": 536871541,
+    "race": 4,
+    "slot": 1,
+    "male": 536871541,
+    "female": 536871541,
+    "armor": 10,
+    "hash": 16878164669173138500,
+    "entity_hash": 4027816207181823251,
+    "evidence": [
+      1191188561,
+      1191188844,
+      1191193310,
+      1191193359
+    ],
+    "name": "Tribal Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191193360,
+    "visual": 520099040,
+    "physical": 1191193248,
+    "appearance": 536871542,
+    "race": 4,
+    "slot": 1,
+    "male": 536871542,
+    "female": 536871542,
+    "armor": 10,
+    "hash": 11862175101945604976,
+    "entity_hash": 9507680385480391170,
+    "evidence": [
+      1191188562,
+      1191193360
+    ],
+    "name": "Ritual Shako",
+    "tradable": true
+  },
+  {
+    "definition": 1191193361,
+    "visual": 520099072,
+    "physical": 1191193280,
+    "appearance": 536871143,
+    "race": 4,
+    "slot": 8,
+    "male": 536871143,
+    "female": 536871143,
+    "armor": 10,
+    "hash": 8343657043554168272,
+    "entity_hash": 10955933249367947565,
+    "evidence": [
+      1191193361
+    ],
+    "name": "Savage Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191193362,
+    "visual": 520099059,
+    "physical": 1191193267,
+    "appearance": 536871142,
+    "race": 4,
+    "slot": 8,
+    "male": 536871142,
+    "female": 536871142,
+    "armor": 10,
+    "hash": 10473227531450479044,
+    "entity_hash": 17227299344549096328,
+    "evidence": [
+      1191188845,
+      1191193362
+    ],
+    "name": "Tribal Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191193363,
+    "visual": 520099068,
+    "physical": 1191193276,
+    "appearance": 536870947,
+    "race": 4,
+    "slot": 8,
+    "male": 536870947,
+    "female": 536870947,
+    "armor": 10,
+    "hash": 4592115318235720672,
+    "entity_hash": 2980046859745250847,
+    "evidence": [
+      1191193363
+    ],
+    "name": "Ritual Leggings",
+    "tradable": true
+  },
+  {
+    "definition": 1191195230,
+    "visual": 520099060,
+    "physical": 1191193268,
+    "appearance": 536871170,
+    "race": 4,
+    "slot": 2,
+    "male": 536871170,
+    "female": 536871170,
+    "armor": 10,
+    "hash": 4034475562306343304,
+    "entity_hash": 9075424877639825957,
+    "evidence": [
+      1191188064,
+      1191188065,
+      1191188066,
+      1191188067,
+      1191188068,
+      1191188069,
+      1191188070,
+      1191188071,
+      1191188072,
+      1191188073,
+      1191195230
+    ],
+    "name": "Tumerok Robe",
+    "tradable": true
+  },
+  {
+    "definition": 1191195453,
+    "visual": 520097564,
+    "physical": 1191182945,
+    "appearance": 536871846,
+    "race": 4,
+    "slot": 1,
+    "male": 536871846,
+    "female": 536871847,
+    "armor": 1,
+    "hash": 14833519525475917352,
+    "entity_hash": 5207022217104577500,
+    "evidence": [
+      1191195453
+    ],
+    "name": "Sun Glasses",
+    "tradable": false
+  },
+  {
+    "definition": 1191195458,
+    "visual": 520098800,
+    "physical": 1191192913,
+    "appearance": 536871798,
+    "race": 4,
+    "slot": 2,
+    "male": 536871798,
+    "female": 536871798,
+    "armor": 1,
+    "hash": 4555112103875357322,
+    "entity_hash": 4034647021303006644,
+    "evidence": [
+      1191192659,
+      1191195458
+    ],
+    "name": "Swimwear",
+    "tradable": false
+  },
+  {
+    "definition": 1191196705,
+    "visual": 520097863,
+    "physical": 1191189596,
+    "appearance": 536872127,
+    "race": 16,
+    "slot": 1,
+    "male": 536872127,
+    "female": 536872128,
+    "armor": 25,
+    "hash": 15818536080316387295,
+    "entity_hash": 14781243350115272969,
+    "evidence": [
+      1191196705
+    ],
+    "name": "Tyrant Helm",
+    "tradable": false
+  },
+  {
+    "definition": 1191198662,
+    "visual": 520100776,
+    "physical": 1191198663,
+    "appearance": 536872076,
+    "race": 16,
+    "slot": 2,
+    "male": 536872076,
+    "female": 536872077,
+    "armor": 175,
+    "hash": 12148814566943465569,
+    "entity_hash": 10383835839471104794,
+    "evidence": [
+      1191198662
+    ],
+    "name": "Guardian of Dereth Robe",
+    "tradable": false
+  },
+  {
+    "definition": 1191199133,
+    "visual": 520097564,
+    "physical": 1191182945,
+    "appearance": 536872125,
+    "race": 16,
+    "slot": 1,
+    "male": 536872125,
+    "female": 536872126,
+    "armor": 1,
+    "hash": 13378995105840933592,
+    "entity_hash": 16556255915836773470,
+    "evidence": [
+      1191199133
+    ],
+    "name": "Sun Glasses",
+    "tradable": false
+  }
+]

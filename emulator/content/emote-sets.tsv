@@ -1,0 +1,40 @@
+set	owner_entity	owner_iid	trigger	item	quest	stage_min	stage_max	range	probability	source
+guard_start	0x4700157d		Use		shelter	0	0			AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold: the Shelter Guard gives the quest
+guard_after	0x4700157d		Use							DAT string table 0x25001648 (Pyrealium: the repeat line after the start)
+lieutenant_early	0x4700157e		Use		shelter	0	0			DAT string table 0x25001649
+lieutenant_start	0x4700157e		Use		shelter	1	1			AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold: after the stones, the Lieutenant
+lieutenant_after	0x4700157e		Use							DAT string table 0x25001649
+sentry_guard	0x47001581		Use		shelter	0	0			DAT string table 0x2500164c
+sentry_lieutenant	0x47001581		Use		shelter	1	1			DAT string table 0x2500164c
+sentry_start	0x47001581		Use		shelter	2	2			AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold: the Sentry sends the player against the Diggers
+sentry_after	0x47001581		Use							DAT string table 0x2500164c
+scout_tool	0x47001580		Use		shelter	3	3			AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold: the Scout takes the Imbued Digging Tool
+scout_trade			QuestSuccess							AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold: the tool given
+scout_wait			QuestFailure							DAT string table 0x2500164b
+scout_early	0x47001580		Use		shelter	0	2			DAT string table 0x2500164b
+scout_after	0x47001580		Use							DAT string table 0x2500164b
+advance_end	0x4700157f		Use		shelter	5	5			AC2 Vault quests/shelter: the Advanced Shelter Scout ends the quest and 'will reward you as well'
+advance_after	0x4700157f		Use							DAT string table 0x2500164a
+stone_1	0x47001573		Use							DAT string table 0x2500163e: Training Stone 1 of 10
+stone_2	0x47001574		Use							DAT string table 0x2500163f: Training Stone 2 of 10
+stone_3	0x47001575		Use							DAT string table 0x25001640: Training Stone 3 of 10
+stone_4	0x47001576		Use							DAT string table 0x25001641: Training Stone 4 of 10
+stone_5	0x47001577		Use							DAT string table 0x25001642: Training Stone 5 of 10
+stone_6	0x47001578		Use							DAT string table 0x25001643: Training Stone 6 of 10
+stone_7	0x47001579		Use							DAT string table 0x25001644: Training Stone 7 of 10
+stone_8	0x4700157a		Use							DAT string table 0x25001645: Training Stone 8 of 10
+stone_9	0x4700157b		Use							DAT string table 0x25001646: Training Stone 9 of 10
+stone_10	0x4700157c		Use							DAT string table 0x25001647: Training Stone 10 of 10
+menhir_portal_glyph	0x47001451	0x814002990005000d	ItemUsedOn	0x47001582	shelter	4	4			AC2Hero quest/osteth_rescuetheshelterhold: double-click the Menhir Glyph, then click the Menhir Portal; it transports you to the Menhir Shard. Portal: human-shelter-world.tsv
+menhir_portal_hint	0x47001451	0x814002990005000d	Use							DAT string table 0x2500158c: the Menhir Portal's hint
+menhir_shard_first	0x4700079a	0x814002990005000e	Use		shelter	6	6	7.56		AC2Hero quest/osteth_rescuetheshelterhold: 'double-click the Menhir shard. After using the shard, you will find yourself in the world of Dereth'; AC2 Vault: 'Use the Shard to exit the Training Halls'
+menhir_shard_again	0x4700079a	0x814002990005000e	Use		shelter	7	7	7.56		AC2Hero quest/osteth_rescuetheshelterhold: 'double-click the Menhir shard. After using the shard, you will find yourself in the world of Dereth'; AC2 Vault: 'Use the Shard to exit the Training Halls'
+menhir_shard_early	0x4700079a	0x814002990005000e	Use					7.56		Pyrealium policy: the shard waits for the Advance Shelter Scout
+digger_kill	0x4700158b		Kill		shelter	3	3			AC2 Vault quests/shelter trophy 'Imbued Digging Tool': looted from a Drudge Digger
+digger_drop			QuestFailure							AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold
+sentinel_kill	0x4700158c		Kill		shelter	4	4			AC2 Vault quests/shelter trophy 'Menhir Glyph': found on a Drudge Sentinel
+sentinel_drop			QuestFailure							AC2 Vault quests/shelter, AC2Hero quest/osteth_rescuetheshelterhold
+kit_portal_glyph	0x4700084d	0x8140000000030047	ItemUsedOn	0x47001582	shelter	4	4			Pyrealium development kit corridor (training-world.tsv)
+kit_portal_hint	0x4700084d	0x8140000000030047	Use		shelter	0	4			Pyrealium development kit corridor
+kit_shard_first	0x47002448		Use		shelter	6	6			Pyrealium development kit Vault shard
+kit_shard_again	0x47002448		Use		shelter	7	7			Pyrealium development kit Vault shard

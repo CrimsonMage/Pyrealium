@@ -1,0 +1,226 @@
+{
+  "schema": 1,
+  "sources": [
+    {
+      "kind": "capture collection",
+      "url": "https://mega.nz/folder/L1MniCKJ#1dQCCFPc2ddcFILa_JGeZw/folder/PxNz2I5S"
+    },
+    {
+      "kind": "historical emulator reference",
+      "url": "https://mega.nz/folder/L1MniCKJ#1dQCCFPc2ddcFILa_JGeZw/folder/TtdznAhA"
+    }
+  ],
+  "archives": [
+    {
+      "path": "Pyreal/3 AC 2 - Latest Client From 2017/1 AC 2 Legion 2017 Client - NOT WORKING.7z",
+      "bytes": 1699287581,
+      "sha256": "f581da6f41bb8230fc390892170f87049f83fd50ca2e674097264bb5d00de0eb",
+      "mega_mac_verified": true,
+      "audit": {
+        "extracted": ["portal.dat", "local_English.dat", "cell_1.dat"],
+        "purpose": "Read-only source-build identity and geometry verification for captured population",
+        "executables_run": false,
+        "installed_archives_changed": false,
+        "population_provenance": "recovered-population.report.json"
+      }
+    },
+    {
+      "path": "Captured Data/portal.dat.zip",
+      "bytes": 132354,
+      "sha256": "73ceacc4102b7fe4910b213e2e54c328a996b387f8e8bfa8e4dafe5aeaa1ca8b",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/2017-02-13.7z",
+      "bytes": 1243133,
+      "sha256": "54fc861a7f445300e5812b0d3d812afd96d840d717c3914f799e08b27bb8081d",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/AC 2 - packets.7z",
+      "bytes": 2347036,
+      "sha256": "ee3b9ebfc4fddd9cbb75d8b7e96a7a37bb0808475dffaafff6ddb29cf1ad08e9",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/ac2_pcaps.tar.gz",
+      "bytes": 14610739,
+      "sha256": "9d336419108bca1170661d6833a6f2a9f74ad3e5724d523abffaa0299c186021",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/AC 2 landblocks_v1.0.7z",
+      "bytes": 18325403,
+      "sha256": "d983fd29250d80d544dc5e93cd49e6adba9c4d393066ea5196933b656f960b84",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/packets.zip",
+      "bytes": 61003143,
+      "sha256": "896e60d43e617c38d30957fc96fc3dcfda3f5b311748035d9402222da9d1f49a",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/2017-02-15.7z",
+      "bytes": 232051904,
+      "sha256": "139e38afccae18809561905e9d6e47f971256337c9274ee782da2bbabd1a6eef",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/Packets.7z",
+      "bytes": 38134193,
+      "sha256": "67ad0de5582f34dcdccec36ee7099b89eec6f7bb51b5a1a73893b96cfb20b348",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Captured Data/2017-02-12.7z",
+      "bytes": 281093329,
+      "sha256": "f29403cb442e95bd8812977f90b026a076606a3fe031df6bc3616ac18af2400b",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/pyreal-dev-dokuwiki_eEKlKD.zip",
+      "bytes": 9803555,
+      "sha256": "6900eceaac9b1c504e41ab899aebf67f7734688f7c0f17e29edb0bb2f4757887",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/1 AC 2 - Working Game Client and Server/4 AC 2 Legion Server and launcher - Win10 17 jan 2017.7z",
+      "bytes": 3102343,
+      "sha256": "2f3c5ebe80ff9127bc4e7e3b052793d7a58fd2f91e3ff0fc03dfc5cef98a1eaf",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/4 AC 2 - Emulator Source Code/AC2 Users.rar",
+      "bytes": 33875717,
+      "sha256": "6ac31308ac698bbfc443530e51b14aaa5525e1679edca455fa37022b5ab9e734",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/4 AC 2 - Emulator Source Code/1 Pyreal R&D.7z",
+      "bytes": 104764276,
+      "sha256": "3a27316e338d15279c2ef79f87f6f15789952d6b206516cda2f530a0baaf3169",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/4 AC 2 - Emulator Source Code/2 PyrealSourceCode.7z",
+      "bytes": 252918057,
+      "sha256": "199ae71fc5ca72c6499f76c95eb33bca885a3eb4bbef47f68e2df916a6aa1d6e",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/4 AC 2 - Emulator Source Code/3 emu2012 (Newest from Odn).7z",
+      "bytes": 280488043,
+      "sha256": "8279c8634a9375c11e86db6af50a8d7f88ae34e352230208af2ce7ec4d716329",
+      "mega_mac_verified": true
+    },
+    {
+      "path": "Pyreal/1 AC 2 - Working Game Client and Server/6 AC 2 Portal and Landblocks.7z",
+      "bytes": 695944269,
+      "sha256": "4139266d0df5d2c94992c4f064325bb0085bc184dc8bb62eb2fed95019c80728",
+      "mega_mac_verified": true,
+      "audit": {
+        "landblock_info_records": 3422,
+        "static_placements": 20967,
+        "encounter_entries": 0,
+        "installed_visual_matches_recovered": 0
+      }
+    },
+    {
+      "path": "Pyreal/2 AC 2 - Extra Stuff for AC 2/3 AC2 Wiki Site.7z",
+      "bytes": 471701050,
+      "sha256": "595afb35dbea396a50da74ed9a9ac5ca7ce51f7e4d79001e90a6ecf4dfca51c9",
+      "mega_mac_verified": true,
+      "audit": {
+        "extraction_data_errors": 62407,
+        "verified_html_php_files": 3117,
+        "use": "reference only; damaged members excluded"
+      }
+    }
+  ],
+  "sql_references": [
+    {
+      "file": "Documentation/Database/Pyreal_DB_Insert_CraftingData.sql",
+      "sha256": "91ce02fe14eb454bbef735e7a78986a145385985b05c8260924e21b8937bcb9e",
+      "table_counts": {}
+    },
+    {
+      "file": "Documentation/Database/Pyreal_DB_Insert_LifestoneData.sql",
+      "sha256": "7282209c837f9485aec8d5e599cffb36337fdec0ea0db0372164767f50fe52cc",
+      "table_counts": {
+        "lifestone": 89
+      }
+    },
+    {
+      "file": "Documentation/Database/Pyreal_DB_Insert_PlayerLevelData.sql",
+      "sha256": "a3b5597cb25a719c411008e525c10f3c8f7ed07b4ee5a0ff0d9288c5440f7519",
+      "table_counts": {}
+    },
+    {
+      "file": "Documentation/Database/Pyreal_DB_Insert_PortalData.sql",
+      "sha256": "793762ab4fc2dfe05016de32a32b25e7ed8d52e3edc48cdc962f3867a2ee38bb",
+      "table_counts": {
+        "portal": 160
+      },
+      "portal_columns": [
+        "EntityFileId",
+        "TelepadId",
+        "NameStringFile",
+        "NameStringToken",
+        "ExamineStringFile",
+        "ExamineStringToken",
+        "LevelRequired",
+        "HeroRequirement",
+        "KingdomRequirement",
+        "Summonable",
+        "LandCell",
+        "LandLayer",
+        "LandBlock",
+        "LandX",
+        "LandY",
+        "LandZ",
+        "QuatW",
+        "QuatX",
+        "QuatY",
+        "QuatZ"
+      ],
+      "portal_count": 160
+    },
+    {
+      "file": "Documentation/Database/Pyreal_DB_Insert_Telepad.sql",
+      "sha256": "c1caa67d0cf0f9ccad017b80f688a5a974bd7adc06c74ee9b2bfd6473543adcd",
+      "table_counts": {
+        "submission": 0,
+        "telepad": 1553
+      }
+    },
+    {
+      "file": "Source/InternalLibs/Common/DB/Old/Data/AC2UtilSQL/Data/Npc.dat.sql",
+      "sha256": "0cdaac12ce7b6bcb4aa6466afa6d715231df7ff94b2fb5b64dfed66982fb0b9b",
+      "map_reference_rows": 184
+    },
+    {
+      "file": "Source/InternalLibs/Common/DB/Old/Data/AC2UtilSQL/Data/Quests.dat.sql",
+      "sha256": "d7b09f42fa71f6af0d035fc0d2108ba9fe76beb9ef1f9a9061483f9f437607a6",
+      "map_reference_rows": 162
+    },
+    {
+      "file": "Source/InternalLibs/Common/DB/Old/Data/AC2UtilSQL/Data/Towns.dat.sql",
+      "sha256": "a6ebd6e5084cd1148a11d9a2c520291b032189bf040a12178b8336904ce2d6b5",
+      "map_reference_rows": 22
+    }
+  ],
+  "reference_only": true,
+  "raw_inputs_location": "Saved/PacketCorpus and Saved/ServerReference (ignored)",
+  "excluded_archives": [
+    {
+      "file": "AC2 Users.rar",
+      "reason": "password protected"
+    },
+    {
+      "file": "AC 2 landblocks_v1.0.7z",
+      "reason": "kept as historical records; not overlaid onto installed DATs"
+    }
+  ],
+  "not_downloaded": "Other historical full clients and installers; the 2017 client's three reference DATs were extracted as documented above."
+}

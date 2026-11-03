@@ -1,0 +1,2 @@
+quest	journal_id	title_table	title_key	title	goal	credit	min_level	time_limit_seconds	max_solves	repeat_seconds	source
+shelter	0x4000ff05	0x25021616	0xa8607cec	Rescue the Shelter Hold		killer					Title: DAT 0x25021616 'Rescue the Shelter Hold'; journal id 0x4000ff05 is Pyrealium's (the retail id is not recovered); kill credit to the killer as Pyrealium's other quests (no AC2 Vault or AC2Hero text on fellowship credit)

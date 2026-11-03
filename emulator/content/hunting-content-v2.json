@@ -1,0 +1,1214 @@
+{
+  "version": 2,
+  "policy": "Authored qh2/qk2 expansion. V1 stays immutable; fixed XP uses zero basis points, zero deadline means unlimited.",
+  "quests": [
+    {
+      "id": 1073806347,
+      "title": "Crush the Skeleton Lancers",
+      "npc": 1191198638,
+      "npc_name": "Moira Len",
+      "targets": [
+        1191197472
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 250,
+      "xp_cap": 52892362,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Crush the Skeleton Lancers: defeat 10 qualifying creatures, then return to Moira Len. Follow the Foundry coast east from Jethric's Outpost.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Crush_the_Skeleton_Lancers.html",
+        "html_sha256": "5ea75d9894b1541251be60213a5f94266871bd528898516f0c9a300c336878f5",
+        "facts": {
+          "Requirements": "Level 55+",
+          "Quest Starter": "Moira Len , Jethric's Outpost",
+          "Time Limit": "7 days",
+          "Repeat Time": "7 days",
+          "Rewards": "2.5% XP, capped at 52,892,362 @ 56"
+        },
+        "native_npc_table": "NPCTable_KQ2G_Moira",
+        "native_death_effect": "Eff_IncrementQuest_KQ2G_SkeletonLancer"
+      }
+    },
+    {
+      "id": 1073806348,
+      "title": "Destroy the Ruthless Waraths",
+      "npc": 1191198635,
+      "npc_name": "Urlin Furst",
+      "targets": [
+        1191197516
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 31480235,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Destroy the Ruthless Waraths: defeat 10 qualifying creatures, then return to Urlin Furst. Search southeast of Jethric's Outpost.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Destroy_the_Ruthless_Waraths.html",
+        "html_sha256": "34b88112736ecf07b0bbf77246151ebdb7bbfa2a304427de742a3051a22eb27f",
+        "facts": {
+          "Requirements": "Level 50+",
+          "Quest Starter": "Urlin Furst , Jethric's Outpost",
+          "Time Limit": "7 days",
+          "Repeat Time": "7 days",
+          "Rewards": "3% XP, capped at 31,480,235 @ 54"
+        },
+        "native_npc_table": "NPCTable_KQ2E_Urlin",
+        "native_death_effect": "Eff_IncrementQuest_KQ2E_RuthlessWarath"
+      }
+    },
+    {
+      "id": 1073806349,
+      "title": "Shred the Mu-miyah Warriors",
+      "npc": 1191198631,
+      "npc_name": "Furakhe",
+      "targets": [
+        1191197380
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 10787851,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Shred the Mu-miyah Warriors: defeat 10 qualifying creatures, then return to Furakhe. Search southeast of Jethric's Outpost and in Vothardun.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Shred_the_Mu-miyah_Warriors.html",
+        "html_sha256": "7574b6d01f63a88f91160d05f10cd6e3ca7223b046e13daea76b6e1141aff85e",
+        "facts": {
+          "Requirements": "Level 50+",
+          "Quest Starter": "Furakhe , Jethric's Outpost",
+          "Time Limit": "7 days",
+          "Repeat Time": "7 days",
+          "Rewards": "3% XP, capped at 10,787,851 @ 51"
+        },
+        "native_npc_table": "NPCTable_KQ2C_Furakhe",
+        "native_death_effect": "Eff_IncrementQuest_KQ2C_MumiyahWarrior"
+      }
+    },
+    {
+      "id": 1073806350,
+      "title": "Dispatch the Anguish Crones",
+      "npc": 1191199454,
+      "npc_name": "Brother Groli Vontag",
+      "targets": [
+        1191190396,
+        1191190476,
+        1191190577
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 15455108,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Dispatch the Anguish Crones: defeat 10 qualifying creatures, then return to Brother Groli Vontag. Search west of the Arramora lifestone.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Dispatch_the_Anguish_Crones.html",
+        "html_sha256": "edd1aa04b37ec89764a470d5351db600c3c1408d64074e593d66713f2425ed1f",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 50+",
+          "Quest Starter": "Brother Groli Vontag",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "3% XP, capped at 15,455,108 @ 52",
+          "Other Rewards": "",
+          "Related Quests": "Dispatch the Thornling Plunderers"
+        },
+        "native_npc_table": "NPCTable_LinC_Groli",
+        "native_death_effect": "Eff_IncrementQuestLinC1_AnguishCrone"
+      }
+    },
+    {
+      "id": 1073806351,
+      "title": "Dispatch the Thornling Plunderers",
+      "npc": 1191199454,
+      "npc_name": "Brother Groli Vontag",
+      "targets": [
+        1191190425,
+        1191190524
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 15455108,
+      "prerequisite": 1073806350,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Dispatch the Thornling Plunderers: defeat 10 qualifying creatures, then return to Brother Groli Vontag. Search west of the Arramora lifestone.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Dispatch_the_Thornling_Plunderers.html",
+        "html_sha256": "6138d5deb09e3c21abbab52a92859127007d4bbe9b75d6ae016c676e2f6a71f7",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 50+, must have completed Dispatch the Anguish Crones quest",
+          "Quest Starter": "Brother Groli Vontag",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "3% XP, capped at 15,455,108 @ 52",
+          "Other Rewards": "",
+          "Related Quests": "Dispatch the Anguish Crones , Dispatch the Shock Reapers"
+        },
+        "native_npc_table": "NPCTable_LinC_Groli",
+        "native_death_effect": "Eff_IncrementQuestLinC2_ThornlingPlunderer"
+      }
+    },
+    {
+      "id": 1073806352,
+      "title": "Dispatch the Shock Reapers",
+      "npc": 1191199454,
+      "npc_name": "Brother Groli Vontag",
+      "targets": [
+        1191190414,
+        1191190512,
+        1191190554,
+        1191190555,
+        1191190588
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 31480235,
+      "prerequisite": 1073806351,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Dispatch the Shock Reapers: defeat 10 qualifying creatures, then return to Brother Groli Vontag. Search west of the Arramora lifestone.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Dispatch_the_Shock_Reapers.html",
+        "html_sha256": "b587004f9f8eaa282ad945ebc26ae3eccdcdd0cfeba54e7f8c9b8a7b61e9aeac",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 50+, must have completed Dispatch the Thornling Plunderers",
+          "Quest Starter": "Brother Groli Vontag",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "3% XP, capped at 31,480,235 @ 54",
+          "Other Rewards": "",
+          "Related Quests": "Dispatch the Thornling Plunderers"
+        },
+        "native_npc_table": "NPCTable_LinC_Groli",
+        "native_death_effect": "Eff_IncrementQuestLinC3_ShockReaper"
+      }
+    },
+    {
+      "id": 1073806353,
+      "title": "Exterminate the Olthoi Worker Nymphs",
+      "npc": 1191199450,
+      "npc_name": "Gregor Adulen",
+      "targets": [
+        1191190203,
+        1191190511,
+        1191190587
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 250,
+      "xp_cap": 74815717,
+      "prerequisite": 1073806340,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Exterminate the Olthoi Worker Nymphs: defeat 10 qualifying creatures, then return to Gregor Adulen. Search west and southwest of the Northern Arramora Gateway, including the camp at 24.6N 51.9W.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Exterminate_the_Olthoi_Worker_Nymphs.html",
+        "html_sha256": "70ccd61972abeaff9556fdc16697edee676d755d2ae44482dc8c74717774f956",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 55+, must have completed Exterminate the Olthoi Harvesters",
+          "Quest Starter": "Gregor Adulen",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "2.5% XP, capped at 74,815,717 @ 57",
+          "Other Rewards": "",
+          "Related Quests": "Exterminate the Olthoi Harvesters , Exterminate the Olthoi Drones"
+        },
+        "native_npc_table": "NPCTable_LinA_Gregor",
+        "native_death_effect": "Eff_IncrementQuestLinA2_OlthoiNymphWorker"
+      }
+    },
+    {
+      "id": 1073806354,
+      "title": "Exterminate the Olthoi Drones",
+      "npc": 1191199450,
+      "npc_name": "Gregor Adulen",
+      "targets": [
+        1191190345,
+        1191190507,
+        1191190552,
+        1191190586
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 200,
+      "xp_cap": 82111840,
+      "prerequisite": 1073806353,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Exterminate the Olthoi Drones: defeat 10 qualifying creatures, then return to Gregor Adulen. Search west and southwest of the Northern Arramora Gateway and near the Burun Idol.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Exterminate_the_Olthoi_Drones.html",
+        "html_sha256": "2a5af856ca3496b1ce27f58804e931681c3fba615ada0889b52357b0e6e211fd",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 55+, must have completed Exterminate the Olthoi Worker Nymphs",
+          "Quest Starter": "Gregor Adulen",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "2% XP, capped at 82,111,840 @ 59",
+          "Other Rewards": "",
+          "Related Quests": "Exterminate the Olthoi Worker Nymphs"
+        },
+        "native_npc_table": "NPCTable_LinA_Gregor",
+        "native_death_effect": "Eff_IncrementQuestLinA3_OlthoiDrone"
+      }
+    },
+    {
+      "id": 1073806355,
+      "title": "Perforate the Spawn",
+      "npc": 1191199458,
+      "npc_name": "Audalon",
+      "targets": [
+        1191192844
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 22085504,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Perforate the Spawn: defeat 10 qualifying creatures, then return to Audalon. Search the Arramora central plateau, including the camp at 17.2N 52.2W.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Perforate_the_Spawn.html",
+        "html_sha256": "95bfce24425cd8d37474239fbce68659f9f237cce701e08982deb22a3c5d1827",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 50+",
+          "Quest Starter": "Audalon",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "3% XP, capped at 22,085,504 @ 53",
+          "Other Rewards": "",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_LinE_Audalon",
+        "native_death_effect": "Eff_IncrementQuestLinE_VigilantSpawn"
+      }
+    },
+    {
+      "id": 1073806356,
+      "title": "Puncture the Lumna Niffis",
+      "npc": 1191199462,
+      "npc_name": "Eliza Dumach",
+      "targets": [
+        1191190412,
+        1191190505,
+        1191190584
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 400,
+      "xp_cap": 59676033,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Puncture the Lumna Niffis: defeat 10 qualifying creatures, then return to Eliza Dumach. Search the Arramora desert. These are group creatures.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Puncture_the_Lumna_Niffis.html",
+        "html_sha256": "c76ad3d27ae26b397979688006153f565fd41891bfcefa5f2d9264b8b3da00e9",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal , 10.5S 32.1W",
+          "Requirements": "Level 55+ Intended Level : 55",
+          "Quest Starter": "Eliza Dumach",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "4% XP, capped at 59,676,033 @ 55",
+          "Other Rewards": "",
+          "Related Quests": "Puncture the Veinu Niffis"
+        },
+        "native_npc_table": "NPCTable_LinG_Eliza",
+        "native_death_effect": "Eff_IncrementQuestLinG1_LumnaNiffis"
+      }
+    },
+    {
+      "id": 1073806357,
+      "title": "Puncture the Veinu Niffis",
+      "npc": 1191199462,
+      "npc_name": "Eliza Dumach",
+      "targets": [
+        1191190413,
+        1191190506,
+        1191190585
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 400,
+      "xp_cap": 141206944,
+      "prerequisite": 1073806356,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Puncture the Veinu Niffis: defeat 10 qualifying creatures, then return to Eliza Dumach. Search the Arramora desert. These are group creatures.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Puncture_the_Veinu_Niffis.html",
+        "html_sha256": "975f4c8a17a6a911169f5675506aa4e677da858ee53bfd54978c73865a335feb",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal , 10.5S 32.1W",
+          "Requirements": "Level 55+, must have completed Puncture the Lumna Niffis Intended Level : 58",
+          "Quest Starter": "Eliza Dumach",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "4% XP, capped at 141,206,944 @ 58",
+          "Other Rewards": "",
+          "Related Quests": "Puncture the Lumna Niffis"
+        },
+        "native_npc_table": "NPCTable_LinG_Eliza",
+        "native_death_effect": "Eff_IncrementQuestLinG2_VeinuNiffis"
+      }
+    },
+    {
+      "id": 1073806358,
+      "title": "Unravel the Dark Dread Mu-miyah",
+      "npc": 1191199464,
+      "npc_name": "Red Bellows",
+      "targets": [
+        1191190409,
+        1191190502,
+        1191190571,
+        1191190600
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 250,
+      "xp_cap": 52892362,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Unravel the Dark Dread Mu-miyah: defeat 10 qualifying creatures, then return to Red Bellows. Search the Arramora central plateau and the camp at 16.7N 47.7W.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Unravel_the_Dark_Dread_Mu-miyah.html",
+        "html_sha256": "e8be1205693c3207da402ab31298e0262f5ea31df34530f65024e3ca00ee3744",
+        "facts": {
+          "Start Location": "Thusik Delta , Linvak Tukal",
+          "Requirements": "Level 55+",
+          "Quest Starter": "Red Bellows",
+          "Time Limit": "7 days",
+          "Repeat Time": "6 days, 18 hours",
+          "XP Reward": "2.5% XP, capped at 52,892,362 @ 56",
+          "Other Rewards": "",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_LinH_Red",
+        "native_death_effect": "Eff_IncrementQuestLinH_DarkDreadMumiyah"
+      }
+    },
+    {
+      "id": 1073806359,
+      "title": "Pluck the Stray Darkenfowl",
+      "npc": 1191199488,
+      "npc_name": "Karin Dirae",
+      "targets": [
+        1191186345
+      ],
+      "goal": 10,
+      "level": 17,
+      "xp_basis_points": 0,
+      "xp_cap": 3000,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 72000,
+      "text": "Pluck the Stray Darkenfowl: defeat 10 qualifying creatures, then return to Karin Dirae. Look for Darkenfowl Strays in western Kydi.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Pluck_the_Stray_Darkenfowl.html",
+        "html_sha256": "8965cc983e4895c841b65b9c011e49254029f398aa5ab9220731f0d13ceab261",
+        "facts": {
+          "Requirements": "Level 17+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Karin Dirae",
+          "Time Limit": "7 days",
+          "XP Reward": "3,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_IkA_Karin",
+        "native_death_effect": "Eff_IncrementQuestIkA_StrayDarkenfowl"
+      }
+    },
+    {
+      "id": 1073806360,
+      "title": "Perforate the Servitor Spawn",
+      "npc": 1191199490,
+      "npc_name": "Sumalar",
+      "targets": [
+        1191186484,
+        1191188232
+      ],
+      "goal": 10,
+      "level": 18,
+      "xp_basis_points": 0,
+      "xp_cap": 4300,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 72000,
+      "text": "Perforate the Servitor Spawn: defeat 10 qualifying creatures, then return to Sumalar. Look for Servitor Spawn in western Kydi.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Perforate_the_Servitor_Spawn.html",
+        "html_sha256": "f1ea1e0ba29a8792264b676b85cb436c71bc6404b02fef79f4c48b318f3eba1b",
+        "facts": {
+          "Requirements": "Level 18+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Sumalar",
+          "Time Limit": "7 days",
+          "XP Reward": "4,300",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Perforate the Puppet Spawn"
+        },
+        "native_npc_table": "NPCTable_IkB_Sumalar",
+        "native_death_effect": "Eff_IncrementQuestIkB1_ServitorSpawn"
+      }
+    },
+    {
+      "id": 1073806361,
+      "title": "Perforate the Puppet Spawn",
+      "npc": 1191199490,
+      "npc_name": "Sumalar",
+      "targets": [
+        1191186461
+      ],
+      "goal": 10,
+      "level": 20,
+      "xp_basis_points": 0,
+      "xp_cap": 7500,
+      "prerequisite": 1073806360,
+      "limit_seconds": 604800,
+      "repeat_seconds": 72000,
+      "text": "Perforate the Puppet Spawn: defeat 10 qualifying creatures, then return to Sumalar. Look for Puppet Spawn throughout Ariaki River Basin.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Perforate_the_Puppet_Spawn.html",
+        "html_sha256": "574f85edd89ed52c25eb23b7d2b467597073b69c6a6947da69b613f5070abd36",
+        "facts": {
+          "Requirements": "Level 20+, must have completed Perforate the Servitor Spawn",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Sumalar",
+          "Time Limit": "7 days",
+          "XP Reward": "7,500",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Perforate the Servitor Spawn , Perforate the Surrogate Spawn"
+        },
+        "native_npc_table": "NPCTable_IkB_Sumalar",
+        "native_death_effect": "Eff_IncrementQuestIkB2_PuppetSpawn"
+      }
+    },
+    {
+      "id": 1073806362,
+      "title": "Perforate the Surrogate Spawn",
+      "npc": 1191199490,
+      "npc_name": "Sumalar",
+      "targets": [
+        1191186451,
+        1191186487,
+        1191187136
+      ],
+      "goal": 10,
+      "level": 22,
+      "xp_basis_points": 0,
+      "xp_cap": 12000,
+      "prerequisite": 1073806361,
+      "limit_seconds": 604800,
+      "repeat_seconds": 72000,
+      "text": "Perforate the Surrogate Spawn: defeat 10 qualifying creatures, then return to Sumalar. Look for Surrogate Spawn throughout Lumari Spill Isles.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Perforate_the_Surrogate_Spawn.html",
+        "html_sha256": "53a418c936325ece9b7e7fe8e26e5c26308c98028cce65387044e714c91e0d59",
+        "facts": {
+          "Requirements": "Level 22, must have completed Perforate the Puppet Spawn",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Sumalar",
+          "Time Limit": "7 days",
+          "XP Reward": "12,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Perforate the Puppet Spawn"
+        },
+        "native_npc_table": "NPCTable_IkB_Sumalar",
+        "native_death_effect": "Eff_IncrementQuestIkB3_SurrogateSpawn"
+      }
+    },
+    {
+      "id": 1073806363,
+      "title": "Drive out the Kachem Mimbu",
+      "npc": 1191199492,
+      "npc_name": "Pim Donar",
+      "targets": [
+        1191184422,
+        1191188164
+      ],
+      "goal": 10,
+      "level": 21,
+      "xp_basis_points": 0,
+      "xp_cap": 8000,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 72000,
+      "text": "Drive out the Kachem Mimbu: defeat 10 qualifying creatures, then return to Pim Donar. Search southwest of Mayoi and between the West and Northwest Ariaki Outposts.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Drive_out_the_Kachem_Mimbu.html",
+        "html_sha256": "c8f7b3ba8c52db223c8010323c86d88666d28aae9da7a1d848194b9d23b8944c",
+        "facts": {
+          "Requirements": "Level 21+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Pim Donar",
+          "Time Limit": "7 days",
+          "XP Reward": "8,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_IkC_Pim",
+        "native_death_effect": "Eff_IncrementQuestIkC_MimbuKachem"
+      }
+    },
+    {
+      "id": 1073806364,
+      "title": "Deflate the Parfal Nefanes",
+      "npc": 1191199494,
+      "npc_name": "Baliga",
+      "targets": [
+        1191186467
+      ],
+      "goal": 10,
+      "level": 23,
+      "xp_basis_points": 0,
+      "xp_cap": 13000,
+      "prerequisite": 0,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Deflate the Parfal Nefanes: defeat 10 qualifying creatures, then return to Baliga. Search between the West and Northwest Ariaki Outposts and in northern Lumari.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Deflate_the_Parfal_Nefanes.html",
+        "html_sha256": "eddcff879dd156c9f9bc1bc0914a77e723d5a08ecc333c8fe26709c2786e2f70",
+        "facts": {
+          "Requirements": "Level 23",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Baliga",
+          "Time Limit": "No time limit",
+          "XP Reward": "13,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Deflate the Listris Niffis"
+        },
+        "native_npc_table": "NPCTable_IkD_Baliga",
+        "native_death_effect": "Eff_IncrementQuestIkD1_ParfalNefane"
+      }
+    },
+    {
+      "id": 1073806365,
+      "title": "Deflate the Listris Niffis",
+      "npc": 1191199494,
+      "npc_name": "Baliga",
+      "targets": [
+        1191186455
+      ],
+      "goal": 10,
+      "level": 22,
+      "xp_basis_points": 0,
+      "xp_cap": 18000,
+      "prerequisite": 1073806364,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Deflate the Listris Niffis: defeat 10 qualifying creatures, then return to Baliga. Search Lumari Spill Isles near Shinoko.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Deflate_the_Listris_Niffis.html",
+        "html_sha256": "38795fef8842832ed56b844e596a934646f7320f3df50b26b20b9420d864b54d",
+        "facts": {
+          "Requirements": "Level 22+, must have completed Deflate the Parfal Nefanes",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Baliga",
+          "Time Limit": "No time limit",
+          "XP Reward": "18,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Deflate the Parfal Nefanes"
+        },
+        "native_npc_table": "NPCTable_IkD_Baliga",
+        "native_death_effect": "Eff_IncrementQuestIkD2_ListrisNiffis"
+      }
+    },
+    {
+      "id": 1073806366,
+      "title": "Eliminate the Ulu Sclavus",
+      "npc": 1191199496,
+      "npc_name": "Sister Nell Palnos",
+      "targets": [
+        1191184329,
+        1191186322,
+        1191186454
+      ],
+      "goal": 10,
+      "level": 23,
+      "xp_basis_points": 0,
+      "xp_cap": 22000,
+      "prerequisite": 0,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Eliminate the Ulu Sclavus: defeat 10 qualifying creatures, then return to Sister Nell Palnos. Search southwest of Zu and northeastern Lumari.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Eliminate_the_Ulu_Sclavus.html",
+        "html_sha256": "ba5fa09284b0ec9a07f30bf51ef5848af3d366ca26727dda3f3a33cc178e17b8",
+        "facts": {
+          "Requirements": "Level 23+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Sister Nell Palnos",
+          "Time Limit": "No time limit",
+          "XP Reward": "22,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Eliminate the Faisi Sclavus"
+        },
+        "native_npc_table": "NPCTable_IkE_Nell",
+        "native_death_effect": "Eff_IncrementQuestIkE1_UluSclavus"
+      }
+    },
+    {
+      "id": 1073806367,
+      "title": "Eliminate the Faisi Sclavus",
+      "npc": 1191199496,
+      "npc_name": "Sister Nell Palnos",
+      "targets": [
+        1191184330,
+        1191184537,
+        1191187128
+      ],
+      "goal": 10,
+      "level": 23,
+      "xp_basis_points": 0,
+      "xp_cap": 30000,
+      "prerequisite": 1073806366,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Eliminate the Faisi Sclavus: defeat 10 qualifying creatures, then return to Sister Nell Palnos. Faisi Sclavus west of Northwest Tou-Tou and Seeker Faisi Sclavus in southern Tou-Tou both count.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Eliminate_the_Faisi_Sclavus.html",
+        "html_sha256": "e71ee6ca1f8b608b02f1523b736fe855f840506f69c2cf773fe09683d63ff3d1",
+        "facts": {
+          "Requirements": "Level 23+, must have completed Eliminate the Ulu Sclavus",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Sister Nell Palnos",
+          "Time Limit": "No time limit",
+          "XP Reward": "30,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Eliminate the Ulu Sclavus"
+        },
+        "native_npc_table": "NPCTable_IkE_Nell",
+        "native_death_effect": "Eff_IncrementQuestIkE2_FaisiSclavus"
+      }
+    },
+    {
+      "id": 1073806368,
+      "title": "Thin the Marsh Armoredillos",
+      "npc": 1191199498,
+      "npc_name": "Baltor Vultu",
+      "targets": [
+        1191186458
+      ],
+      "goal": 10,
+      "level": 27,
+      "xp_basis_points": 0,
+      "xp_cap": 44000,
+      "prerequisite": 0,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Thin the Marsh Armoredillos: defeat 10 qualifying creatures, then return to Baltor Vultu. Search northwest and southeast Naderu and north of the Tou-Tou Vault.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Thin_the_Marsh_Armoredillos.html",
+        "html_sha256": "a76d062e02a24395955718ddecd8a2c93939d8fbb8a5ed1fd9afce885efc7a21",
+        "facts": {
+          "Requirements": "Level 27+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Baltor Vultu",
+          "Time Limit": "No time limit",
+          "XP Reward": "44,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_IkF_Baltor",
+        "native_death_effect": "Eff_IncrementQuestIkF_MarshArmoredillo"
+      }
+    },
+    {
+      "id": 1073806369,
+      "title": "Puncture the Opor Niffis",
+      "npc": 1191199486,
+      "npc_name": "Laurikhe",
+      "targets": [
+        1191186494
+      ],
+      "goal": 10,
+      "level": 28,
+      "xp_basis_points": 0,
+      "xp_cap": 45000,
+      "prerequisite": 0,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Puncture the Opor Niffis: defeat 10 qualifying creatures, then return to Laurikhe. Search around the Northwest Naderu Outpost.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Puncture_the_Opor_Niffis.html",
+        "html_sha256": "0d630b42bd0bd8976da8618070b28ad4f6a1c66d5cf8badc2a8fc4689d396e3e",
+        "facts": {
+          "Requirements": "Level 28",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Laurikhe",
+          "Time Limit": "No time limit",
+          "XP Reward": "45,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Puncture the Opor Nefanes"
+        },
+        "native_npc_table": "NPCTable_IkH_Laurikhe",
+        "native_death_effect": "Eff_IncrementQuestIkH1_OporNiffis"
+      }
+    },
+    {
+      "id": 1073806370,
+      "title": "Puncture the Opor Nefanes",
+      "npc": 1191199486,
+      "npc_name": "Laurikhe",
+      "targets": [
+        1191186478
+      ],
+      "goal": 10,
+      "level": 28,
+      "xp_basis_points": 0,
+      "xp_cap": 82000,
+      "prerequisite": 1073806369,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Puncture the Opor Nefanes: defeat 10 qualifying creatures, then return to Laurikhe. Search around the Northeast Naderu and Northeast Tou-Tou Outposts.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Puncture_the_Opor_Nefanes.html",
+        "html_sha256": "51afc4aecfb17dfdf9cc8c0063eee0ed138199fb83c5db7be76ba972f4e995df",
+        "facts": {
+          "Requirements": "Level 28, must have completed Puncture the Opor Niffis",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Lauriche",
+          "Time Limit": "No time limit",
+          "XP Reward": "82,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": "Puncture the Opor Niffis"
+        },
+        "native_npc_table": "NPCTable_IkH_Laurikhe",
+        "native_death_effect": "Eff_IncrementQuestIkH2_OporNefane"
+      }
+    },
+    {
+      "id": 1073806371,
+      "title": "Cull the Blighted Mucor",
+      "npc": 1191199500,
+      "npc_name": "Ingara",
+      "targets": [
+        1191186471
+      ],
+      "goal": 10,
+      "level": 29,
+      "xp_basis_points": 0,
+      "xp_cap": 55000,
+      "prerequisite": 0,
+      "limit_seconds": 0,
+      "repeat_seconds": 72000,
+      "text": "Cull the Blighted Mucor: defeat 10 qualifying creatures, then return to Ingara. Search northeast Tou-Tou, southeast Naderu and the Naderu ringway.",
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Cull_the_Blighted_Mucor.html",
+        "html_sha256": "4b9c31a7227aa9b62220770772619cf390d6472c5dfc541ed6369e6565587b52",
+        "facts": {
+          "Requirements": "Level 29+",
+          "Type": "Solo",
+          "Start Location": "Ariaki River Basin , Ikeras",
+          "Quest Starter": "Ingara",
+          "Time Limit": "No time limit",
+          "XP Reward": "55,000",
+          "Other Rewards": "",
+          "Repeat Time": "20 hours",
+          "Related Quests": ""
+        },
+        "native_npc_table": "NPCTable_IkG_Ingara",
+        "native_death_effect": "Eff_IncrementQuestIkG_BlightedMucor"
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": 9313676027546845095,
+      "entity": 1191198631,
+      "land": [
+        1551.42,
+        692.7840000000001
+      ],
+      "evidence": "Jethric's Outpost: inferred town offset, native search <=32m."
+    },
+    {
+      "id": 9313676027546845964,
+      "entity": 1191199500,
+      "land": [
+        1656.48,
+        1124.04
+      ],
+      "evidence": "Ikeras: inferred town offset, native search <=32m."
+    }
+  ],
+  "camps": [
+    {
+      "id": 9313676026355712016,
+      "land": [
+        487.56000000000006,
+        1195.44
+      ],
+      "roster": [
+        1191192844,
+        1191192844
+      ],
+      "capacity": 2,
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Perforate_the_Spawn.html",
+        "coordinates": "17.2N 52.2W",
+        "policy": "Guide anchor; inferred two-child group, 120 second refill after death, native search <=32m."
+      }
+    },
+    {
+      "id": 9313676026355712032,
+      "land": [
+        490.62,
+        1270.92
+      ],
+      "roster": [
+        1191190203,
+        1191190203
+      ],
+      "capacity": 2,
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Exterminate_the_Olthoi_Worker_Nymphs.html",
+        "coordinates": "24.6N 51.9W",
+        "policy": "Guide anchor; inferred two-child group, 120 second refill after death, native search <=32m."
+      }
+    },
+    {
+      "id": 9313676026355712048,
+      "land": [
+        533.46,
+        1190.34
+      ],
+      "roster": [
+        1191190409,
+        1191190409
+      ],
+      "capacity": 2,
+      "evidence": {
+        "url": "https://www.20oz.net/index.php/Unravel_the_Dark_Dread_Mu-miyah.html",
+        "coordinates": "16.7N 47.7W",
+        "policy": "Guide anchor; inferred two-child group, 120 second refill after death, native search <=32m."
+      }
+    }
+  ],
+  "templates": {
+    "1191184329": {
+      "name": "Ulu Sclavus",
+      "visual": 520094677
+    },
+    "1191184330": {
+      "name": "Faisi Sclavus",
+      "visual": 520094675
+    },
+    "1191184422": {
+      "name": "Kachem Mimbu",
+      "visual": 520094892
+    },
+    "1191184537": {
+      "name": "Faisi Sclavus",
+      "visual": 520094675
+    },
+    "1191186322": {
+      "name": "Ulu Sclavus",
+      "visual": 520094677
+    },
+    "1191186345": {
+      "name": "Darkenfowl Stray",
+      "visual": 520093746
+    },
+    "1191186451": {
+      "name": "Surrogate Spawn",
+      "visual": 520094673
+    },
+    "1191186454": {
+      "name": "Ulu Sclavus",
+      "visual": 520094677
+    },
+    "1191186455": {
+      "name": "Listris Niffis",
+      "visual": 520094195
+    },
+    "1191186458": {
+      "name": "Marsh Armoredillo",
+      "visual": 520094630
+    },
+    "1191186461": {
+      "name": "Puppet Spawn",
+      "visual": 520094673
+    },
+    "1191186467": {
+      "name": "Parfal Nefane",
+      "visual": 520095264
+    },
+    "1191186471": {
+      "name": "Blighted Mucor",
+      "visual": 520095266
+    },
+    "1191186478": {
+      "name": "Opor Nefane",
+      "visual": 520095265
+    },
+    "1191186484": {
+      "name": "Servitor Spawn",
+      "visual": 520094673
+    },
+    "1191186487": {
+      "name": "Surrogate Spawn",
+      "visual": 520094673
+    },
+    "1191186494": {
+      "name": "Opor Niffis",
+      "visual": 520095262
+    },
+    "1191187128": {
+      "name": "Seeker Faisi Sclavus",
+      "visual": 520094675
+    },
+    "1191187136": {
+      "name": "Surrogate Spawn",
+      "visual": 520094673
+    },
+    "1191188164": {
+      "name": "Caller of Storms",
+      "visual": 520097275
+    },
+    "1191188232": {
+      "name": "Slithis Sentinel",
+      "visual": 520097301
+    },
+    "1191190203": {
+      "name": "Olthoi Worker Nymph",
+      "visual": 520098095
+    },
+    "1191190345": {
+      "name": "Olthoi Drone",
+      "visual": 520098139
+    },
+    "1191190396": {
+      "name": "Anguish Crone",
+      "visual": 520094898
+    },
+    "1191190409": {
+      "name": "Dread Dark Mu-miyah",
+      "visual": 520098123
+    },
+    "1191190412": {
+      "name": "Lumna Niffis",
+      "visual": 520098143
+    },
+    "1191190413": {
+      "name": "Veinu Niffis",
+      "visual": 520098143
+    },
+    "1191190414": {
+      "name": "Shock Reaper",
+      "visual": 520095050
+    },
+    "1191190425": {
+      "name": "Thornling Plunderer",
+      "visual": 520094946
+    },
+    "1191190476": {
+      "name": "Wanton Anguish Crone",
+      "visual": 520098162
+    },
+    "1191190502": {
+      "name": "Tattered Mu-miyah Wayfarer",
+      "visual": 520098230
+    },
+    "1191190505": {
+      "name": "Iridescent Lumna Niffis",
+      "visual": 520098187
+    },
+    "1191190506": {
+      "name": "Lustrous Veinu Niffis",
+      "visual": 520098188
+    },
+    "1191190507": {
+      "name": "Untiring Olthoi Drone",
+      "visual": 520098190
+    },
+    "1191190511": {
+      "name": "Droning Olthoi Worker Nymph",
+      "visual": 520098195
+    },
+    "1191190512": {
+      "name": "Jolted Shock Reaper",
+      "visual": 520098199
+    },
+    "1191190524": {
+      "name": "Dissolute Thornling Plunderer",
+      "visual": 520098215
+    },
+    "1191190552": {
+      "name": "Olthoi Mosswatcher",
+      "visual": 520098189
+    },
+    "1191190554": {
+      "name": "Ivorin Splinterlegs",
+      "visual": 520098197
+    },
+    "1191190555": {
+      "name": "Jangled Shock Reaper",
+      "visual": 520098198
+    },
+    "1191190571": {
+      "name": "High Priest of Isishaa",
+      "visual": 520098179
+    },
+    "1191190577": {
+      "name": "Helthwith the Hysteric",
+      "visual": 520098161
+    },
+    "1191190584": {
+      "name": "Pearly Lumna Niffis",
+      "visual": 520098186
+    },
+    "1191190585": {
+      "name": "Opalescent Veinu Niffis",
+      "visual": 520098231
+    },
+    "1191190586": {
+      "name": "Buzzing Olthoi Drone",
+      "visual": 520098251
+    },
+    "1191190587": {
+      "name": "Olthoi Nymph Aviatrix",
+      "visual": 520098194
+    },
+    "1191190588": {
+      "name": "Mad Moiren",
+      "visual": 520098196
+    },
+    "1191190600": {
+      "name": "Isishaa's Servant",
+      "visual": 520098229
+    },
+    "1191192844": {
+      "name": "Vigilant Spawn",
+      "visual": 520098142
+    },
+    "1191197380": {
+      "name": "Mu-miyah Warrior",
+      "visual": 520098123
+    },
+    "1191197472": {
+      "name": "Skeleton Lancer",
+      "visual": 520097400
+    },
+    "1191197516": {
+      "name": "Ruthless Warath",
+      "visual": 520100697
+    },
+    "1191198631": {
+      "name": "Furakhe",
+      "visual": 520100769
+    },
+    "1191198635": {
+      "name": "Urlin Furst",
+      "visual": 520100771
+    },
+    "1191198638": {
+      "name": "Moira Len",
+      "visual": 520100772
+    },
+    "1191199450": {
+      "name": "Gregor Adulen",
+      "visual": 520101127
+    },
+    "1191199454": {
+      "name": "Brother Groli Vontag",
+      "visual": 520101129
+    },
+    "1191199458": {
+      "name": "Audalon",
+      "visual": 520101131
+    },
+    "1191199462": {
+      "name": "Eliza Dumach",
+      "visual": 520101133
+    },
+    "1191199464": {
+      "name": "Red Bellows",
+      "visual": 520101134
+    },
+    "1191199486": {
+      "name": "Laurikhe",
+      "visual": 520101143
+    },
+    "1191199488": {
+      "name": "Karin Dirae",
+      "visual": 520101144
+    },
+    "1191199490": {
+      "name": "Sumalar",
+      "visual": 520101150
+    },
+    "1191199492": {
+      "name": "Pim Donar",
+      "visual": 520101145
+    },
+    "1191199494": {
+      "name": "Baliga",
+      "visual": 520101146
+    },
+    "1191199496": {
+      "name": "Sister Nell Palnos",
+      "visual": 520101147
+    },
+    "1191199498": {
+      "name": "Baltor Vultu",
+      "visual": 520101148
+    },
+    "1191199500": {
+      "name": "Ingara",
+      "visual": 520101149
+    }
+  },
+  "sources": {
+    "current-native-templates.json": "19341ddd2ce92afdad1f883e35b164bca67cef308aaa24f7e29c41c91e8bb2ef",
+    "wiki-content.json": "0775af937cad36cd792b7995355fadaf1b8a960fc01e6d42ecb292801b2e60f6",
+    "hunting-content-v1.json": "ec87e97d64e2d8ed56409a5c7519a11fd74eb804c6b900f7bddbb31d2c7e851b"
+  }
+}

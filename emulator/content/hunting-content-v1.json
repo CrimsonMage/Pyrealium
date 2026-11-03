@@ -1,0 +1,358 @@
+{
+  "version": 1,
+  "policy": "Authored NPC hunt reconstruction; immutable qh1/qk1 journal rules, not recovered retail scripts or quest IDs.",
+  "quests": [
+    {
+      "id": 1073806337,
+      "title": "Fracture the Bone Golems",
+      "npc": 1191199460,
+      "npc_name": "Vreema",
+      "targets": [
+        1191190397
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 400,
+      "xp_cap": 59676035,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Bone Golem creatures in Arramora, then return to Vreema for your reward. Search the central plateau.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Fracture_the_Bone_Golems.html",
+        "html_sha256": "b55035724d64a331240f390fbfd7199d811ffbe321696493ea71934d49943b70",
+        "native_npc_table": "NPCTable_LinF_Vreema",
+        "native_death_effects": {
+          "1191190397": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillGolemBone",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinF1_BoneGolem",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806338,
+      "title": "Fracture the Rime Golems",
+      "npc": 1191199460,
+      "npc_name": "Vreema",
+      "targets": [
+        1191190401
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 400,
+      "xp_cap": 84627779,
+      "prerequisite": 1073806337,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Rime Golem creatures in Arramora, then return to Vreema for your reward. Search the central plateau.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Fracture_the_Rime_Golems.html",
+        "html_sha256": "31b2198400e434496f7c2cd25101e6f6c4552ace72dff92f15983c3e25470919",
+        "native_npc_table": "NPCTable_LinF_Vreema",
+        "native_death_effects": {
+          "1191190401": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillGolemRime",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinF2_RimeGolem",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806339,
+      "title": "Fracture the Uncharneled Golems",
+      "npc": 1191199460,
+      "npc_name": "Vreema",
+      "targets": [
+        1191190402
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 400,
+      "xp_cap": 119705147,
+      "prerequisite": 1073806338,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Uncharneled Golem creatures in Arramora, then return to Vreema for your reward. Search the central plateau.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Fracture_the_Uncharneled_Golems.html",
+        "html_sha256": "f233bf266cd1d3c30a0357600301fcc2d407831609066d31026a41233518387f",
+        "native_npc_table": "NPCTable_LinF_Vreema",
+        "native_death_effects": {
+          "1191190402": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillGolemBoneUncharneled",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinF3_UncharneledGolem",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806340,
+      "title": "Exterminate the Olthoi Harvesters",
+      "npc": 1191199450,
+      "npc_name": "Gregor Adulen",
+      "targets": [
+        1191190348
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 10787851,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Olthoi Harvester creatures in Arramora, then return to Gregor Adulen for your reward. Look west and south of the Arramora lifestone.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Exterminate_the_Olthoi_Harvesters.html",
+        "html_sha256": "9b9b34f87f53755fe6f6d915ecb1f2835e90fac51eb8dcbb9ef8b556efba4ec5",
+        "native_npc_table": "NPCTable_LinA_Gregor",
+        "native_death_effects": {
+          "1191190348": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillOlthoiHarvester",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinA1_OlthoiHarvester",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806341,
+      "title": "Rout the Deranged Lashers",
+      "npc": 1191199456,
+      "npc_name": "Nola Vontag",
+      "targets": [
+        1191190404
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 22085504,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Deranged Lasher creatures in Arramora, then return to Nola Vontag for your reward. Look in eastern Arramora.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Rout_the_Deranged_Lashers.html",
+        "html_sha256": "f231b22659aba1a45a6f24cfcf3b28439899b7a1e5f4801a43a8ee88b3e73ddf",
+        "native_npc_table": "NPCTable_LinD_Nola",
+        "native_death_effects": {
+          "1191190404": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillLasherDeranged",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinD_DerangedLasher",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806342,
+      "title": "Vaporize the Frost Wisps",
+      "npc": 1191199448,
+      "npc_name": "Tankaru",
+      "targets": [
+        1191190434
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 250,
+      "xp_cap": 88254343,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 583200,
+      "text": "Defeat 10 Frost Wisp creatures in Arramora, then return to Tankaru for your reward. Search the central plateau.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Vaporize_the_Frost_Wisps.html",
+        "html_sha256": "b1ec27c64a8363d6bab85167de91eb3b9987457aee1c191f8868d895e8cef586",
+        "native_npc_table": "NPCTable_LinI_Tankaru",
+        "native_death_effects": {
+          "1191190434": {
+            "NPC_DeathEffect1": "Eff_IncrementQuestKillWispFrost",
+            "NPC_DeathEffect1Stat": 1,
+            "NPC_DeathEffect2": "Eff_IncrementQuestLinI_FrostWisp",
+            "NPC_DeathEffect2Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806343,
+      "title": "Crush the Cursed Bones",
+      "npc": 1191198627,
+      "npc_name": "Brelar Marlage",
+      "targets": [
+        1191197463
+      ],
+      "goal": 10,
+      "level": 48,
+      "xp_basis_points": 400,
+      "xp_cap": 5829950,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Defeat 10 Cursed Bones creatures in Knorr Foundry, then return to Brelar Marlage for your reward.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Crush_the_Cursed_Bones.html",
+        "html_sha256": "8719251a648a31883c2671661a2866b05f02034633597a2aca8f92899c43a96b",
+        "native_npc_table": "NPCTable_KQ2A_Brelar",
+        "native_death_effects": {
+          "1191197463": {
+            "NPC_DeathEffect1": "Eff_IncrementQuest_KQ2A_CursedBones",
+            "NPC_DeathEffect1Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806344,
+      "title": "Crush the Skeleton Lieutenants",
+      "npc": 1191198629,
+      "npc_name": "Illiana Bain",
+      "targets": [
+        1191197468
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 400,
+      "xp_cap": 10014692,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Defeat 10 Skeleton Lieutenant creatures in Knorr Foundry, then return to Illiana Bain for your reward.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Crush_the_Skeleton_Lieutenants.html",
+        "html_sha256": "6a028678c67855fcfc5687f30f414c6f01a20d5745e0afd6540265d1b2c9620d",
+        "native_npc_table": "NPCTable_KQ2B_Illiana",
+        "native_death_effects": {
+          "1191197468": {
+            "NPC_DeathEffect1": "Eff_IncrementQuest_KQ2B_SkeletonLieutenant",
+            "NPC_DeathEffect1Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806345,
+      "title": "Destroy the Ravenous Lashers",
+      "npc": 1191198633,
+      "npc_name": "Shurakhe",
+      "targets": [
+        1191197351
+      ],
+      "goal": 10,
+      "level": 50,
+      "xp_basis_points": 300,
+      "xp_cap": 15455108,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Defeat 10 Ravenous Lasher creatures in Knorr Foundry, then return to Shurakhe for your reward.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Destroy_the_Ravenous_Lashers.html",
+        "html_sha256": "d01ae9a8b336c3e5b681f54d8ad18dd92ef97a337f4b3d7bb775e223e59b735e",
+        "native_npc_table": "NPCTable_KQ2D_Shurakhe",
+        "native_death_effects": {
+          "1191197351": {
+            "NPC_DeathEffect1": "Eff_IncrementQuest_KQ2D_RavenousLasher",
+            "NPC_DeathEffect1Stat": 1
+          }
+        }
+      }
+    },
+    {
+      "id": 1073806346,
+      "title": "Smash the Coral Golems",
+      "npc": 1191198637,
+      "npc_name": "Endaren Brightstar",
+      "targets": [
+        1191197308
+      ],
+      "goal": 10,
+      "level": 55,
+      "xp_basis_points": 300,
+      "xp_cap": 44757025,
+      "prerequisite": 0,
+      "limit_seconds": 604800,
+      "repeat_seconds": 604800,
+      "text": "Defeat 10 Coral Golem creatures in Knorr Foundry, then return to Endaren Brightstar for your reward.",
+      "evidence": {
+        "url": "https://20oz.net/index.php/Smash_the_Coral_Golems.html",
+        "html_sha256": "f9f9df0c30b02d2521375c4b1699cae202700c1fddf5e1445c7d7c3fb1d80b93",
+        "native_npc_table": "NPCTable_KQ2F_Endaraen",
+        "native_death_effects": {
+          "1191197308": {
+            "NPC_DeathEffect1": "Eff_IncrementQuest_KQ2F_CoralGolem",
+            "NPC_DeathEffect1Stat": 1
+          }
+        }
+      }
+    }
+  ],
+  "npcs": [
+    {
+      "id": 9313674928035217321,
+      "entity": 1191198633,
+      "land": [
+        1550.9099999999999,
+        693.09
+      ],
+      "evidence": "Wiki Jethric Outpost 32.0S 52.0E; inferred town offset, native search <=32m."
+    },
+    {
+      "id": 9313674928035217325,
+      "entity": 1191198637,
+      "land": [
+        1550.604,
+        692.376
+      ],
+      "evidence": "Wiki Jethric Outpost 32.0S 52.0E; inferred town offset, native search <=32m."
+    }
+  ],
+  "camps": [],
+  "templates": {
+    "1191199456": {
+      "name": "Nola Vontag",
+      "visual": 520101130
+    },
+    "1191198627": {
+      "name": "Brelar Marlage",
+      "visual": 520100767
+    },
+    "1191199460": {
+      "name": "Vreema",
+      "visual": 520101132
+    },
+    "1191198629": {
+      "name": "Illiana Bain",
+      "visual": 520100768
+    },
+    "1191198633": {
+      "name": "Shurakhe",
+      "visual": 520100770
+    },
+    "1191198637": {
+      "name": "Endaraen Brightstar",
+      "visual": 520100773
+    },
+    "1191199448": {
+      "name": "Tankaru",
+      "visual": 520101126
+    },
+    "1191199450": {
+      "name": "Gregor Adulen",
+      "visual": 520101127
+    }
+  },
+  "sources": {
+    "current-native-templates.json": "19341ddd2ce92afdad1f883e35b164bca67cef308aaa24f7e29c41c91e8bb2ef",
+    "wiki-content.json": "0775af937cad36cd792b7995355fadaf1b8a960fc01e6d42ecb292801b2e60f6",
+    "native-quests.json": "1b2734eade3b18fb13a77b87f56ee400989ff84afbee6f9edfd63d76e399cd5f"
+  }
+}

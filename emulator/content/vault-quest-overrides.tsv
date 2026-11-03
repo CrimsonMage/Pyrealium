@@ -1,0 +1,13 @@
+vault_id	field	key	value	source
+# Hand-edited: what you know that the importer could not resolve (tools/import_vault_quests.py reads it first; an override always wins). See content/README.md.
+# 183	start_npc	iid	0x8140a9448481d316	seen in game at Arwic, 2026-11-03
+17	step	1	kill 1 Gurog Emissary	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: kill a Gurog Emissary near the Choker
+17	step	2	loot Faded Darkstone	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: loot a Darkstone off his body (the item: wsl_darkstonefaded, 'Return this to the Ancestor Head')
+17	step	3	give Faded Darkstone to Ancestor Head	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: return the Darkstone to the Ancestor Head
+17	step	4	effect 0x6f00020f 86400	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: cursed with Burun Deceit; 86400 s is the DAT eff_burundeceit.wc duration table (the guide's screenshot shows 23:55 left)
+17	step	5	effect 0x6f000212 86400	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: cursed with Darkstone Skin; 86400 s is the DAT eff_darkstoneskin.wc duration table
+17	step	6	kill 1 Burun Immortal	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: kill a Burun Immortal at the Choker
+17	step	7	talk Ancestor Head	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: return to the Ancestor Head
+17	step	8	lift 0x6f00020f	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: the curses are lifted at the reward
+17	step	9	lift 0x6f000212	AC2 Vault quests/darkstone (2003 guide) and quests/db 17: the curses are lifted at the reward
+17	item	Faded Darkstone	0x4700109b	DAT wsl_darkstonefaded.entity (its name string 'Faded Darkstone')

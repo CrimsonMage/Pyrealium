@@ -1,0 +1,35 @@
+Pyrealium
+Copyright (C) 2026 Vanquish
+
+Original project code is licensed under the GNU Affero General Public License,
+version 3 only (SPDX: AGPL-3.0-only). See LICENSE and LICENSING.md.
+This offer also includes earlier original project code and documentation owned
+by the copyright holder, including their pre-change commits and releases.
+Existing permissions already granted for historical releases remain valid.
+
+This program is distributed without any warranty, including the implied
+warranties of merchantability or fitness for a particular purpose.
+
+Third-party components retain their own copyright and license notices.
+Dependency versions and retained notices are listed in LICENSES/third-party/README.md.
+The game client, game assets, DAT archives, packet captures and independently
+owned reference materials are not relicensed by this notice. Their respective
+owners retain their rights.
+
+LICENSES/MIT-legacy.txt records the project's previous MIT license for historical
+versions. Its presence does not offer the current project under a second license.
+
+AC2E modifications (2026): Unreal/Legions compatibility, starter combat and
+content rules, authenticated hosting, source export, and project build/launch
+helpers. Derived from Pyrealium commit
+7c2e856840b04302d1c78f057dcf8094326472a4.
+The original native-client launcher is not included in this project.
+
+Further modifications (2026, CrimsonMage): the 7230 data profile, live gameplay,
+tradeskills, effects, data-driven quests and the AC2 Vault quest import, the world
+builder, and the repository narrowed to the server and its launcher (the Unreal
+client, its audio bridge and its launch and UI-test scripts removed), renamed
+Pyrealium. Modified server source: https://github.com/CrimsonMage/Pyrealium
+
+Contributions: Vanquish (github.com/Vanquish-6), Pyrealium; Thwargle
+(github.com/Thwargle), AC2E; CrimsonMage (github.com/CrimsonMage), this continuation.

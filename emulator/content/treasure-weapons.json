@@ -1,0 +1,1051 @@
+{
+  "schema": 1,
+  "policy": "Observed identities and native use levels. Missing damage uses Pyrealium reconstruction: (6 + 2 * treasure level) with +/-15% item variance. No retail affix weights recovered.",
+  "weapons": [
+    {
+      "definition": 1191186151,
+      "visual": 520094058,
+      "name": "Stone Axe",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ee7": "bb3d0c05a93796d03389c84a3496d2a489740bcca92daa31481e5a0d8949cb63",
+        "81000ee7": "1980d0b46f75d1f9ffb405433e4fb2e4304e24e00a9acac13a084f6fe4f8a132",
+        "47000343": "da1f2a01a65de287310484c3c59d08ee33aa734cb9c22fbec3d48b52faa63f24",
+        "1f00016a": "65cc23b54ae8ca627f5b280b2a2cd8ceb5da9c44bca79b1931485531f7311eac"
+      }
+    },
+    {
+      "definition": 1191186153,
+      "visual": 520094061,
+      "name": "Rune Axe",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ee9": "b77a72c200588dba7020e498ca89394b63b8c18ebcbe21853ac43dc8bfae48ed",
+        "81000ee9": "916fb64683c537becc2e58fd28659975718a365fc31435bccdb7cb475cc28b61",
+        "47000346": "959005806854aba540c93959f0639d2f06fa8625b537dac740b9fdc19910c481",
+        "1f00016d": "c5d8234a14d026fd7094e762111e7d458239442011102fe58744d983b12b2ae7"
+      }
+    },
+    {
+      "definition": 1191186154,
+      "visual": 520095299,
+      "name": "Executioner",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000eea": "8906aab934179755db7596f406ac32a3b4ee4aa419dece4dbe45f32cfccc5908",
+        "81000eea": "b7cb88350e91122281b0c5008fd2a5cb88f2050afa0b1499eab826bfa7321b80",
+        "47000661": "b8b909433b3522c6a592b7f94dec28b9d96a5348334fee2261abb798ed695878",
+        "1f000643": "63d9b65ac6815aacc2dbbc342ca0431c919dffc678c63c8e27de3e1db79f2b29"
+      }
+    },
+    {
+      "definition": 1191186161,
+      "visual": 520093793,
+      "name": "Long Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef1": "e0428094655230c8e09a18e5b3f646529620e72395f307204d69f38ab8c4e846",
+        "81000ef1": "ba15911bba4195c138579d02f1e4c0ef1638cb3db18814a2101855a9902b820b",
+        "4700034b": "539ae4a6b369e0e20f9ef2c628e208c2e4ef01d2f68ff8b5bbb25e015582b091",
+        "1f000061": "882cc360e7730e3a44e2f3338dee0b3eb0cc82021a44783a1bc7f5e78ef43ed8"
+      }
+    },
+    {
+      "definition": 1191186162,
+      "visual": 520093792,
+      "name": "Rune Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef2": "001adc8d6ace03433fed78a0157186b834d55bfb8975fa93e6e42fdaa28a83f2",
+        "81000ef2": "dccd89af6d0009fed4aaf8d0d3e2fb6c6542ad77170434dc74b82604b5431b3a",
+        "47000348": "47b9197f64302d3c05b207e64d931e49fd70aa1eae8736746fe0ad3b88000507",
+        "1f000060": "d246ef1158dddee5a5b6c7e22ec870c000f61ed7ac037da7995d0217582b7ec3"
+      }
+    },
+    {
+      "definition": 1191186163,
+      "visual": 520094401,
+      "name": "Thorn Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef3": "e9d0449a65d622aad260344cf8022cbf9085c859c1c168afcabf3e9d055df0e8",
+        "81000ef3": "2d91debe76576f9de8fac80f6305e5ab8dd99ce14b5e75117a5a9f514983ad5c",
+        "4700037d": "73102e7cb9bd190e0f278c463d742b09819283b5016a0aab4a77fcf10f156389",
+        "1f0002c1": "a20e080ede84c8bbe4e1deeff1f08ef9fdd6732e4f07c2fd5672a2009c0dbb16"
+      }
+    },
+    {
+      "definition": 1191186164,
+      "visual": 520094400,
+      "name": "Gear Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef4": "798b9b8a3364bdd138f4f5619ba6da6487c31ac740299ee747d522589a8f9164",
+        "81000ef4": "226ca19a5e480747f5609ef9807ad7768300c9c972550f7e8e5a2b7c66467b6e",
+        "4700037c": "d4d5743f9566f87c53460a262424252380a61a969d0f88beb61c84c7d67e62cc",
+        "1f0002c0": "9de287dca561798ce672a0303a774510e2674a0c208c0f61fcbb686e5bd7e52b"
+      }
+    },
+    {
+      "definition": 1191186166,
+      "visual": 520094403,
+      "name": "War Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef6": "0fae1e6555a64d3aca5b873cf9511eb676a6c728622f784ae42245004dd0cfe6",
+        "81000ef6": "17c74ca36b4af6f3f164eac5d556f64e2949744308cac4f32ea546cef69dd58d",
+        "4700037f": "41bf9254d57c6d3b306b55122cc472cadf9e1aeb60a6e2e8ab65fdd173096ab2",
+        "1f0002c3": "e926ae9b8e184c48cc1896581962d6f7e717e182812e22436acff57521216cd9"
+      }
+    },
+    {
+      "definition": 1191186167,
+      "visual": 520094399,
+      "name": "Crystal Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000ef7": "d60df32996f1c61dc8457fb40d8a2478aa0e5f74127e1eda94c685e86c4dadf9",
+        "81000ef7": "43b4ad3750a9b197dad0bc8283c437706c3ccb1230f6c6697aff82d3204d0ec8",
+        "4700037b": "945deccdb536462bad8a2cf723efe2c871edb0337a4a55edfb112e8067aa135c",
+        "1f0002bf": "42145605f5df67f4f915a5b962c7caed1ef35a421be21508582b70e10790f75d"
+      }
+    },
+    {
+      "definition": 1191186175,
+      "visual": 520093788,
+      "name": "Stump Drum",
+      "mask": 64,
+      "implement": 8,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000eff": "576bf9135676b232d01d72d323f4eb4a906c3c3eff780b2086fc6d8e4d2818a4",
+        "81000eff": "fa9f4242ef2aad07d7f77359cdc1ee8833d964e7df0b05e29981af8c8f90fdcd",
+        "47000354": "2eee3fca7c999b72c65b0a8e506fe9ea0b99b378a5306d35c07eda1a4e6d69ed",
+        "1f00005c": "b32bedf156e20efe48b815642f5982ca93d3680831592d178e346d0466163b14"
+      }
+    },
+    {
+      "definition": 1191186177,
+      "visual": 520093786,
+      "name": "Spirit Drum",
+      "mask": 64,
+      "implement": 8,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f01": "66cad4369a9309e53f1615ade20ad8a67d572837ed1b1f914a0f4d16200cd44a",
+        "81000f01": "68145e5c113abe28724893f2cb66efc973e6f0e33bd1b9f4d72ac84d6067be2b",
+        "47000352": "e67f2b969dc259a11d5b5d269c20639e60576a9717e2aa020c99a0ba7af99d71",
+        "1f00005a": "4c0ed3fdf5433909646712c6c2ce5ce118db1f7b308029136f922c52792fc282"
+      }
+    },
+    {
+      "definition": 1191186178,
+      "visual": 520093785,
+      "name": "Rain Drum",
+      "mask": 64,
+      "implement": 8,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f02": "cd58ee654bd4d4e5121f89376e052ab895a5b62f18c8b7967d42a6322e588e19",
+        "81000f02": "77c565a5fd9027ca8fc61fdad16e569b41c2f4462100eed59255be1da8c4c190",
+        "47000351": "bd986032d752222709719672827739e54c11002e5ae41dc5db3c9c22bdf08986",
+        "1f000059": "c36fc6d2db37b454ef37c6155ffe931bdbb4759bc6e898199e6cacbcb9707647"
+      }
+    },
+    {
+      "definition": 1191186181,
+      "visual": 520094759,
+      "name": "Fury Drum",
+      "mask": 64,
+      "implement": 8,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f05": "df0af11e64949e9caff546f5c920b12a47cc4863db78417c36c83bb8b667cdfa",
+        "81000f05": "411cdba8a8495a980cd9f366eefec6aebefbb72d7ef83946818439317677532d",
+        "470003f4": "0cbb4935e50db3cd36af9c3741d6811bd71ca0735fb1d049d72a15b54b050a4c",
+        "1f000427": "b6f531235a54e51e09a31e99bf455d704db29c7dae7b8817729802e3d049a163"
+      }
+    },
+    {
+      "definition": 1191186187,
+      "visual": 520094373,
+      "name": "Adept Staff",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f0b": "e2fb9e725babe35cde79d391b16b9b68b1eb2d0349a43740dad892b6ea96e298",
+        "81000f0b": "cf3d94b7e74a0b475907870db5ae655ae11f90052415e2f2848fc231a000234c",
+        "47000355": "6a3b700c145feeb6f2ef4c91f82cb733f4b472c117b181ddd705c7a7bfef9242",
+        "1f0002a5": "72e7790c65b45b4bd30c8cf36bb5bb072559b43eb85bb3163fffaec064f95bb3"
+      }
+    },
+    {
+      "definition": 1191186190,
+      "visual": 520094376,
+      "name": "Master's Staff",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f0e": "475399ceb44a4f19065baaa6fb5f2d2ea86e7c948dd0dd603326aa9a945ae382",
+        "81000f0e": "6e30f057cbbb137004dc01fedd213f5f3e7fcf7c3df2ae4f634ec038ce38af32",
+        "47000364": "588226a62974651420b0504e3383c191cf168b326c0d09e821506d304056eb6b",
+        "1f0002a8": "fc6b07a2faef284382ce4404cd440f979e38bad7699478001ecc59321b388523"
+      }
+    },
+    {
+      "definition": 1191186193,
+      "visual": 520094960,
+      "name": "Squire's Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f11": "cc0e2919da63fa34520e3f76d110dc4e74522e10095b21bd032fd4069749a9f9",
+        "81000f11": "ef49e395a24921ad3d31c3fba67713a614a8c0069a883f6b6a6a294659c8ee61",
+        "47000523": "bb820b6be60c2f1fc4e7d3dc8c63d7e4424d3a63d775d213f37fcfabd2eb5e15",
+        "1f0004f0": "38824e2f18d9a5dd0e0425648d995bd2b5fec6683cc7cf6d6aa78c33a18b28f7"
+      }
+    },
+    {
+      "definition": 1191186195,
+      "visual": 520094969,
+      "name": "Noble's Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f13": "7a0a069fbbe599220a884ca34d71b6deb9fc8ab197101420571bdb722cb299da",
+        "81000f13": "65e54bfda1ef62b4ed338213831c1402c4b7b36e50ef5f6ae3e8d39a09d13725",
+        "4700052f": "166bda97362c8990b4fd261dda7be7620ca9447030a5cf7c553a033e305d4bdb",
+        "1f0004f9": "c2174a00d014432ab784dc230cd09a25d2fb090e88a5435e6234c711d45e5955"
+      }
+    },
+    {
+      "definition": 1191186196,
+      "visual": 520094956,
+      "name": "King's Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f14": "755b0b5ce1acff20baa739ac2a674345753691ff2490487e90fef240307e3e3a",
+        "81000f14": "29918f1f9bd4f0524ad22a382594300cc883e5f4c1afdf10cba3c1151d4e5e8c",
+        "4700051f": "13b4f00011c8a5bbd9083aa04fcedfcead3ba38e5b534defd01f15597e6d13c9",
+        "1f0004ec": "be0572655d629e29099f12b0cd8a0992cffd4b2281cd271d8b7a9d17409e8bdf"
+      }
+    },
+    {
+      "definition": 1191186198,
+      "visual": 520094496,
+      "name": "Stone Hammer",
+      "mask": 192,
+      "implement": 256,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f16": "8284a2a8429ba49a5bc7f45c65aabcf86a0513ff23bb4034c5df0ae55cb49569",
+        "81000f16": "a04ac2f277b6cc98e1655f00bed0e70e31183d8da98f35f872d25278ab7740d3",
+        "47000389": "521022ed2a8ba04e4628fab58f83938d2208babac8eac61ca2139206be716004",
+        "1f000320": "a34d3ccc82894688d8ebe94ceaf11c1a43bec949e6135c5032d0202a54697afa"
+      }
+    },
+    {
+      "definition": 1191186200,
+      "visual": 520094495,
+      "name": "Maul",
+      "mask": 192,
+      "implement": 256,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f18": "5d55741195b531bc42535e7a26f523f1f27905f127a93dc64c482f75d3bcad45",
+        "81000f18": "8f6e3ec43ac453f4c3ea2aa1ecfd2d4cb22adf3ac9e498ec836f4d15804f0922",
+        "47000388": "cc074e6319efef8a70058bc91c167d31e0ae9fd0384f61481a155055d5ff1579",
+        "1f00031f": "5916da7112283395b7a0e51da980480b1d7a216142617ba45aecff47f1c1b8e6"
+      }
+    },
+    {
+      "definition": 1191186201,
+      "visual": 520094495,
+      "name": "Rockslide Hammer",
+      "mask": 192,
+      "implement": 256,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f19": "48000e29572f5ef87acb1e04a17b3f5c4e94031ac922bb1024d02a82e6662288",
+        "81000f19": "093ee15cb0371dadc3bb146b1ab84faa05a9c53d61f450a96d27a08c2b9f5f2c",
+        "47000388": "cc074e6319efef8a70058bc91c167d31e0ae9fd0384f61481a155055d5ff1579",
+        "1f00031f": "5916da7112283395b7a0e51da980480b1d7a216142617ba45aecff47f1c1b8e6"
+      }
+    },
+    {
+      "definition": 1191186203,
+      "visual": 520093784,
+      "name": "Broadsword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f1b": "20d4d4941cc2119e5107f9a7ca4f69cae979ca69435d12b75e9ddb53acdebfc2",
+        "81000f1b": "ca634aa9150e060835bdb88af59766521e411177acf5bf97c9493ec3c198125c",
+        "4700035a": "9b54ed5ee49e53358929bbda1c9e59250db5aa0912a35b18a480f845f8692c28",
+        "1f000058": "bbd0813da33033d5418854a4ae98da81e93ff29e2b484d2c75bf980abaa1287c"
+      }
+    },
+    {
+      "definition": 1191186208,
+      "visual": 520094404,
+      "name": "Skewer",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f20": "a8803752692134bbf204b2095210d38bb059a929b8faed63d60b73d5b504e146",
+        "81000f20": "70941eec9ddc128164e8d9cf7da760cd222239349146bfc2790a7cad9d38d72a",
+        "47000380": "983c72e17acb31cc3d5b934c3828613dc8667d5d36a4556cca0ed018f84e60b3",
+        "1f0002c4": "475fa0d5ff9c75cf4ffc5d030d01142b721d10ab9fa20cc8550425d56924258b"
+      }
+    },
+    {
+      "definition": 1191186209,
+      "visual": 520094407,
+      "name": "Bone Hatchet",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f21": "a70712e79e249e61658e5e071b63394d624a1fc399fa75bdae71bc47007314e0",
+        "81000f21": "3d861250a0e40b63d4bd49ff60beafd25d8263dcead0a4b98bdc07e205f78750",
+        "47000383": "6706da4e6bddb896e8f922a864fc5b88f4174b5e687b6945d5c5a8571a667f7d",
+        "1f0002c7": "214ffc93bc3e4fc4ce50159a1eefa92f621dfe5b04206da70f750038950ea3a0"
+      }
+    },
+    {
+      "definition": 1191186211,
+      "visual": 520094405,
+      "name": "Pain Axe",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f23": "9e6f4516eac78adaa8db4d666a89deed3d7e366396f46a6f50b48f0248e5d376",
+        "81000f23": "30e24647e3ccef3ec0b005cbb00596de73297fb186d7bba985cc3edc991764b6",
+        "47000381": "741a28be954b0e10096628ffebde7b544ea115653a84d535f11797b7507dcdf5",
+        "1f0002c5": "529acc6aa15f62b9b742173655f2e0c0fa413118414fc18ac339cf7236208187"
+      }
+    },
+    {
+      "definition": 1191186212,
+      "visual": 520094406,
+      "name": "Vengeful Axe",
+      "mask": 192,
+      "implement": 32,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f24": "0b5e851e0f7a880c6ba5be061c42760e5d33176b9bb962178c3875bedf5b7961",
+        "81000f24": "b4c8145ff2940cabab9551fdd0d6e208a95e4236b3862858eb9fe2f26a4666ed",
+        "47000382": "d2a34dfd84cd43e2cabf5f36d5cd8d86e68ea2da8cc8961fc480dbac2c8d3646",
+        "1f0002c6": "905fc3bf5b28281fae58ee34b43cc8642ade940afde52c2031362c1c82213ddc"
+      }
+    },
+    {
+      "definition": 1191186213,
+      "visual": 520094398,
+      "name": "Wood Dagger",
+      "mask": 192,
+      "implement": 64,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f25": "1c3277363b72f0d914aaaba741da0b68eafa9c11317a76bc90f4d409fc07c600",
+        "81000f25": "f5eca9e8a1d0ad4163eb261902651f32098f4c5a5b5acae1d78c0832bcf5f5ec",
+        "4700037a": "f40a4bff3146493802cd3f330e4d20833b0e3a341268c37520407f5c125a26f5",
+        "1f0002be": "275a85e806f0d0d2d4fa9f8f24e8524c5a2fed1155a477a67f2419e357bebf88"
+      }
+    },
+    {
+      "definition": 1191186214,
+      "visual": 520094396,
+      "name": "Bone Dagger",
+      "mask": 192,
+      "implement": 64,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f26": "0dc644e10bb9f6e44ec30b3061181e4cab40de0ba986fa4d03f928fd6b8bb88f",
+        "81000f26": "48abd7040d52d3c40de39b9fc524765928474d728d4a1b5278493e19d7ccec16",
+        "47000378": "1c88623aa5c7efb0448ef714260a72cee66e692344685d64ed52367edc64266e",
+        "1f0002bc": "c6d792ff6035ae35a7dfca1dde95e2c9ad679d823072edf32b35726ffe099a16"
+      }
+    },
+    {
+      "definition": 1191186222,
+      "visual": 520094387,
+      "name": "Spine Javelin",
+      "mask": 64,
+      "implement": 32768,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f2e": "e923a05b84ad64db7881016fa8d7c0db5a967c61fde1cf1d8d06c3019c9147bb",
+        "81000f2e": "198b763f8b49d0a0dde498afab4906313983593a4ed7e4729190ea913a96530f",
+        "4700036f": "c14891738fece51441e0c3d71cc2027b440db7dc5ac5de8df1be6b22d99d2d20",
+        "1f0002b3": "ef3c4d123a53f70c27674d7c6a1317edf554eedc5b45346732cac525220d4759"
+      }
+    },
+    {
+      "definition": 1191186224,
+      "visual": 520094385,
+      "name": "Harpoon",
+      "mask": 64,
+      "implement": 32768,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f30": "021239f64ae8311a8c310c3094920f9411ebe77e46df197fc04e4021a4c5237b",
+        "81000f30": "fd764a19fb1a488faa1193179aab29d5dd6ae1cb592c2372a1ac5a513ad81a17",
+        "4700036d": "af56ed961e45beb63c558e726aa95f651bd95d1a61c05b64ff7d97b7f2bcc642",
+        "1f0002b1": "21f5f21af844eb14fc25bef004b084396c32f6fe48bb2ea773c3bf64a9a8be2a"
+      }
+    },
+    {
+      "definition": 1191186225,
+      "visual": 520094386,
+      "name": "Skull Javelin",
+      "mask": 64,
+      "implement": 32768,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000f31": "52ee8d6b9f28faee32a1771935a97242312a344a4e9f7ebea40e1f3ad7cbea19",
+        "81000f31": "351cd71360d82cf1cfce4e9b2052396266797325e6abd339a90e6d81f4e0e7b2",
+        "4700036e": "c157b548570fbc0b937632142542e259c5aac543497181e19d25edb49496fe0b",
+        "1f0002b2": "e5970eb30e19f1f40ee2b7ba506f4b3cd2ecb6bc5ae17c7ce420a959879bbdc6"
+      }
+    },
+    {
+      "definition": 1191186235,
+      "visual": 520094377,
+      "name": "Handblade",
+      "mask": 192,
+      "implement": 512,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "47000f3b": "e393e5ee543de4781875c1f6e1fd5ca13d28c1c13fc67c9e9a0be8fde8be49cf",
+        "81000f3b": "2934d0f031506cf457d0beb735e558b15307f0c7b4f7101e4d8d65c2db56ca7a",
+        "47000365": "f8c652e2bbf014ba0f275af21c2a3f9d33508512157f0c418913f8f0e2fe5ce6",
+        "1f0002a9": "4d228a7fe0392e20c2f01dfe07f698a86810541c10a4e750826eba8ff3d8e4b1"
+      }
+    },
+    {
+      "definition": 1191186236,
+      "visual": 520094379,
+      "name": "Bladefist",
+      "mask": 192,
+      "implement": 512,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "47000f3c": "49f8b7c9fa1f5181ea159125c1c06a40eb6dc8dff3e1804808493a679a037d9b",
+        "81000f3c": "e971fe071e6faa483bc130b0b0069d401c507d96a70ef0b11562c1cea6760913",
+        "47000367": "c7fb00645eff5628b8fab1d9de88c1a3a9c84775937963d6cc0ddbfb76c6b180",
+        "1f0002ab": "26b13037ef3550ea8c07d2b7c30c8ce5c6382ab6ac1725d1530ed402bd27db29"
+      }
+    },
+    {
+      "definition": 1191186405,
+      "visual": 520094686,
+      "name": "Quarterstaff",
+      "mask": 64,
+      "implement": 1024,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "47000fe5": "d3d1af3fa8a79c02edadf30c5a9bd0423a71db93a217cc9135b38aff7eccab06",
+        "81000fe5": "66d8e4c02e7d500128a8ff57c6dddba52bbb91da2571db58f9644b4475fa4a72",
+        "470003fe": "c82895d33815e81eb08f65e56398046bdea582df4719037000ab7dd6ade47d08",
+        "1f0003de": "b96e9bb2f61a5beb29deb592344e0db7128e416588efb6372cec5a509f4e7ee2"
+      }
+    },
+    {
+      "definition": 1191186406,
+      "visual": 520094768,
+      "name": "Swordstaff",
+      "mask": 64,
+      "implement": 1024,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "47000fe6": "38fa607bc0ca7d0e3e4597d881a6f66b8c98786df63d1c40b87519a7710ae21a",
+        "81000fe6": "a46380d1fe5cf0fbf23e765194eb6714530db9271495f46991adda6a71d9aac3",
+        "47000403": "5c865c4948563de41cbb53fd5f38c633ba2a904361b6d2653d999e831cb85047",
+        "1f000430": "308e9da0ad7396942c97d6fe0ba514ffe9e72070e43af7405f6c6b1533a04f51"
+      }
+    },
+    {
+      "definition": 1191186414,
+      "visual": 520094750,
+      "name": "Battle Scythe",
+      "mask": 192,
+      "implement": 524288,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47000fee": "dd18601ff2825700b66a4b981889f6e683409d71238363bb6d46094d041d9b9c",
+        "81000fee": "1e4dea418c8f0ec94e3108a5c269f098c6ae2a1d703e0e0b39b70e3a56f5f4eb",
+        "470003ec": "0e2cc6bfe0a7429501743cb52567d11e430410bee8699fb35927aa2a49b2ccf2",
+        "1f00041e": "302e26444cbd888578755ad64440aceba929338d74de44625ce5f8d8cda68bc1"
+      }
+    },
+    {
+      "definition": 1191186622,
+      "visual": 520095256,
+      "name": "Impact Scepter",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470010be": "3b684c7ec91e59d322a1720e7691b473f8929a057b6b1cc6f887330eccf013a1",
+        "810010be": "8db6a2569327d90f584f3d48f974f3c2c90a76a84101d4fe4e86a1c1af16ee22",
+        "4700063e": "1eba6c1214a4d2b2e2b15393ea2a2391494eca52b5ac11bba3e4a7c93e509544",
+        "1f000618": "e09700135bb3918e6a62751dee075e3309d00cf1ee8afb5094482c658eb4356b"
+      }
+    },
+    {
+      "definition": 1191186623,
+      "visual": 520095257,
+      "name": "Crystal Scepter",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470010bf": "b0c3a39c207a23023d763f45ede186464a716614bc027f510b32375903d2e7a4",
+        "810010bf": "4b77256734bfbf347a36154219b38e2fb77a6be2d9a36b0d8a40b8af46c903c9",
+        "4700063f": "41451154cc67283e3ed578887770b1f87e7d9c3d98d3dd2608828db47e3d6b5f",
+        "1f000619": "d9304ec3de27062adb92025c4a2d069294d0506bb3299b9a9894601311ab93d8"
+      }
+    },
+    {
+      "definition": 1191186625,
+      "visual": 520095310,
+      "name": "Avalanche Scepter",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470010c1": "d2386a04c4a30345d7a01e7813dd7fab98c184bea9f3c66d2573edf0941b5a4a",
+        "810010c1": "924d30e223d8d523c1892143c3665c6e7d51ebdca914e3894804fa6fbb8c20c0",
+        "4700066c": "5ef0fdbf06df8e69721d8c4e8a3cbbb820f02023f39664d573ffad91e3d97b10",
+        "1f00064e": "ac27eca96587712ab0bc948b39e787bef49b27779c82ba7879c9b8c6e05fe20c"
+      }
+    },
+    {
+      "definition": 1191186627,
+      "visual": 520095175,
+      "name": "Flail",
+      "mask": 64,
+      "implement": 131072,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010c3": "5690a531151f7b0dfd07564cf186d3662fc4cd62020b1768cc2151ed1a65aa50",
+        "810010c3": "e96e1e6d0f3ecaf9d13da888037c6544675a9f759535ce8bd6561e7d386b8102",
+        "470005fe": "fa7c0e31cba73ab73f74032343686082115cc4662162da587f723a85b6cdde80",
+        "1f0005c7": "72417f16f1149aa8b37cb7cbcf5983d0e2e0ccd62743089e82cfd8e89d7a26ef"
+      }
+    },
+    {
+      "definition": 1191186629,
+      "visual": 520095169,
+      "name": "Heavy Flail",
+      "mask": 64,
+      "implement": 131072,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010c5": "a7928204bab9c3870d01815ce63496581551042fd9a0f72d6282b194e8119625",
+        "810010c5": "38d60fc53e57d8c18401f66f5d3d966852546b956d24212afea6a886a51c7c4a",
+        "470005f8": "7b1bc613ec1de1bf9ac039a9be267c15b1b835e3f1852a93dac6eb7eaca04b7f",
+        "1f0005c1": "8093ee53a8d772d274bd4965f6d18675470687bd742dcd0ed1cdab4b487cceec"
+      }
+    },
+    {
+      "definition": 1191186630,
+      "visual": 520095170,
+      "name": "Redeemer Flail",
+      "mask": 64,
+      "implement": 131072,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010c6": "7d7387fa5d6b19aad6bc5d5674bc6326c82580a6ee74dfbc2310ab18dc642ff9",
+        "810010c6": "739ac53f28dd3378a7da2d7acf2610564eb98e634c6ef04d84eb42727f4c7251",
+        "470005f9": "d05f17c8d706b4767e96408340c68c7e76ede0670878300e8ddce7eda0bad84b",
+        "1f0005c2": "94fd532c9861deb4925a16b20caab02e9e63812ce77583e269b5f2e10f5a85ac"
+      }
+    },
+    {
+      "definition": 1191186632,
+      "visual": 520095301,
+      "name": "Caustic Vial",
+      "mask": 64,
+      "implement": 2048,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010c8": "2e1da38bd7c65d342ebf1e89a6493b8004400932cc415c092f11314123054ec6",
+        "810010c8": "87a21f94d77540495e11b456f9be2fdf4f976786b029187ccc4a90f961bafaef",
+        "47000663": "e2df459defdf7b12507d317f95d28b59d446763dae5cb094325a3026c333f30b",
+        "1f000645": "6b9092923cb4ad5d1126c6fdea2b8a6673b45556e9a2f8cc8eb4db7018ef9d67"
+      }
+    },
+    {
+      "definition": 1191186633,
+      "visual": 520095302,
+      "name": "Virulent Vial",
+      "mask": 64,
+      "implement": 2048,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010c9": "4b424019fdaad31b05779971ad8a3618ac6121882f77f1dc1af8f683f6601da4",
+        "810010c9": "fb2cfef350e82b022c175ed0f3c11fa3fc1f25007b88e620fc8643979e90e853",
+        "47000664": "5905c14834e9cc87f43bb6ced264ee8dc8e9624815f9d633d073b1d0f681c1c5",
+        "1f000646": "007e4baf0a537a1122b28c9ea160b291106237b0fb734920ea169d1f79f9e20c"
+      }
+    },
+    {
+      "definition": 1191186635,
+      "visual": 520095305,
+      "name": "Tinker's Wrench",
+      "mask": 192,
+      "implement": 16384,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010cb": "dd5e4bf55b477c4bb1f2151c2ee5e0c92af90432e42e3dc3bceec07da234538f",
+        "810010cb": "20dea61ed63fef89598fdcaea8694c5a36b5e9f95facc643c46b77562c478a60",
+        "47000667": "bb13dfef7ecec0f66cc0b034fe72f6fb3e9f772347bf6310b8a03ef76d1dbc94",
+        "1f000649": "e0bba312979470b2c5abba045c80b302422b125c37ab55f25036fb7e0926f70c"
+      }
+    },
+    {
+      "definition": 1191186636,
+      "visual": 520095304,
+      "name": "Creator's Wrench",
+      "mask": 192,
+      "implement": 16384,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010cc": "122950930bd9abd9e7deefbeb6065ef608ef5896e8646a58c22ad92ec707b329",
+        "810010cc": "2549cdd7fa041d0847f19d6cdc36677a9a7bd69ee2d56da340fd82417a744ebe",
+        "47000666": "479a79561c9a37801bbdf185289274a7c1891a70b0127b8f2ef0fcb50501d859",
+        "1f000648": "3ab1524d2529c90a11261add19d1489f13b6a1aa4dd89cdb1d28531ec0cf2782"
+      }
+    },
+    {
+      "definition": 1191186650,
+      "visual": 520095306,
+      "name": "Stinging Nest",
+      "mask": 64,
+      "implement": 8192,
+      "minimum_level": 15,
+      "damage": null,
+      "sources": {
+        "470010da": "3ba1c39f1a00c101f51ee770edb7ebc8f88956699094c6a2f146675219021dd0",
+        "810010da": "f9f3b29c1f390f714888609ef253199106b734bf6e6edce46cf534b020cd3f47",
+        "47000668": "954534c9051ba24f5cd267c96a8af6bc408cb3e7b7d45fadc613b83bff1235f0",
+        "1f00064a": "8cf0eb7ab5f161e5704a3c50c477dce45540148d9a78b1f6d6f829022ecb5718"
+      }
+    },
+    {
+      "definition": 1191187060,
+      "visual": 520094729,
+      "name": "Torch",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47001274": "6b970c2d4d29451562e7ed8be0346043ce389997c6a4609400289ab8e87e8836",
+        "81001274": "ec6d3ce1d4c695a8fd03025d411e14276e6a362122a330bf3393df69f6f9386c",
+        "470003d9": "6327d52c21277b67e25ad3ec54b450eb44474aca37523947a15f18339344c512",
+        "1f000409": "b5d79a6cba0b2e2d9e17814673fb177b88ddcfbd35db0971f65c2e981f21bed6"
+      }
+    },
+    {
+      "definition": 1191187407,
+      "visual": 520100333,
+      "name": "Orb",
+      "mask": 192,
+      "implement": 2097152,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470013cf": "c291cefa0e45c9feb12941f1835074c880093dc11378a0b27ae432b8ae927e19",
+        "810013cf": "a3c717a083514496f26d5aa344d82c5677fdafcfbbe519f8feffa85544707533",
+        "470038e4": "e6163798bae8a20eb291412f29e0699818cb3c37413f971e684b082c94c52e57",
+        "1f0019ed": "96fc4c9e03450bb04a2da35a41725c32315893fa9935fa3f4315b6eaef7c044c"
+      }
+    },
+    {
+      "definition": 1191190366,
+      "visual": 520098146,
+      "name": "Bloodspike Bow",
+      "mask": 64,
+      "implement": 4,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f5e": "d911893c3fd78fff50f2169e0146aa4baf186c7850ede38c5b9101b9dc1f303d",
+        "81001f5e": "034ce6a9599efef97fec1ea76ab54812ec2fb5712821ff62007443719d517215",
+        "470020c8": "3889188522f5d8accef51b56a77f4cab046fd4c78622a23641454eb201f18e54",
+        "1f001162": "d5cd2cc8f5e9f1b7e3a22b34282d3df4cf23254906604bef6b101890779a3423"
+      }
+    },
+    {
+      "definition": 1191190368,
+      "visual": 520098110,
+      "name": "Frenzy Drum",
+      "mask": 64,
+      "implement": 8,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f60": "c4be22387f24a278b89f9a34a252043c4ab5e3a2766a75401393bd93e1b3008d",
+        "81001f60": "a0d30adbfe0277abb7f341eae54dd685f7e69574f7cbcee6d1ddb3a6b94f6e4e",
+        "4700205e": "e9decea99150586f8576fa78ef385da3d595faf0200293b65d243278156c6820",
+        "1f00113e": "8af9090133cf3d3ed2564430409b618f20cc1eb3bdc05633aa745438b68cb2ab"
+      }
+    },
+    {
+      "definition": 1191190369,
+      "visual": 520098147,
+      "name": "Banded Flail",
+      "mask": 64,
+      "implement": 131072,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f61": "56da1e70ae20ffbebd3dc28276d07b4bbb6e4b4e48f294abc567fc4dfcb1a51e",
+        "81001f61": "1b6bb2a3778422b221770e5edb0931eba1f342c61d630448f34bd8d256a1d182",
+        "470020c9": "d8f772cca93b1d63bcc5468a84c6f8b7e426cb3546ca55e88c4e2830f8038fe8",
+        "1f001163": "6f2bad49d547d5e25343b725d37c72ccea1a130b354063874033bdb02b76e6df"
+      }
+    },
+    {
+      "definition": 1191190371,
+      "visual": 520098112,
+      "name": "Warbrand Bladestaff",
+      "mask": 64,
+      "implement": 1024,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f63": "15f2a5d52d17095068077dda929475ca473fa19c44bfd605b88defba95fae1ba",
+        "81001f63": "06619673544d16673f9b0887a3709c7e139eb02d332c8de698584e49e0ae1d4b",
+        "47002060": "849f03ad72dcc06cb728e8db75f4b6dcd3bf315e8fd8744cea41b5d99314490b",
+        "1f001140": "d64c1f04bf72199bddeae57bb5ca59af77f0929b58a8323906e70b98ad39ef23"
+      }
+    },
+    {
+      "definition": 1191190374,
+      "visual": 520098114,
+      "name": "Great Flamberge",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f66": "dfd0ffef87bc760f7f7467dc7cd8aaf181926b876e84443aae47c53188efbb6b",
+        "81001f66": "7a0c703d5e68a939ac29944a59a920d0e07cd6adcb6f15f4225a629aec2b148b",
+        "47002062": "619612e9adf49fd4fbe0d110eb8d60a477d2960754aba3f3ce0ca0fd6387fe3f",
+        "1f001142": "0c914b536786440ef6b97352c348c2903d6c0b45d57b6fe0c35fadda424f2873"
+      }
+    },
+    {
+      "definition": 1191190376,
+      "visual": 520098115,
+      "name": "Master's Spanner",
+      "mask": 192,
+      "implement": 16384,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "47001f68": "41155309c8d60535874f28242b0a6706fb82acb41d227565e896b5c185165673",
+        "81001f68": "465939a63dc3c269d59b1fa18bdc654658093250ae1fa281329931fa7492fbf2",
+        "47002063": "af6c6c6aa3cf7aebb9eb8128ba518a2f89bce450b712acad55f33fe1b829ab8c",
+        "1f001143": "fd86634306fa4aac01f959f4e6f3a722f89eb6cf7c42cd3dbd13dacba566a8cb"
+      }
+    },
+    {
+      "definition": 1191190725,
+      "visual": 520098145,
+      "name": "Crag Scepter",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 50,
+      "damage": null,
+      "sources": {
+        "470020c5": "c9e456e9075e2b091c66d04c87b49cc926f37c9fee26d75595d17e2639851b5a",
+        "810020c5": "e2e9cd830a09f0bf8de5a0dc4f99dace5353f313451d875ce84ceee36915915b",
+        "470020c6": "d86d2f63444759cc0623111ffb0838067932e7133804ca8d33df54a9518fb716",
+        "1f001161": "c6397c967bb7f80652a17201d6dd4964e349c8c3960811386d6c0f0caabb3ab5"
+      }
+    },
+    {
+      "definition": 1191196565,
+      "visual": 520100336,
+      "name": "Glimmer Orb",
+      "mask": 192,
+      "implement": 2097152,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47003795": "c49e09271b1382481f1ad3094b8ab594e3eea69c859187e92de895da80de9904",
+        "81003795": "a81ceb5e8de9f13180e2228d7f7fba80e29645fe12582abe1f295bcfa415ee5d",
+        "470038e7": "3b58e2fe867fd7bac81867ea4cae84204cbc5b800b16f783d945ad33e1a8114a",
+        "1f0019f0": "47579548066e3474a727a26bc44e33e50a2e64ae95debf59b97cced58a4e9d2b"
+      }
+    },
+    {
+      "definition": 1191196567,
+      "visual": 520100742,
+      "name": "Radiant Orb",
+      "mask": 192,
+      "implement": 2097152,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47003797": "53ee9197a999169045a5acf987c0d7f13261bd6cc9c7e3afe01fa35327073995",
+        "81003797": "0fd1bcceeb8ff66f16e112ab1cb40984281114481f717b6635a8be0888d18e68",
+        "47003f7a": "9ab3118cba315bd556cb9817dd00e096f1dcbbc0f2c09c4adebb1b0fa99c9f51",
+        "1f001b86": "f7577a1e696569ea3c9a1380097bf185113d6e68cc0522f85f4ec278c2ddf5a2"
+      }
+    },
+    {
+      "definition": 1191196569,
+      "visual": 520100335,
+      "name": "Silver Orb",
+      "mask": 192,
+      "implement": 2097152,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "47003799": "d7f6e7a9271e0fb93bf299b26d03eee1ec4b0f52c2167aa96638ccecfd7e423a",
+        "81003799": "cc97541a0455c8518252f227a766ee64bee888ff86e86d3d3235c3c53e0d04fd",
+        "470038e6": "8078e98585eea09920191ef952f997a40546f58383e80e659cac3ca72775f758",
+        "1f0019ef": "386905ddfe16de9eb2649152860dbf807823c57999d8930ece6905478de1b164"
+      }
+    },
+    {
+      "definition": 1191196570,
+      "visual": 520100744,
+      "name": "Spectral Orb",
+      "mask": 192,
+      "implement": 2097152,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "4700379a": "16e8bed78d4ffcff1dfbe4a02c6668abfae66eb420fead98a45b5544f0ad4d39",
+        "8100379a": "dd8bb563b7d5045b13bf2a2d69f2bc08296e9c58d3864d82bbeb0991ac0b1665",
+        "47003f7c": "09abf2cb01ef61fd57cbff55a8d7ce72a6d26d27afd27e7c797795f1f3e9feb4",
+        "1f001b88": "da4821aa36db35c8a8fcb15a337a1b84c1660f7403b72e0893e7c0d2d38fdf1b"
+      }
+    },
+    {
+      "definition": 1191196577,
+      "visual": 520100275,
+      "name": "Winged Staff",
+      "mask": 64,
+      "implement": 262144,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037a1": "fc052d681ad1adcd750deb533c981325728824ca973d1f87d4e1eaaefe0a5801",
+        "810037a1": "629aa8fb9a926f7cb10937275674c53a72d0a3d4a37994559183d19dba549d55",
+        "470037c4": "18a4b4b56bd4d66961b4ab6b6772d86cd29769f09a2e1b707d5a9ae2cd18c4de",
+        "1f0019b3": "df2f13ad5b818047d3fcce607e2f3eb6cfc0a47460eafb12e1a3c8cfb61500c0"
+      }
+    },
+    {
+      "definition": 1191196579,
+      "visual": 520100277,
+      "name": "Circlet Cutlass",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037a3": "b07b73f8660e7e0917d02186ac8ecf0ded17575ef56d7d54e49da025acefa077",
+        "810037a3": "2b95ec53e72bbc137dc636e0707e0b45fec66b6ffc24ec04734aeb93edafd4e1",
+        "470037c6": "149ce09e0c782f7921f44dfa4f8ea8b93c96c286fdb76c848d0a1846926f8050",
+        "1f0019b5": "6b4a2c11672d300dd89d80a918f0eff75632631582f0670d544cba21d5c5f380"
+      }
+    },
+    {
+      "definition": 1191196582,
+      "visual": 520100280,
+      "name": "Edge",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037a6": "b315cc8a3b0cb60b98760a31536312069c1834d6acf844b4db264b62252cea76",
+        "810037a6": "85796f9fdcc3a58376082b337370265bc703577db9c4beb5616388266c56b564",
+        "470037c9": "f682ece1b9c3055be2f58c7142f7437304c492ccc044a31269a6f6a6fe88a761",
+        "1f0019b8": "d10ff7912e18110acfb91e96785621283ffc8fd33086b909c7a78fe119441321"
+      }
+    },
+    {
+      "definition": 1191196583,
+      "visual": 520100281,
+      "name": "Eldermire Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037a7": "b203781f5c8a1f37ff3cd81b0584d9abd0c5dfd99c60c7023bd69f85f1c7b9ae",
+        "810037a7": "1f2612a1545b8745e1ad3d3b768fe899be3deeb5ea005af076a3e1a8ec0eb133",
+        "470037ca": "170adeef8664946bbabfcfaaad60b2b8f3ec6a4578236e99a56d34b63a9ff199",
+        "1f0019b9": "3564023c9e7a9d561bbcd01407d2b6aab2458bf28664cb94fa3ddcde454abc1f"
+      }
+    },
+    {
+      "definition": 1191196586,
+      "visual": 520100291,
+      "name": "Great Warsword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037aa": "88d46f25513658f6bac653fb421158fe1612e5f91487d20aca4839836ef0f9c3",
+        "810037aa": "ddc3a0fc6d4f332cddc6594162a3b0c398551568e2f64ecb0bebc9aae595cdde",
+        "470037cd": "63589ce27b8bf6fa205ac5c208624afe79521ddc49e055d88a68e912bf01843b",
+        "1f0019c3": "e12eccab1c486a85c2add9b76b236a915402456fe49aa1ed21f814e8460014ef"
+      }
+    },
+    {
+      "definition": 1191196587,
+      "visual": 520100284,
+      "name": "Horned Long Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037ab": "dc0fb47f46a1f8379a5672f715bc022c92d642e51f8362a7b4496ea85646fcda",
+        "810037ab": "3dea385d5223a9bc763d92497977a535b32a167abbbbe7a42a13a2cb2d224b38",
+        "470037ce": "b53d71bb87dbd91054f47e8a5e271ecf543f2657acc07df98b1e5ff28b520b0a",
+        "1f0019bc": "74f5d9355b83d26a92a425ac721b0ce2e2971eb92423e42dc647887bf441ac11"
+      }
+    },
+    {
+      "definition": 1191196592,
+      "visual": 520100289,
+      "name": "Toothedge",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037b0": "936c2c26b601654aecf41870bfedae998ce54b881ec776f339b4e058ada6bca6",
+        "810037b0": "e83c5ed75237d8eb551fa2c00377c2cbc61dec9499b3af33c699b8c1b56821a9",
+        "470037d3": "4e493a247bcead87e35fad0a0fbc90b91f88ad33f392992ba027a2e8ca72cef3",
+        "1f0019c1": "594b2d93bd564a0c45f84109963a86726c5c48852933c5f4a2b05712d687b4e0"
+      }
+    },
+    {
+      "definition": 1191196593,
+      "visual": 520100290,
+      "name": "Tyrant's Eye Sword",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470037b1": "a001afde860d4760afa5ad11f805e0e5c927c8f08c9e3b85fda05bf7fa69be88",
+        "810037b1": "7408a93368f3317c705fa1eb0db215e9cfdab57bc862820f798021e5babced58",
+        "470037d4": "b1012e46d84e4b556a067e838ba8b7f2b8cdc9250b97ff308873e38cd6e54175",
+        "1f0019c2": "608b2fb736fc9bc2fa5bfd9495eee1ec4bd8725fcc324330abd82814ccfd5836"
+      }
+    },
+    {
+      "definition": 1191196891,
+      "visual": 520100329,
+      "name": "Burnt Board with Nail",
+      "mask": 192,
+      "implement": 2,
+      "minimum_level": 1,
+      "damage": null,
+      "sources": {
+        "470038db": "fd4faaf403b41e2e26ef6707eb59c23b4580a51d4a23a775ffe6ab3a260c55a1",
+        "810038db": "6f107d19f006b199e3dcdf1ed6c58b271d13c3d471a6c8906f77510f826ed20e",
+        "470038e0": "e81808cf1e5fb8cd787b108555d1d473a02cd6c93fd76ec9115e17e58ea548ce",
+        "1f0019e9": "4a88e62c1efdb08cc597aff010d1268b561ebc52b7d3374974f0fa9bba652fc9"
+      }
+    }
+  ],
+  "withheld": [
+    {
+      "definition": 1191192252,
+      "name": "Overcharged Hive",
+      "reason": "additional usage restrictions",
+      "stats": [
+        728
+      ]
+    }
+  ]
+}

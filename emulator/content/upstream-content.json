@@ -1,0 +1,21 @@
+{
+  "repository": "https://github.com/Vanquish-6/Pyrealium",
+  "revision": "468793018b332b87228794b0720ea1ce0400f96d",
+  "capture": {
+    "path": "emulator/content/capture-spawns.tsv",
+    "local_snapshot": "capture-spawns-upstream.tsv",
+    "sha256": "f2b04dc2e93e44e14d7decef367b50c405942d1efdf48efb613c1c14158b0a28",
+    "rows": 22422
+  },
+  "combat": {
+    "source": "Regenerated with import_creature_combat.py from installed Legions portal.dat",
+    "output_sha256": "613865aa88f6bc7ab5bc787ea08db3278ebea1e55faedc952255ec4c65675929",
+    "profiles": 317,
+    "failed_candidates": 406
+  },
+  "excluded_scope": [
+    "No whole-DAT merging",
+    "No upstream skill/advancement replacement",
+    "No invented placements or faction/aggro rules"
+  ]
+}

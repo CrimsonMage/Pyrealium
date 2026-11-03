@@ -1,0 +1,5378 @@
+{
+  "template_records_with_generator_properties": 639,
+  "profile_label_count": 2111,
+  "placed_generator_profiles": 0,
+  "outdoor_placements_examined": 20784,
+  "interior_placements_examined": 151868,
+  "encounter_descriptor": {
+    "id": "14000000",
+    "version": 0,
+    "map": 0,
+    "rows": 0
+  },
+  "parse_rejections": [
+    "470007E4:1073741853",
+    "470012B1:1073741853",
+    "470017DC:8",
+    "47001829:920",
+    "47001EB8:1073741853"
+  ],
+  "templates": [
+    {
+      "entity": "47000091",
+      "properties": {
+        "GeneratorProfile": 86,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_HumanBoot1"
+    },
+    {
+      "entity": "47000092",
+      "properties": {
+        "GeneratorProfile": 156,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000093",
+      "properties": {
+        "GeneratorProfile": 157,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000094",
+      "properties": {
+        "GeneratorProfile": 158,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000095",
+      "properties": {
+        "GeneratorProfile": 159,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000096",
+      "properties": {
+        "GeneratorProfile": 189,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000097",
+      "properties": {
+        "GeneratorProfile": 190,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000098",
+      "properties": {
+        "GeneratorProfile": 191,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000099",
+      "properties": {
+        "GeneratorProfile": 145,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009A",
+      "properties": {
+        "GeneratorProfile": 146,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009B",
+      "properties": {
+        "GeneratorProfile": 147,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009C",
+      "properties": {
+        "GeneratorProfile": 297,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009D",
+      "properties": {
+        "GeneratorProfile": 298,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009E",
+      "properties": {
+        "GeneratorProfile": 299,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700009F",
+      "properties": {
+        "GeneratorProfile": 193,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000A0",
+      "properties": {
+        "GeneratorProfile": 194,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000A1",
+      "properties": {
+        "GeneratorProfile": 195,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000A2",
+      "properties": {
+        "GeneratorProfile": 196,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000A6",
+      "properties": {
+        "GeneratorProfile": 87,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_HumanBoot2"
+    },
+    {
+      "entity": "470000BF",
+      "properties": {
+        "GeneratorProfile": 111,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C0",
+      "properties": {
+        "GeneratorProfile": 124,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C1",
+      "properties": {
+        "GeneratorProfile": 108,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C2",
+      "properties": {
+        "GeneratorProfile": 117,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C3",
+      "properties": {
+        "GeneratorProfile": 109,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C4",
+      "properties": {
+        "GeneratorProfile": 118,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000C5",
+      "properties": {
+        "GeneratorProfile": 116,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000CA",
+      "properties": {
+        "GeneratorProfile": 103,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000CB",
+      "properties": {
+        "GeneratorProfile": 104,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000CC",
+      "properties": {
+        "GeneratorProfile": 105,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470000E0",
+      "properties": {
+        "GeneratorProfile": 54,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampLostWishDrudgeFortGloom"
+    },
+    {
+      "entity": "47000109",
+      "properties": {
+        "GeneratorProfile": 359,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampLostWishThornlingRingleader"
+    },
+    {
+      "entity": "4700010B",
+      "properties": {
+        "GeneratorProfile": 55,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampLostWishDrudgeFortMurk"
+    },
+    {
+      "entity": "47000155",
+      "properties": {
+        "GeneratorProfile": 311,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampBossMimbuVillage"
+    },
+    {
+      "entity": "4700015C",
+      "properties": {
+        "GeneratorProfile": 343,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampBossSclavusRuins"
+    },
+    {
+      "entity": "47000161",
+      "properties": {
+        "GeneratorProfile": 192,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampTyrant"
+    },
+    {
+      "entity": "47000162",
+      "properties": {
+        "GeneratorProfile": 321,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMonougaThuggish"
+    },
+    {
+      "entity": "47000202",
+      "properties": {
+        "GeneratorProfile": 160,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000203",
+      "properties": {
+        "GeneratorProfile": 162,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000204",
+      "properties": {
+        "GeneratorProfile": 165,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000205",
+      "properties": {
+        "GeneratorProfile": 167,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000206",
+      "properties": {
+        "GeneratorProfile": 92,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000207",
+      "properties": {
+        "GeneratorProfile": 93,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000208",
+      "properties": {
+        "GeneratorProfile": 91,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47000209",
+      "properties": {
+        "GeneratorProfile": 94,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700020A",
+      "properties": {
+        "GeneratorProfile": 148,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700020B",
+      "properties": {
+        "GeneratorProfile": 149,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700020C",
+      "properties": {
+        "GeneratorProfile": 150,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700020D",
+      "properties": {
+        "GeneratorProfile": 151,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002BF",
+      "properties": {
+        "GeneratorProfile": 169,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C0",
+      "properties": {
+        "GeneratorProfile": 172,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C1",
+      "properties": {
+        "GeneratorProfile": 174,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C2",
+      "properties": {
+        "GeneratorProfile": 177,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C3",
+      "properties": {
+        "GeneratorProfile": 132,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C4",
+      "properties": {
+        "GeneratorProfile": 131,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C5",
+      "properties": {
+        "GeneratorProfile": 136,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C6",
+      "properties": {
+        "GeneratorProfile": 139,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C7",
+      "properties": {
+        "GeneratorProfile": 272,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C8",
+      "properties": {
+        "GeneratorProfile": 273,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002C9",
+      "properties": {
+        "GeneratorProfile": 274,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002CA",
+      "properties": {
+        "GeneratorProfile": 275,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002CB",
+      "properties": {
+        "GeneratorProfile": 201,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002CC",
+      "properties": {
+        "GeneratorProfile": 204,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002CD",
+      "properties": {
+        "GeneratorProfile": 203,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "470002CE",
+      "properties": {
+        "GeneratorProfile": 202,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700046E",
+      "properties": {
+        "GeneratorProfile": 163,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishNorthwest1"
+    },
+    {
+      "entity": "4700046F",
+      "properties": {
+        "GeneratorProfile": 164,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishNorthwest2"
+    },
+    {
+      "entity": "47000470",
+      "properties": {
+        "GeneratorProfile": 161,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishNortheast1"
+    },
+    {
+      "entity": "47000471",
+      "properties": {
+        "GeneratorProfile": 166,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishSoutheast1"
+    },
+    {
+      "entity": "47000472",
+      "properties": {
+        "GeneratorProfile": 168,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishSouthwest1"
+    },
+    {
+      "entity": "47000473",
+      "properties": {
+        "GeneratorProfile": 96,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicWest1"
+    },
+    {
+      "entity": "47000474",
+      "properties": {
+        "GeneratorProfile": 97,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicWest2"
+    },
+    {
+      "entity": "47000475",
+      "properties": {
+        "GeneratorProfile": 90,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicNorth1"
+    },
+    {
+      "entity": "47000476",
+      "properties": {
+        "GeneratorProfile": 89,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicEast2"
+    },
+    {
+      "entity": "47000477",
+      "properties": {
+        "GeneratorProfile": 95,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicSouth1"
+    },
+    {
+      "entity": "47000478",
+      "properties": {
+        "GeneratorProfile": 143,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperNorthwest1"
+    },
+    {
+      "entity": "47000479",
+      "properties": {
+        "GeneratorProfile": 144,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperNorthwest2"
+    },
+    {
+      "entity": "4700047A",
+      "properties": {
+        "GeneratorProfile": 152,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperSoutheast1"
+    },
+    {
+      "entity": "4700047B",
+      "properties": {
+        "GeneratorProfile": 153,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperSoutheast2"
+    },
+    {
+      "entity": "4700047C",
+      "properties": {
+        "GeneratorProfile": 141,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperNortheast1"
+    },
+    {
+      "entity": "4700047D",
+      "properties": {
+        "GeneratorProfile": 142,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperNortheast2"
+    },
+    {
+      "entity": "4700047E",
+      "properties": {
+        "GeneratorProfile": 154,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperSouthwest1"
+    },
+    {
+      "entity": "4700047F",
+      "properties": {
+        "GeneratorProfile": 155,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterEsperSouthwest2"
+    },
+    {
+      "entity": "47000480",
+      "properties": {
+        "GeneratorProfile": 184,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperNorthwest1"
+    },
+    {
+      "entity": "47000481",
+      "properties": {
+        "GeneratorProfile": 185,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterProsperNorthwest2"
+    },
+    {
+      "entity": "47000482",
+      "properties": {
+        "GeneratorProfile": 180,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterProsperCenter1"
+    },
+    {
+      "entity": "47000483",
+      "properties": {
+        "GeneratorProfile": 181,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperNortheast1"
+    },
+    {
+      "entity": "47000484",
+      "properties": {
+        "GeneratorProfile": 182,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperNortheast2"
+    },
+    {
+      "entity": "47000485",
+      "properties": {
+        "GeneratorProfile": 183,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterProsperNortheast3"
+    },
+    {
+      "entity": "47000486",
+      "properties": {
+        "GeneratorProfile": 186,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperSouth1"
+    },
+    {
+      "entity": "47000487",
+      "properties": {
+        "GeneratorProfile": 187,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterProsperSouth2"
+    },
+    {
+      "entity": "47000488",
+      "properties": {
+        "GeneratorProfile": 188,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperSouth3"
+    },
+    {
+      "entity": "47000489",
+      "properties": {
+        "GeneratorProfile": 199,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterGevothSouth1"
+    },
+    {
+      "entity": "4700048A",
+      "properties": {
+        "GeneratorProfile": 200,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterGevothWest1"
+    },
+    {
+      "entity": "4700048B",
+      "properties": {
+        "GeneratorProfile": 197,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterGevothEast1"
+    },
+    {
+      "entity": "4700048C",
+      "properties": {
+        "GeneratorProfile": 198,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterGevothNorth1"
+    },
+    {
+      "entity": "4700048D",
+      "properties": {
+        "GeneratorProfile": 125,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltNorth1"
+    },
+    {
+      "entity": "4700048E",
+      "properties": {
+        "GeneratorProfile": 126,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltNorth2"
+    },
+    {
+      "entity": "4700048F",
+      "properties": {
+        "GeneratorProfile": 129,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltWest1"
+    },
+    {
+      "entity": "47000490",
+      "properties": {
+        "GeneratorProfile": 130,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltWest2"
+    },
+    {
+      "entity": "47000491",
+      "properties": {
+        "GeneratorProfile": 98,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltEast1"
+    },
+    {
+      "entity": "47000492",
+      "properties": {
+        "GeneratorProfile": 127,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltSouth1"
+    },
+    {
+      "entity": "47000493",
+      "properties": {
+        "GeneratorProfile": 128,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterCobaltSouth2"
+    },
+    {
+      "entity": "47000494",
+      "properties": {
+        "GeneratorProfile": 173,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneNorthwest1"
+    },
+    {
+      "entity": "47000495",
+      "properties": {
+        "GeneratorProfile": 178,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneSouthwest1"
+    },
+    {
+      "entity": "47000496",
+      "properties": {
+        "GeneratorProfile": 179,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneSouthwest2"
+    },
+    {
+      "entity": "47000497",
+      "properties": {
+        "GeneratorProfile": 175,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneSoutheast1"
+    },
+    {
+      "entity": "47000498",
+      "properties": {
+        "GeneratorProfile": 176,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneSoutheast2"
+    },
+    {
+      "entity": "47000499",
+      "properties": {
+        "GeneratorProfile": 170,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneNortheast1"
+    },
+    {
+      "entity": "4700049A",
+      "properties": {
+        "GeneratorProfile": 171,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMadCroneNortheast2"
+    },
+    {
+      "entity": "4700049B",
+      "properties": {
+        "GeneratorProfile": 133,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelNortheast1"
+    },
+    {
+      "entity": "4700049C",
+      "properties": {
+        "GeneratorProfile": 134,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelNortheast2"
+    },
+    {
+      "entity": "4700049D",
+      "properties": {
+        "GeneratorProfile": 137,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelSoutheast1"
+    },
+    {
+      "entity": "4700049E",
+      "properties": {
+        "GeneratorProfile": 138,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelSoutheast2"
+    },
+    {
+      "entity": "4700049F",
+      "properties": {
+        "GeneratorProfile": 140,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelSouthwest1"
+    },
+    {
+      "entity": "470004A0",
+      "properties": {
+        "GeneratorProfile": 135,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterDrudgeCitadelNorthwest1"
+    },
+    {
+      "entity": "470004A1",
+      "properties": {
+        "GeneratorProfile": 280,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterKydiWest1"
+    },
+    {
+      "entity": "470004A2",
+      "properties": {
+        "GeneratorProfile": 278,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterKydiNorth1"
+    },
+    {
+      "entity": "470004A3",
+      "properties": {
+        "GeneratorProfile": 276,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterKydiEast1"
+    },
+    {
+      "entity": "470004A4",
+      "properties": {
+        "GeneratorProfile": 277,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterKydiEast2"
+    },
+    {
+      "entity": "470004A5",
+      "properties": {
+        "GeneratorProfile": 279,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterKydiSouth1"
+    },
+    {
+      "entity": "470004A6",
+      "properties": {
+        "GeneratorProfile": 218,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterOriadEast1"
+    },
+    {
+      "entity": "470004A7",
+      "properties": {
+        "GeneratorProfile": 219,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterOriadEast2"
+    },
+    {
+      "entity": "470004A8",
+      "properties": {
+        "GeneratorProfile": 224,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterOriadWest1"
+    },
+    {
+      "entity": "470004A9",
+      "properties": {
+        "GeneratorProfile": 225,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterOriadWest2"
+    },
+    {
+      "entity": "470004AA",
+      "properties": {
+        "GeneratorProfile": 222,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterOriadSouth1"
+    },
+    {
+      "entity": "470004AB",
+      "properties": {
+        "GeneratorProfile": 223,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterOriadSouth2"
+    },
+    {
+      "entity": "470004AC",
+      "properties": {
+        "GeneratorProfile": 220,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterOriadNorth1"
+    },
+    {
+      "entity": "470004AD",
+      "properties": {
+        "GeneratorProfile": 221,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterOriadNorth2"
+    },
+    {
+      "entity": "470004AE",
+      "properties": {
+        "GeneratorProfile": 264,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterAriakiWest1"
+    },
+    {
+      "entity": "470004AF",
+      "properties": {
+        "GeneratorProfile": 263,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterAriakiSouth1"
+    },
+    {
+      "entity": "470004B0",
+      "properties": {
+        "GeneratorProfile": 261,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterAriakiEast1"
+    },
+    {
+      "entity": "470004B1",
+      "properties": {
+        "GeneratorProfile": 262,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterAriakiNorth1"
+    },
+    {
+      "entity": "470004B2",
+      "properties": {
+        "GeneratorProfile": 282,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLumariNorth1"
+    },
+    {
+      "entity": "470004B3",
+      "properties": {
+        "GeneratorProfile": 283,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLumariSouth1"
+    },
+    {
+      "entity": "470004B4",
+      "properties": {
+        "GeneratorProfile": 284,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLumariWest1"
+    },
+    {
+      "entity": "470004B5",
+      "properties": {
+        "GeneratorProfile": 281,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLumariEast1"
+    },
+    {
+      "entity": "470004B6",
+      "properties": {
+        "GeneratorProfile": 295,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuSouthwest1"
+    },
+    {
+      "entity": "470004B7",
+      "properties": {
+        "GeneratorProfile": 296,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuSouthwest2"
+    },
+    {
+      "entity": "470004B8",
+      "properties": {
+        "GeneratorProfile": 291,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuNorthwest1"
+    },
+    {
+      "entity": "470004B9",
+      "properties": {
+        "GeneratorProfile": 292,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuNorthwest2"
+    },
+    {
+      "entity": "470004BA",
+      "properties": {
+        "GeneratorProfile": 290,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuNortheast1"
+    },
+    {
+      "entity": "470004BB",
+      "properties": {
+        "GeneratorProfile": 293,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuSoutheast1"
+    },
+    {
+      "entity": "470004BC",
+      "properties": {
+        "GeneratorProfile": 294,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNaderuSoutheast2"
+    },
+    {
+      "entity": "470004BD",
+      "properties": {
+        "GeneratorProfile": 302,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterTouTouSouth1"
+    },
+    {
+      "entity": "470004BE",
+      "properties": {
+        "GeneratorProfile": 303,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterTouTouWest1"
+    },
+    {
+      "entity": "470004BF",
+      "properties": {
+        "GeneratorProfile": 300,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterTouTouEast1"
+    },
+    {
+      "entity": "470004C0",
+      "properties": {
+        "GeneratorProfile": 301,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterTouTouNorth1"
+    },
+    {
+      "entity": "470004C1",
+      "properties": {
+        "GeneratorProfile": 271,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliWest1"
+    },
+    {
+      "entity": "470004C2",
+      "properties": {
+        "GeneratorProfile": 265,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliCenter1"
+    },
+    {
+      "entity": "470004C3",
+      "properties": {
+        "GeneratorProfile": 266,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterFaraliCenter2"
+    },
+    {
+      "entity": "470004C4",
+      "properties": {
+        "GeneratorProfile": 267,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterFaraliNorth1"
+    },
+    {
+      "entity": "470004C5",
+      "properties": {
+        "GeneratorProfile": 268,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliNorth2"
+    },
+    {
+      "entity": "470004C6",
+      "properties": {
+        "GeneratorProfile": 269,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliSoutheast1"
+    },
+    {
+      "entity": "470004C7",
+      "properties": {
+        "GeneratorProfile": 270,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterFaraliSoutheast2"
+    },
+    {
+      "entity": "470004C8",
+      "properties": {
+        "GeneratorProfile": 307,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterVesayenWest1"
+    },
+    {
+      "entity": "470004C9",
+      "properties": {
+        "GeneratorProfile": 304,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterVesayenNorth1"
+    },
+    {
+      "entity": "470004CA",
+      "properties": {
+        "GeneratorProfile": 305,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterVesayenSouth1"
+    },
+    {
+      "entity": "470004CB",
+      "properties": {
+        "GeneratorProfile": 306,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterVesayenSouth2"
+    },
+    {
+      "entity": "470004CC",
+      "properties": {
+        "GeneratorProfile": 228,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowEast1"
+    },
+    {
+      "entity": "470004CD",
+      "properties": {
+        "GeneratorProfile": 226,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowCenter1"
+    },
+    {
+      "entity": "470004CE",
+      "properties": {
+        "GeneratorProfile": 227,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowCenter2"
+    },
+    {
+      "entity": "470004CF",
+      "properties": {
+        "GeneratorProfile": 231,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowSouthwest1"
+    },
+    {
+      "entity": "470004D0",
+      "properties": {
+        "GeneratorProfile": 232,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowSouthwest2"
+    },
+    {
+      "entity": "470004D1",
+      "properties": {
+        "GeneratorProfile": 229,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowNorthwest1"
+    },
+    {
+      "entity": "470004D2",
+      "properties": {
+        "GeneratorProfile": 230,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterStoneshadowNorthwest2"
+    },
+    {
+      "entity": "470004D3",
+      "properties": {
+        "GeneratorProfile": 239,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikWest1"
+    },
+    {
+      "entity": "470004D4",
+      "properties": {
+        "GeneratorProfile": 240,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikWest2"
+    },
+    {
+      "entity": "470004D5",
+      "properties": {
+        "GeneratorProfile": 235,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikNorth1"
+    },
+    {
+      "entity": "470004D6",
+      "properties": {
+        "GeneratorProfile": 236,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikNorth2"
+    },
+    {
+      "entity": "470004D7",
+      "properties": {
+        "GeneratorProfile": 237,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikSouth1"
+    },
+    {
+      "entity": "470004D8",
+      "properties": {
+        "GeneratorProfile": 238,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikSouth2"
+    },
+    {
+      "entity": "470004D9",
+      "properties": {
+        "GeneratorProfile": 233,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikEast1"
+    },
+    {
+      "entity": "470004DA",
+      "properties": {
+        "GeneratorProfile": 234,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterThusikEast2"
+    },
+    {
+      "entity": "470004DB",
+      "properties": {
+        "GeneratorProfile": 210,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethNortheast1"
+    },
+    {
+      "entity": "470004DC",
+      "properties": {
+        "GeneratorProfile": 211,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethNortheast2"
+    },
+    {
+      "entity": "470004DD",
+      "properties": {
+        "GeneratorProfile": 214,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethSoutheast1"
+    },
+    {
+      "entity": "470004DE",
+      "properties": {
+        "GeneratorProfile": 215,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethSoutheast2"
+    },
+    {
+      "entity": "470004DF",
+      "properties": {
+        "GeneratorProfile": 212,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethNorthwest1"
+    },
+    {
+      "entity": "470004E0",
+      "properties": {
+        "GeneratorProfile": 213,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethNorthwest2"
+    },
+    {
+      "entity": "470004E1",
+      "properties": {
+        "GeneratorProfile": 216,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethSouthwest1"
+    },
+    {
+      "entity": "470004E2",
+      "properties": {
+        "GeneratorProfile": 217,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterNepethSouthwest2"
+    },
+    {
+      "entity": "470004E3",
+      "properties": {
+        "GeneratorProfile": 241,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsCenter1"
+    },
+    {
+      "entity": "470004E4",
+      "properties": {
+        "GeneratorProfile": 242,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsCenter2"
+    },
+    {
+      "entity": "470004E5",
+      "properties": {
+        "GeneratorProfile": 243,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNorth1"
+    },
+    {
+      "entity": "470004E6",
+      "properties": {
+        "GeneratorProfile": 244,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNorth2"
+    },
+    {
+      "entity": "470004E7",
+      "properties": {
+        "GeneratorProfile": 245,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNortheast1"
+    },
+    {
+      "entity": "470004E8",
+      "properties": {
+        "GeneratorProfile": 246,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNortheast2"
+    },
+    {
+      "entity": "470004E9",
+      "properties": {
+        "GeneratorProfile": 247,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNorthwest1"
+    },
+    {
+      "entity": "470004EA",
+      "properties": {
+        "GeneratorProfile": 248,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterWinterhollowsNorthwest2"
+    },
+    {
+      "entity": "470004EB",
+      "properties": {
+        "GeneratorProfile": 206,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMalthabborNorth1"
+    },
+    {
+      "entity": "470004EC",
+      "properties": {
+        "GeneratorProfile": 207,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMalthabborNorthwest1"
+    },
+    {
+      "entity": "470004ED",
+      "properties": {
+        "GeneratorProfile": 205,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMalthabborEast1"
+    },
+    {
+      "entity": "470004EE",
+      "properties": {
+        "GeneratorProfile": 208,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMalthabborSoutheast1"
+    },
+    {
+      "entity": "470004EF",
+      "properties": {
+        "GeneratorProfile": 209,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterMalthabborSouthwest1"
+    },
+    {
+      "entity": "470004F0",
+      "properties": {
+        "GeneratorProfile": 88,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArwicEast1"
+    },
+    {
+      "entity": "47001363",
+      "properties": {
+        "GeneratorProfile": 251,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampDarkenfowlMid"
+    },
+    {
+      "entity": "47001364",
+      "properties": {
+        "GeneratorProfile": 53,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_CampDrudgeWhelp"
+    },
+    {
+      "entity": "47001365",
+      "properties": {
+        "GeneratorProfile": 253,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMimbuHi"
+    },
+    {
+      "entity": "47001366",
+      "properties": {
+        "GeneratorProfile": 317,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMonougaBeastly"
+    },
+    {
+      "entity": "47001367",
+      "properties": {
+        "GeneratorProfile": 318,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMonougaBrutish"
+    },
+    {
+      "entity": "47001368",
+      "properties": {
+        "GeneratorProfile": 319,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMonougaMonstrous"
+    },
+    {
+      "entity": "47001369",
+      "properties": {
+        "GeneratorProfile": 320,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": "GP_CampMonougaSavage"
+    },
+    {
+      "entity": "4700136A",
+      "properties": {
+        "GeneratorProfile": 99,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700136B",
+      "properties": {
+        "GeneratorProfile": 100,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700136C",
+      "properties": {
+        "GeneratorProfile": 101,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700136D",
+      "properties": {
+        "GeneratorProfile": 102,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700136E",
+      "properties": {
+        "GeneratorProfile": 106,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700136F",
+      "properties": {
+        "GeneratorProfile": 107,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001370",
+      "properties": {
+        "GeneratorProfile": 110,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001371",
+      "properties": {
+        "GeneratorProfile": 112,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001372",
+      "properties": {
+        "GeneratorProfile": 113,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001373",
+      "properties": {
+        "GeneratorProfile": 114,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001374",
+      "properties": {
+        "GeneratorProfile": 115,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001375",
+      "properties": {
+        "GeneratorProfile": 119,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001376",
+      "properties": {
+        "GeneratorProfile": 120,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001377",
+      "properties": {
+        "GeneratorProfile": 121,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001378",
+      "properties": {
+        "GeneratorProfile": 122,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "47001379",
+      "properties": {
+        "GeneratorProfile": 123,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700137A",
+      "properties": {
+        "GeneratorProfile": 285,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700137B",
+      "properties": {
+        "GeneratorProfile": 286,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700137C",
+      "properties": {
+        "GeneratorProfile": 287,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700137D",
+      "properties": {
+        "GeneratorProfile": 288,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700137E",
+      "properties": {
+        "GeneratorProfile": 289,
+        "GeneratorRegenPeriod": 60.0
+      },
+      "profile_name": null
+    },
+    {
+      "entity": "4700154B",
+      "properties": {
+        "GeneratorProfile": 1001
+      },
+      "profile_name": "GP_Chest_SigilHuman_Armor_HighHoard"
+    },
+    {
+      "entity": "4700154C",
+      "properties": {
+        "GeneratorProfile": 1002
+      },
+      "profile_name": "GP_Chest_SigilHuman_Armor_LowHoard"
+    },
+    {
+      "entity": "4700154D",
+      "properties": {
+        "GeneratorProfile": 1003
+      },
+      "profile_name": "GP_Chest_SigilHuman_Craft_HighHoard"
+    },
+    {
+      "entity": "4700154E",
+      "properties": {
+        "GeneratorProfile": 1004
+      },
+      "profile_name": "GP_Chest_SigilHuman_Craft_LowHoard"
+    },
+    {
+      "entity": "4700154F",
+      "properties": {
+        "GeneratorProfile": 1005
+      },
+      "profile_name": "GP_Chest_SigilHuman_Expensive_HighHoard"
+    },
+    {
+      "entity": "47001550",
+      "properties": {
+        "GeneratorProfile": 1006
+      },
+      "profile_name": "GP_Chest_SigilHuman_Expensive_LowHoard"
+    },
+    {
+      "entity": "47001551",
+      "properties": {
+        "GeneratorProfile": 1007
+      },
+      "profile_name": "GP_Chest_SigilHuman_Standard_HighHoard"
+    },
+    {
+      "entity": "47001552",
+      "properties": {
+        "GeneratorProfile": 1008
+      },
+      "profile_name": "GP_Chest_SigilHuman_Standard_LowHoard"
+    },
+    {
+      "entity": "47001553",
+      "properties": {
+        "GeneratorProfile": 1009
+      },
+      "profile_name": "GP_Chest_SigilHuman_Trinkets_HighHoard"
+    },
+    {
+      "entity": "47001554",
+      "properties": {
+        "GeneratorProfile": 1010
+      },
+      "profile_name": "GP_Chest_SigilHuman_Trinkets_LowHoard"
+    },
+    {
+      "entity": "47001555",
+      "properties": {
+        "GeneratorProfile": 1011
+      },
+      "profile_name": "GP_Chest_SigilHuman_UberHoard"
+    },
+    {
+      "entity": "47001556",
+      "properties": {
+        "GeneratorProfile": 1012
+      },
+      "profile_name": "GP_Chest_SigilHuman_Weapons_HighHoard"
+    },
+    {
+      "entity": "47001557",
+      "properties": {
+        "GeneratorProfile": 1013
+      },
+      "profile_name": "GP_Chest_SigilHuman_Weapons_LowHoard"
+    },
+    {
+      "entity": "47001558",
+      "properties": {
+        "GeneratorProfile": 1014
+      },
+      "profile_name": "GP_Chest_SigilLugian_ArmorHoard"
+    },
+    {
+      "entity": "47001559",
+      "properties": {
+        "GeneratorProfile": 1015
+      },
+      "profile_name": "GP_Chest_SigilLugian_CraftHoard"
+    },
+    {
+      "entity": "4700155A",
+      "properties": {
+        "GeneratorProfile": 1016
+      },
+      "profile_name": "GP_Chest_SigilLugian_ExpensiveHoard"
+    },
+    {
+      "entity": "4700155B",
+      "properties": {
+        "GeneratorProfile": 1017
+      },
+      "profile_name": "GP_Chest_SigilLugian_StandardHoard"
+    },
+    {
+      "entity": "4700155C",
+      "properties": {
+        "GeneratorProfile": 1018
+      },
+      "profile_name": "GP_Chest_SigilLugian_TrinketsHoard"
+    },
+    {
+      "entity": "4700155D",
+      "properties": {
+        "GeneratorProfile": 1019
+      },
+      "profile_name": "GP_Chest_SigilLugian_UberHoard"
+    },
+    {
+      "entity": "4700155E",
+      "properties": {
+        "GeneratorProfile": 1020
+      },
+      "profile_name": "GP_Chest_SigilLugian_WeaponsHoard"
+    },
+    {
+      "entity": "4700155F",
+      "properties": {
+        "GeneratorProfile": 1021
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Armor_HighHoard"
+    },
+    {
+      "entity": "47001560",
+      "properties": {
+        "GeneratorProfile": 1022
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Armor_LowHoard"
+    },
+    {
+      "entity": "47001561",
+      "properties": {
+        "GeneratorProfile": 1023
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Craft_HighHoard"
+    },
+    {
+      "entity": "47001562",
+      "properties": {
+        "GeneratorProfile": 1024
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Craft_LowHoard"
+    },
+    {
+      "entity": "47001563",
+      "properties": {
+        "GeneratorProfile": 1025
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Expensive_HighHoard"
+    },
+    {
+      "entity": "47001564",
+      "properties": {
+        "GeneratorProfile": 1026
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Expensive_LowHoard"
+    },
+    {
+      "entity": "47001565",
+      "properties": {
+        "GeneratorProfile": 1027
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Standard_HighHoard"
+    },
+    {
+      "entity": "47001566",
+      "properties": {
+        "GeneratorProfile": 1028
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Standard_LowHoard"
+    },
+    {
+      "entity": "47001567",
+      "properties": {
+        "GeneratorProfile": 1029
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Trinkets_HighHoard"
+    },
+    {
+      "entity": "47001568",
+      "properties": {
+        "GeneratorProfile": 1030
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Trinkets_LowHoard"
+    },
+    {
+      "entity": "47001569",
+      "properties": {
+        "GeneratorProfile": 1031
+      },
+      "profile_name": "GP_Chest_SigilTumerok_UberHoard"
+    },
+    {
+      "entity": "4700156A",
+      "properties": {
+        "GeneratorProfile": 1032
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Weapons_HighHoard"
+    },
+    {
+      "entity": "4700156B",
+      "properties": {
+        "GeneratorProfile": 1033
+      },
+      "profile_name": "GP_Chest_SigilTumerok_Weapons_LowHoard"
+    },
+    {
+      "entity": "470015D5",
+      "properties": {
+        "GeneratorProfile": 957
+      },
+      "profile_name": "GP_ChestDrudgePotion"
+    },
+    {
+      "entity": "47001844",
+      "properties": {
+        "GeneratorProfile": 1183,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLostWishBarnes"
+    },
+    {
+      "entity": "47001845",
+      "properties": {
+        "GeneratorProfile": 1186,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterLumariWestBarnes"
+    },
+    {
+      "entity": "47001846",
+      "properties": {
+        "GeneratorProfile": 1185,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterOriadWestBarnes"
+    },
+    {
+      "entity": "47001847",
+      "properties": {
+        "GeneratorProfile": 1184,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterProsperCenterBarnes"
+    },
+    {
+      "entity": "47001848",
+      "properties": {
+        "GeneratorProfile": 1187,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterVeseyanSouthBarnes"
+    },
+    {
+      "entity": "47001928",
+      "properties": {
+        "GeneratorProfile": 1204,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_March03LiveOps_DrudgeGloom"
+    },
+    {
+      "entity": "47001929",
+      "properties": {
+        "GeneratorProfile": 1203,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_March03LiveOps_BurunBroodu"
+    },
+    {
+      "entity": "4700192A",
+      "properties": {
+        "GeneratorProfile": 1205,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_March03LiveOps_GurogMinion"
+    },
+    {
+      "entity": "47001A16",
+      "properties": {
+        "GeneratorProfile": 1226,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 30.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_PortalBeacon_Linvak"
+    },
+    {
+      "entity": "47001A17",
+      "properties": {
+        "GeneratorProfile": 1227,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 30.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_PortalBeacon_Omishan"
+    },
+    {
+      "entity": "47001A18",
+      "properties": {
+        "GeneratorProfile": 1228,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 30.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_PortalBeacon_Osteth"
+    },
+    {
+      "entity": "47001A1D",
+      "properties": {
+        "GeneratorProfile": 1229,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 45.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_UndeadLive_Linvak"
+    },
+    {
+      "entity": "47001A1E",
+      "properties": {
+        "GeneratorProfile": 1230,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 45.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_UndeadLive_Omishan"
+    },
+    {
+      "entity": "47001A1F",
+      "properties": {
+        "GeneratorProfile": 1231,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 45.0,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_UndeadLive_Osteth"
+    },
+    {
+      "entity": "47001B59",
+      "properties": {
+        "GeneratorProfile": 1213,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArtefon1"
+    },
+    {
+      "entity": "47001B5A",
+      "properties": {
+        "GeneratorProfile": 1233,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArtefon2"
+    },
+    {
+      "entity": "47001B5B",
+      "properties": {
+        "GeneratorProfile": 1234,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArtefon3"
+    },
+    {
+      "entity": "47001C2C",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1290,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_1A"
+    },
+    {
+      "entity": "47001C2D",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1272,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Linvak_1A_Switch"
+    },
+    {
+      "entity": "47001C2E",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1291,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_1B"
+    },
+    {
+      "entity": "47001C2F",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1273,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Linvak_1B_Switch"
+    },
+    {
+      "entity": "47001C30",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1292,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_1C"
+    },
+    {
+      "entity": "47001C32",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1293,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2A"
+    },
+    {
+      "entity": "47001C33",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1274,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2A_Switch"
+    },
+    {
+      "entity": "47001C34",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1294,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2B"
+    },
+    {
+      "entity": "47001C35",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1275,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2B_Switch"
+    },
+    {
+      "entity": "47001C36",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1295,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2C"
+    },
+    {
+      "entity": "47001C38",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1276,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Linvak_2C_Switch"
+    },
+    {
+      "entity": "47001C39",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1296,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_1A"
+    },
+    {
+      "entity": "47001C3A",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1277,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Omishan_1A_Switch"
+    },
+    {
+      "entity": "47001C3B",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1297,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_1B"
+    },
+    {
+      "entity": "47001C3C",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1278,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Omishan_1B_Switch"
+    },
+    {
+      "entity": "47001C3D",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1298,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_1C"
+    },
+    {
+      "entity": "47001C3F",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1299,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2A"
+    },
+    {
+      "entity": "47001C40",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1279,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2A_Switch"
+    },
+    {
+      "entity": "47001C41",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1300,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2B"
+    },
+    {
+      "entity": "47001C42",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1280,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2B_Switch"
+    },
+    {
+      "entity": "47001C43",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1301,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2C"
+    },
+    {
+      "entity": "47001C45",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1281,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Omishan_2C_Switch"
+    },
+    {
+      "entity": "47001C46",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1302,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_1A"
+    },
+    {
+      "entity": "47001C47",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1282,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Osteth_1A_Switch"
+    },
+    {
+      "entity": "47001C48",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1303,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_1B"
+    },
+    {
+      "entity": "47001C49",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1283,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Osteth_1B_Switch"
+    },
+    {
+      "entity": "47001C4A",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1304,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_1C"
+    },
+    {
+      "entity": "47001C4C",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1305,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2A"
+    },
+    {
+      "entity": "47001C4D",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1284,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2A_Switch"
+    },
+    {
+      "entity": "47001C4E",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1306,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2B"
+    },
+    {
+      "entity": "47001C4F",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1285,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2B_Switch"
+    },
+    {
+      "entity": "47001C50",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1307,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2C"
+    },
+    {
+      "entity": "47001C52",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1286,
+        "GeneratorRegenPeriod": 75.0
+      },
+      "profile_name": "GP_Event_June_Osteth_2C_Switch"
+    },
+    {
+      "entity": "47001C5D",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1287,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Linvak_0"
+    },
+    {
+      "entity": "47001C5E",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1288,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Omishan_0"
+    },
+    {
+      "entity": "47001C5F",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1289,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Event_June_Osteth_0"
+    },
+    {
+      "entity": "47001EC1",
+      "properties": {
+        "GeneratorProfile": 1359,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliNorth_Olthoi"
+    },
+    {
+      "entity": "47001EE1",
+      "properties": {
+        "GeneratorProfile": 1363
+      },
+      "profile_name": "GP_ChestEggsHoard"
+    },
+    {
+      "entity": "47001F0F",
+      "properties": {
+        "GeneratorProfile": 1367
+      },
+      "profile_name": "GP_AdminWeaponsHoard"
+    },
+    {
+      "entity": "47001F41",
+      "properties": {
+        "GeneratorProfile": 1368
+      },
+      "profile_name": "GP_AncientCryptChestHoard"
+    },
+    {
+      "entity": "47001F47",
+      "properties": {
+        "GeneratorProfile": 1369
+      },
+      "profile_name": "GP_AdminHeirloomHoard"
+    },
+    {
+      "entity": "47001FAD",
+      "properties": {
+        "GeneratorProfile": 1452,
+        "GeneratorRegenPeriod": 90.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterFaraliNorth_OlthoiThorsten"
+    },
+    {
+      "entity": "47002008",
+      "properties": {
+        "GeneratorProfile": 1453
+      },
+      "profile_name": "GP_RustyChestHoard"
+    },
+    {
+      "entity": "4700204F",
+      "properties": {
+        "GeneratorProfile": 1499,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraDeltaE"
+    },
+    {
+      "entity": "47002051",
+      "properties": {
+        "GeneratorProfile": 1500,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraDeltaW"
+    },
+    {
+      "entity": "47002052",
+      "properties": {
+        "GeneratorProfile": 1501,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraDesertN"
+    },
+    {
+      "entity": "47002053",
+      "properties": {
+        "GeneratorProfile": 1502,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraDesertS"
+    },
+    {
+      "entity": "47002054",
+      "properties": {
+        "GeneratorProfile": 1503,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraDominion"
+    },
+    {
+      "entity": "47002055",
+      "properties": {
+        "GeneratorProfile": 1504,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraJungleN"
+    },
+    {
+      "entity": "47002056",
+      "properties": {
+        "GeneratorProfile": 1505,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraJungleS"
+    },
+    {
+      "entity": "47002057",
+      "properties": {
+        "GeneratorProfile": 1506,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_MasterArramoraMountainsN"
+    },
+    {
+      "entity": "47002058",
+      "properties": {
+        "GeneratorProfile": 1507,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_MasterArramoraMountainsS"
+    },
+    {
+      "entity": "47002059",
+      "properties": {
+        "GeneratorProfile": 1508,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraOrder"
+    },
+    {
+      "entity": "4700205A",
+      "properties": {
+        "GeneratorProfile": 1509,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterArramoraShadow"
+    },
+    {
+      "entity": "47002086",
+      "properties": {
+        "GeneratorProfile": 1489
+      },
+      "profile_name": "GP_HeroTestHoard"
+    },
+    {
+      "entity": "4700208C",
+      "properties": {
+        "GeneratorProfile": 1490
+      },
+      "profile_name": "GP_HeroTier1Hoard"
+    },
+    {
+      "entity": "4700208D",
+      "properties": {
+        "GeneratorProfile": 1491
+      },
+      "profile_name": "GP_HeroTier2Hoard"
+    },
+    {
+      "entity": "4700208E",
+      "properties": {
+        "GeneratorProfile": 1492
+      },
+      "profile_name": "GP_HeroTier3Hoard"
+    },
+    {
+      "entity": "4700208F",
+      "properties": {
+        "GeneratorProfile": 1493
+      },
+      "profile_name": "GP_HeroTier4Hoard"
+    },
+    {
+      "entity": "47002090",
+      "properties": {
+        "GeneratorProfile": 1494
+      },
+      "profile_name": "GP_HeroTier5Hoard"
+    },
+    {
+      "entity": "47002091",
+      "properties": {
+        "GeneratorProfile": 1495
+      },
+      "profile_name": "GP_HeroTier6Hoard"
+    },
+    {
+      "entity": "47002092",
+      "properties": {
+        "GeneratorProfile": 1496
+      },
+      "profile_name": "GP_HeroTier7Hoard"
+    },
+    {
+      "entity": "47002093",
+      "properties": {
+        "GeneratorProfile": 1497
+      },
+      "profile_name": "GP_HeroTier8Hoard"
+    },
+    {
+      "entity": "47002094",
+      "properties": {
+        "GeneratorProfile": 1498
+      },
+      "profile_name": "GP_HeroTier9Hoard"
+    },
+    {
+      "entity": "47002165",
+      "properties": {
+        "GeneratorProfile": 1511
+      },
+      "profile_name": "GP_ChestQuestItemsHoard"
+    },
+    {
+      "entity": "470021D6",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1545,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_AerfalleWar"
+    },
+    {
+      "entity": "470021D7",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1546,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_ArchonsWar"
+    },
+    {
+      "entity": "4700220B",
+      "properties": {
+        "GeneratorProfile": 1542
+      },
+      "profile_name": "GP_ChestPortalBeaconLinvakHoard"
+    },
+    {
+      "entity": "4700220C",
+      "properties": {
+        "GeneratorProfile": 1543
+      },
+      "profile_name": "GP_ChestPortalBeaconOmishanHoard"
+    },
+    {
+      "entity": "4700220D",
+      "properties": {
+        "GeneratorProfile": 1544
+      },
+      "profile_name": "GP_ChestPortalBeaconOstethHoard"
+    },
+    {
+      "entity": "4700226A",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1547,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_ExplosionWar"
+    },
+    {
+      "entity": "4700226F",
+      "properties": {
+        "GeneratorProfile": 1550,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOsteth"
+    },
+    {
+      "entity": "47002271",
+      "properties": {
+        "GeneratorProfile": 1550,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOsteth"
+    },
+    {
+      "entity": "47002272",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002273",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002274",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002275",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "47002276",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002277",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "47002278",
+      "properties": {
+        "GeneratorProfile": 1550,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOsteth"
+    },
+    {
+      "entity": "47002279",
+      "properties": {
+        "GeneratorProfile": 1550,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOsteth"
+    },
+    {
+      "entity": "4700227A",
+      "properties": {
+        "GeneratorProfile": 1550,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOsteth"
+    },
+    {
+      "entity": "4700227B",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "4700227C",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "4700227D",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "4700227E",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "4700227F",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002280",
+      "properties": {
+        "GeneratorProfile": 1549,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconOmishan"
+    },
+    {
+      "entity": "47002281",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "47002282",
+      "properties": {
+        "GeneratorProfile": 1548,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 360.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_PortalBeaconLinvak"
+    },
+    {
+      "entity": "47002304",
+      "properties": {
+        "GeneratorProfile": 1551,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_CorruptedSlithisPodSpawn"
+    },
+    {
+      "entity": "47002342",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1553,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Aer0CWar"
+    },
+    {
+      "entity": "47002343",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1554,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Aer1CWar"
+    },
+    {
+      "entity": "47002344",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1555,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Aer2CWar"
+    },
+    {
+      "entity": "47002345",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1556,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Aer3CWar"
+    },
+    {
+      "entity": "47002346",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1557,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Arc0CWar"
+    },
+    {
+      "entity": "47002347",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1558,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Arc1CWar"
+    },
+    {
+      "entity": "47002348",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1559,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Arc2CWar"
+    },
+    {
+      "entity": "47002349",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1560,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_Arc3CWar"
+    },
+    {
+      "entity": "47002358",
+      "properties": {
+        "GeneratorProfile": 1562,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_RabbitBrownSpawn"
+    },
+    {
+      "entity": "47002606",
+      "properties": {
+        "GeneratorProfile": 1629
+      },
+      "profile_name": "GP_MapsTier1Hoard"
+    },
+    {
+      "entity": "47002607",
+      "properties": {
+        "GeneratorProfile": 1630
+      },
+      "profile_name": "GP_MapsTier2Hoard"
+    },
+    {
+      "entity": "47002608",
+      "properties": {
+        "GeneratorProfile": 1631
+      },
+      "profile_name": "GP_MapsTier3Hoard"
+    },
+    {
+      "entity": "47002609",
+      "properties": {
+        "GeneratorProfile": 1632
+      },
+      "profile_name": "GP_MapsTier4Hoard"
+    },
+    {
+      "entity": "4700260A",
+      "properties": {
+        "GeneratorProfile": 1633
+      },
+      "profile_name": "GP_MapsTier5Hoard"
+    },
+    {
+      "entity": "4700260B",
+      "properties": {
+        "GeneratorProfile": 1634
+      },
+      "profile_name": "GP_MapsTier6Hoard"
+    },
+    {
+      "entity": "4700260C",
+      "properties": {
+        "GeneratorProfile": 1635
+      },
+      "profile_name": "GP_MapsTier7Hoard"
+    },
+    {
+      "entity": "4700260D",
+      "properties": {
+        "GeneratorProfile": 1636
+      },
+      "profile_name": "GP_MapsTier8Hoard"
+    },
+    {
+      "entity": "4700267A",
+      "properties": {
+        "GeneratorProfile": 1628
+      },
+      "profile_name": "GP_MapsTest"
+    },
+    {
+      "entity": "47002685",
+      "properties": {
+        "GeneratorProfile": 1622
+      },
+      "profile_name": "GP_ChestRareWeaponsHoard"
+    },
+    {
+      "entity": "47002686",
+      "properties": {
+        "GeneratorProfile": 1621
+      },
+      "profile_name": "GP_ChestRareTrophiesHoard"
+    },
+    {
+      "entity": "4700269A",
+      "properties": {
+        "GeneratorProfile": 1653,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_LugianRaiderLeaderSpawn"
+    },
+    {
+      "entity": "4700269E",
+      "properties": {
+        "GeneratorProfile": 1654,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0
+      },
+      "profile_name": "GP_TumerokHivekeeperLeaderSpawn"
+    },
+    {
+      "entity": "4700269F",
+      "properties": {
+        "GeneratorProfile": 1652,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_HumanRangerLeaderSpawn"
+    },
+    {
+      "entity": "470026EC",
+      "properties": {
+        "GeneratorProfile": 1629
+      },
+      "profile_name": "GP_MapsTier1Hoard"
+    },
+    {
+      "entity": "470026ED",
+      "properties": {
+        "GeneratorProfile": 1630
+      },
+      "profile_name": "GP_MapsTier2Hoard"
+    },
+    {
+      "entity": "470026EE",
+      "properties": {
+        "GeneratorProfile": 1631
+      },
+      "profile_name": "GP_MapsTier3Hoard"
+    },
+    {
+      "entity": "470026EF",
+      "properties": {
+        "GeneratorProfile": 1632
+      },
+      "profile_name": "GP_MapsTier4Hoard"
+    },
+    {
+      "entity": "470026F0",
+      "properties": {
+        "GeneratorProfile": 1633
+      },
+      "profile_name": "GP_MapsTier5Hoard"
+    },
+    {
+      "entity": "470026F1",
+      "properties": {
+        "GeneratorProfile": 1634
+      },
+      "profile_name": "GP_MapsTier6Hoard"
+    },
+    {
+      "entity": "470026F2",
+      "properties": {
+        "GeneratorProfile": 1635
+      },
+      "profile_name": "GP_MapsTier7Hoard"
+    },
+    {
+      "entity": "470026F3",
+      "properties": {
+        "GeneratorProfile": 1636
+      },
+      "profile_name": "GP_MapsTier8Hoard"
+    },
+    {
+      "entity": "47002788",
+      "properties": {
+        "GeneratorProfile": 1655,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunGrubkeeperSpawn"
+    },
+    {
+      "entity": "47002789",
+      "properties": {
+        "GeneratorProfile": 1657,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunNymphtenderSpawn"
+    },
+    {
+      "entity": "4700278A",
+      "properties": {
+        "GeneratorProfile": 1658,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunRangerSpawn"
+    },
+    {
+      "entity": "4700278B",
+      "properties": {
+        "GeneratorProfile": 1659,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunShamanHivemasterSpawn"
+    },
+    {
+      "entity": "47002792",
+      "properties": {
+        "GeneratorProfile": 1673
+      },
+      "profile_name": "GP_GurogCivilWarHoard"
+    },
+    {
+      "entity": "47002793",
+      "properties": {
+        "GeneratorProfile": 1673
+      },
+      "profile_name": "GP_GurogCivilWarHoard"
+    },
+    {
+      "entity": "4700279A",
+      "properties": {
+        "GeneratorProfile": 1660,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunSwarmwardenSpawn"
+    },
+    {
+      "entity": "4700279B",
+      "properties": {
+        "GeneratorProfile": 1656,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BurunImmortalMasterSpawn"
+    },
+    {
+      "entity": "470027E9",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1682,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_DomPortalWar"
+    },
+    {
+      "entity": "470027EA",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1683,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_OrderPortalWar"
+    },
+    {
+      "entity": "470027EB",
+      "properties": {
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorProfile": 1684,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_ShadPortalWar"
+    },
+    {
+      "entity": "4700283D",
+      "properties": {
+        "GeneratorProfile": 1710,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 30.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_TransitCCP"
+    },
+    {
+      "entity": "470028B6",
+      "properties": {
+        "GeneratorProfile": 1706
+      },
+      "profile_name": "GP_ChestCampHoardCCP"
+    },
+    {
+      "entity": "470028B7",
+      "properties": {
+        "GeneratorProfile": 1707
+      },
+      "profile_name": "GP_ChestRewardHoardCCP"
+    },
+    {
+      "entity": "470028D3",
+      "properties": {
+        "GeneratorProfile": 1708,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorToggleStateGameEvent": 1073742303
+      },
+      "profile_name": "GP_CorpseCCP"
+    },
+    {
+      "entity": "470028D4",
+      "properties": {
+        "GeneratorProfile": 1702,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_GroupCCP"
+    },
+    {
+      "entity": "470028D5",
+      "properties": {
+        "GeneratorProfile": 1703,
+        "GeneratorRegenPeriod": 120.0
+      },
+      "profile_name": "GP_SoloCCP"
+    },
+    {
+      "entity": "47002915",
+      "properties": {
+        "GeneratorProfile": 1711,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_MasterBattlegroundN"
+    },
+    {
+      "entity": "47002916",
+      "properties": {
+        "GeneratorProfile": 1712,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_MasterBattlegroundS"
+    },
+    {
+      "entity": "47002B68",
+      "properties": {
+        "GeneratorProfile": 1744,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_VirindiExecutorMobHero"
+    },
+    {
+      "entity": "47002B6D",
+      "properties": {
+        "GeneratorProfile": 1742,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_ShadowUmbrisMobHero"
+    },
+    {
+      "entity": "47002B71",
+      "properties": {
+        "GeneratorProfile": 1728,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_ClusterDimMob"
+    },
+    {
+      "entity": "47002B78",
+      "properties": {
+        "GeneratorProfile": 1743,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_ShadowVoidKnightMob"
+    },
+    {
+      "entity": "47002B7F",
+      "properties": {
+        "GeneratorProfile": 1745,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_VirindiMasterMobHero"
+    },
+    {
+      "entity": "47002B8C",
+      "properties": {
+        "GeneratorProfile": 1739,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_ShadowPanumbrisMobHero"
+    },
+    {
+      "entity": "47002BC4",
+      "properties": {
+        "GeneratorProfile": 1729,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_DomGroup35EM"
+    },
+    {
+      "entity": "47002BC5",
+      "properties": {
+        "GeneratorProfile": 1730,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_DomGroupEM"
+    },
+    {
+      "entity": "47002BC6",
+      "properties": {
+        "GeneratorProfile": 1731,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_DomSolo35EM"
+    },
+    {
+      "entity": "47002BC7",
+      "properties": {
+        "GeneratorProfile": 1732,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_DomSoloEM"
+    },
+    {
+      "entity": "47002BC8",
+      "properties": {
+        "GeneratorProfile": 1733,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_OrderGroup35EM"
+    },
+    {
+      "entity": "47002BC9",
+      "properties": {
+        "GeneratorProfile": 1734,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_OrderGroupEM"
+    },
+    {
+      "entity": "47002BCA",
+      "properties": {
+        "GeneratorProfile": 1735,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_OrderSolo35EM"
+    },
+    {
+      "entity": "47002BCB",
+      "properties": {
+        "GeneratorProfile": 1736,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_OrderSoloEM"
+    },
+    {
+      "entity": "47002BCC",
+      "properties": {
+        "GeneratorProfile": 1737,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_ShadowGroup35EM"
+    },
+    {
+      "entity": "47002BCD",
+      "properties": {
+        "GeneratorProfile": 1738,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_ShadowGroupEM"
+    },
+    {
+      "entity": "47002BCE",
+      "properties": {
+        "GeneratorProfile": 1740,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_ShadowSolo35EM"
+    },
+    {
+      "entity": "47002BCF",
+      "properties": {
+        "GeneratorProfile": 1741,
+        "GeneratorRegenPeriod": 150.0
+      },
+      "profile_name": "GP_ShadowSoloEM"
+    },
+    {
+      "entity": "47002BDE",
+      "properties": {
+        "GeneratorProfile": 1794,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BlackFerah4Spawn"
+    },
+    {
+      "entity": "47002BDF",
+      "properties": {
+        "GeneratorProfile": 1795,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BlackFerah5Spawn"
+    },
+    {
+      "entity": "47002DFE",
+      "properties": {
+        "GeneratorProfile": 1723,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinOEM"
+    },
+    {
+      "entity": "47002DFF",
+      "properties": {
+        "GeneratorProfile": 1724,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinSEM"
+    },
+    {
+      "entity": "47002E00",
+      "properties": {
+        "GeneratorProfile": 1722,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinDEM"
+    },
+    {
+      "entity": "47002E01",
+      "properties": {
+        "GeneratorProfile": 1724,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinSEM"
+    },
+    {
+      "entity": "47002E02",
+      "properties": {
+        "GeneratorProfile": 1722,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinDEM"
+    },
+    {
+      "entity": "47002E03",
+      "properties": {
+        "GeneratorProfile": 1723,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreLinOEM"
+    },
+    {
+      "entity": "47002E04",
+      "properties": {
+        "GeneratorProfile": 1726,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiOEM"
+    },
+    {
+      "entity": "47002E05",
+      "properties": {
+        "GeneratorProfile": 1727,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiSEM"
+    },
+    {
+      "entity": "47002E06",
+      "properties": {
+        "GeneratorProfile": 1725,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiDEM"
+    },
+    {
+      "entity": "47002E07",
+      "properties": {
+        "GeneratorProfile": 1727,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiSEM"
+    },
+    {
+      "entity": "47002E08",
+      "properties": {
+        "GeneratorProfile": 1725,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiDEM"
+    },
+    {
+      "entity": "47002E09",
+      "properties": {
+        "GeneratorProfile": 1726,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_BoreOmiOEM"
+    },
+    {
+      "entity": "47002E39",
+      "properties": {
+        "GeneratorProfile": 1809
+      },
+      "profile_name": "GP_AdminHeroHeirloomHoard"
+    },
+    {
+      "entity": "47002E6E",
+      "properties": {
+        "GeneratorProfile": 1810,
+        "GeneratorRegenPeriod": 180.0
+      },
+      "profile_name": "GP_MasterGevothSouth2"
+    },
+    {
+      "entity": "47002E6F",
+      "properties": {
+        "GeneratorProfile": 1811,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorToggleStateGameEvent": 1073742389
+      },
+      "profile_name": "GP_GGWInvadedGroup"
+    },
+    {
+      "entity": "47002E70",
+      "properties": {
+        "GeneratorProfile": 1812,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorToggleStateGameEvent": 1073742389
+      },
+      "profile_name": "GP_GGWInvadedSolo"
+    },
+    {
+      "entity": "47002E71",
+      "properties": {
+        "GeneratorProfile": 1813,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorToggleStateGameEvent": 1073742390
+      },
+      "profile_name": "GP_GGWNormal"
+    },
+    {
+      "entity": "47002E8D",
+      "properties": {
+        "GeneratorProfile": 1814,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_SlithisSpawnSpawn"
+    },
+    {
+      "entity": "47002EED",
+      "properties": {
+        "GeneratorProfile": 1814,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 300.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_SlithisSpawnSpawn"
+    },
+    {
+      "entity": "47002F98",
+      "properties": {
+        "GeneratorProfile": 840
+      },
+      "profile_name": "GP_CommonCraftMoteHoard"
+    },
+    {
+      "entity": "47002F99",
+      "properties": {
+        "GeneratorProfile": 1833
+      },
+      "profile_name": "GP_CommonCraftTrophiesHoard"
+    },
+    {
+      "entity": "47002FBD",
+      "properties": {
+        "GeneratorProfile": 1855
+      },
+      "profile_name": "GP_ChestCorruptorsHoard"
+    },
+    {
+      "entity": "47003328",
+      "properties": {
+        "GeneratorProfile": 1877,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_FacetLostArtifacts"
+    },
+    {
+      "entity": "4700332A",
+      "properties": {
+        "GeneratorProfile": 1877,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_FacetLostArtifacts"
+    },
+    {
+      "entity": "4700332C",
+      "properties": {
+        "GeneratorProfile": 1877,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_FacetLostArtifacts"
+    },
+    {
+      "entity": "4700332D",
+      "properties": {
+        "GeneratorProfile": 1877,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorRegenPeriod": 75.0,
+        "GeneratorExitWorldBehavior": 2
+      },
+      "profile_name": "GP_FacetLostArtifacts"
+    },
+    {
+      "entity": "47003481",
+      "properties": {
+        "GeneratorProfile": 1890,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742407
+      },
+      "profile_name": "GP_SurfaceCI"
+    },
+    {
+      "entity": "47003482",
+      "properties": {
+        "GeneratorProfile": 1889,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorToggleStateGameEvent": 1073742410
+      },
+      "profile_name": "GP_SurfaceBossCI"
+    },
+    {
+      "entity": "47003483",
+      "properties": {
+        "GeneratorProfile": 1890,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742405
+      },
+      "profile_name": "GP_SurfaceCI"
+    },
+    {
+      "entity": "47003484",
+      "properties": {
+        "GeneratorProfile": 1890,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742403
+      },
+      "profile_name": "GP_SurfaceCI"
+    },
+    {
+      "entity": "47003485",
+      "properties": {
+        "GeneratorProfile": 1890,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742401
+      },
+      "profile_name": "GP_SurfaceCI"
+    },
+    {
+      "entity": "47003486",
+      "properties": {
+        "GeneratorProfile": 1891,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742407
+      },
+      "profile_name": "GP_SurfaceSceneCI"
+    },
+    {
+      "entity": "47003487",
+      "properties": {
+        "GeneratorProfile": 1891,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742405
+      },
+      "profile_name": "GP_SurfaceSceneCI"
+    },
+    {
+      "entity": "47003488",
+      "properties": {
+        "GeneratorProfile": 1891,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742403
+      },
+      "profile_name": "GP_SurfaceSceneCI"
+    },
+    {
+      "entity": "47003489",
+      "properties": {
+        "GeneratorProfile": 1891,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742401
+      },
+      "profile_name": "GP_SurfaceSceneCI"
+    },
+    {
+      "entity": "47003493",
+      "properties": {
+        "GeneratorProfile": 1499,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742408
+      },
+      "profile_name": "GP_MasterArramoraDeltaE"
+    },
+    {
+      "entity": "47003494",
+      "properties": {
+        "GeneratorProfile": 1234,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742402
+      },
+      "profile_name": "GP_MasterArtefon3"
+    },
+    {
+      "entity": "47003495",
+      "properties": {
+        "GeneratorProfile": 223,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742406
+      },
+      "profile_name": "GP_MasterOriadSouth2"
+    },
+    {
+      "entity": "47003496",
+      "properties": {
+        "GeneratorProfile": 305,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorToggleStateGameEvent": 1073742404
+      },
+      "profile_name": "GP_MasterVesayenSouth1"
+    },
+    {
+      "entity": "470034A0",
+      "properties": {
+        "GeneratorProfile": 1892,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterArramoraDeltaEHubCI"
+    },
+    {
+      "entity": "470034A1",
+      "properties": {
+        "GeneratorProfile": 1894,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterOriadSouth2HubCI"
+    },
+    {
+      "entity": "470034A2",
+      "properties": {
+        "GeneratorProfile": 1895,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterVesayenSouth1HubCI"
+    },
+    {
+      "entity": "470034A3",
+      "properties": {
+        "GeneratorProfile": 1893,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_MasterArtefon3HubCI"
+    },
+    {
+      "entity": "470034F4",
+      "properties": {
+        "GeneratorProfile": 1898
+      },
+      "profile_name": "GP_LiveOpHoard"
+    },
+    {
+      "entity": "470034F6",
+      "properties": {
+        "GeneratorProfile": 1896
+      },
+      "profile_name": "GP_LDShadowVaultHoard"
+    },
+    {
+      "entity": "470035B7",
+      "properties": {
+        "GeneratorProfile": 1899
+      },
+      "profile_name": "GP_ChestEnvoyHoard"
+    },
+    {
+      "entity": "47003668",
+      "properties": {
+        "GeneratorProfile": 1901
+      },
+      "profile_name": "GP_PumpkinFrenzy"
+    },
+    {
+      "entity": "470036E4",
+      "properties": {
+        "GeneratorProfile": 1904
+      },
+      "profile_name": "GP_CorpseHoardATL"
+    },
+    {
+      "entity": "470036E5",
+      "properties": {
+        "GeneratorProfile": 1903,
+        "GeneratorRegenPeriod": 180.0,
+        "GeneratorDontCheckpoint": 1
+      },
+      "profile_name": "GP_CorpseATL"
+    },
+    {
+      "entity": "470037D6",
+      "properties": {
+        "GeneratorProfile": 2113
+      },
+      "profile_name": "GP_KnorrTestHoard"
+    },
+    {
+      "entity": "47003901",
+      "properties": {
+        "GeneratorProfile": 2045
+      },
+      "profile_name": "GP_CorpseGeneralDreyvonAG"
+    },
+    {
+      "entity": "47003902",
+      "properties": {
+        "GeneratorProfile": 2046
+      },
+      "profile_name": "GP_CorpseGeneralSaroceteAG"
+    },
+    {
+      "entity": "4700399A",
+      "properties": {
+        "GeneratorProfile": 2098
+      },
+      "profile_name": "GP_ChestDianechArchiveHoard"
+    },
+    {
+      "entity": "47003B70",
+      "properties": {
+        "GeneratorProfile": 2044
+      },
+      "profile_name": "GP_CorpseBaronColierAG"
+    },
+    {
+      "entity": "47003B78",
+      "properties": {
+        "GeneratorProfile": 1921,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Scraven"
+    },
+    {
+      "entity": "47003B79",
+      "properties": {
+        "GeneratorProfile": 1922,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Wasp"
+    },
+    {
+      "entity": "47003B7A",
+      "properties": {
+        "GeneratorProfile": 1918,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Kallikan"
+    },
+    {
+      "entity": "47003B7B",
+      "properties": {
+        "GeneratorProfile": 1919,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Levannath"
+    },
+    {
+      "entity": "47003B7C",
+      "properties": {
+        "GeneratorProfile": 1917,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Banderling"
+    },
+    {
+      "entity": "47003B7D",
+      "properties": {
+        "GeneratorProfile": 1932,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2Knights"
+    },
+    {
+      "entity": "47003B7E",
+      "properties": {
+        "GeneratorProfile": 1934,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2Revenant"
+    },
+    {
+      "entity": "47003B7F",
+      "properties": {
+        "GeneratorProfile": 1935,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2Riders"
+    },
+    {
+      "entity": "47003B80",
+      "properties": {
+        "GeneratorProfile": 1933,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2Mumiyah"
+    },
+    {
+      "entity": "47003B81",
+      "properties": {
+        "GeneratorProfile": 1930,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2Golem"
+    },
+    {
+      "entity": "47003B82",
+      "properties": {
+        "GeneratorProfile": 1931,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr2HighUndead"
+    },
+    {
+      "entity": "47003B83",
+      "properties": {
+        "GeneratorProfile": 1946,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Scraven"
+    },
+    {
+      "entity": "47003B84",
+      "properties": {
+        "GeneratorProfile": 1944,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Levannath"
+    },
+    {
+      "entity": "47003B85",
+      "properties": {
+        "GeneratorProfile": 1943,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Kallikan"
+    },
+    {
+      "entity": "47003B86",
+      "properties": {
+        "GeneratorProfile": 1942,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Felsister"
+    },
+    {
+      "entity": "47003B87",
+      "properties": {
+        "GeneratorProfile": 1941,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Falatacot"
+    },
+    {
+      "entity": "47003B88",
+      "properties": {
+        "GeneratorProfile": 1945,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr3Moarsman"
+    },
+    {
+      "entity": "47003B89",
+      "properties": {
+        "GeneratorProfile": 1960,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Legionary"
+    },
+    {
+      "entity": "47003B8A",
+      "properties": {
+        "GeneratorProfile": 1954,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Colossus"
+    },
+    {
+      "entity": "47003B8B",
+      "properties": {
+        "GeneratorProfile": 1963,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Takeru"
+    },
+    {
+      "entity": "47003B8C",
+      "properties": {
+        "GeneratorProfile": 1962,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Olthoi"
+    },
+    {
+      "entity": "47003B8D",
+      "properties": {
+        "GeneratorProfile": 1953,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Banderling"
+    },
+    {
+      "entity": "47003B8E",
+      "properties": {
+        "GeneratorProfile": 1961,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Levannath"
+    },
+    {
+      "entity": "47003B8F",
+      "properties": {
+        "GeneratorProfile": 1959,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Kallikan"
+    },
+    {
+      "entity": "47003B90",
+      "properties": {
+        "GeneratorProfile": 1964,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Wasp"
+    },
+    {
+      "entity": "47003B91",
+      "properties": {
+        "GeneratorProfile": 1958,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4Grievver"
+    },
+    {
+      "entity": "47003B92",
+      "properties": {
+        "GeneratorProfile": 1957,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4FalatacotWarder"
+    },
+    {
+      "entity": "47003B93",
+      "properties": {
+        "GeneratorProfile": 1956,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4FalatacotMagus"
+    },
+    {
+      "entity": "47003B94",
+      "properties": {
+        "GeneratorProfile": 1955,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr4FalatacotExemplar"
+    },
+    {
+      "entity": "47003B95",
+      "properties": {
+        "GeneratorProfile": 1976,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5Legionary"
+    },
+    {
+      "entity": "47003B96",
+      "properties": {
+        "GeneratorProfile": 1971,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5Colossus"
+    },
+    {
+      "entity": "47003B97",
+      "properties": {
+        "GeneratorProfile": 1979,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5Takeru"
+    },
+    {
+      "entity": "47003B98",
+      "properties": {
+        "GeneratorProfile": 1973,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5FalatacotMagus"
+    },
+    {
+      "entity": "47003B99",
+      "properties": {
+        "GeneratorProfile": 1972,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5FalatacotExemplar"
+    },
+    {
+      "entity": "47003B9A",
+      "properties": {
+        "GeneratorProfile": 1974,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5FalatacotWarder"
+    },
+    {
+      "entity": "47003B9B",
+      "properties": {
+        "GeneratorProfile": 1975,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5Grievver"
+    },
+    {
+      "entity": "47003B9C",
+      "properties": {
+        "GeneratorProfile": 1978,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5OlthoiPraetor"
+    },
+    {
+      "entity": "47003B9D",
+      "properties": {
+        "GeneratorProfile": 1977,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr5OlthoiBroodNoble"
+    },
+    {
+      "entity": "47003B9E",
+      "properties": {
+        "GeneratorProfile": 1920,
+        "GeneratorRegenPeriod": 1200.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CampKnorr1Monouga"
+    },
+    {
+      "entity": "47003B9F",
+      "properties": {
+        "GeneratorProfile": 1923,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1a"
+    },
+    {
+      "entity": "47003BA0",
+      "properties": {
+        "GeneratorProfile": 1924,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1b"
+    },
+    {
+      "entity": "47003BA1",
+      "properties": {
+        "GeneratorProfile": 1925,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1c"
+    },
+    {
+      "entity": "47003BA2",
+      "properties": {
+        "GeneratorProfile": 1926,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1d"
+    },
+    {
+      "entity": "47003BA3",
+      "properties": {
+        "GeneratorProfile": 1927,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1e"
+    },
+    {
+      "entity": "47003BA4",
+      "properties": {
+        "GeneratorProfile": 1928,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1f"
+    },
+    {
+      "entity": "47003BA5",
+      "properties": {
+        "GeneratorProfile": 1936,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr2a"
+    },
+    {
+      "entity": "47003BA6",
+      "properties": {
+        "GeneratorProfile": 1937,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr2b"
+    },
+    {
+      "entity": "47003BA7",
+      "properties": {
+        "GeneratorProfile": 1938,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr2c"
+    },
+    {
+      "entity": "47003BA8",
+      "properties": {
+        "GeneratorProfile": 1939,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr2d"
+    },
+    {
+      "entity": "47003BA9",
+      "properties": {
+        "GeneratorProfile": 1940,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr2e"
+    },
+    {
+      "entity": "47003BAA",
+      "properties": {
+        "GeneratorProfile": 1947,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3a"
+    },
+    {
+      "entity": "47003BAB",
+      "properties": {
+        "GeneratorProfile": 1948,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3b"
+    },
+    {
+      "entity": "47003BAC",
+      "properties": {
+        "GeneratorProfile": 1949,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3c"
+    },
+    {
+      "entity": "47003BAD",
+      "properties": {
+        "GeneratorProfile": 1950,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3d"
+    },
+    {
+      "entity": "47003BAE",
+      "properties": {
+        "GeneratorProfile": 1951,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3e"
+    },
+    {
+      "entity": "47003BAF",
+      "properties": {
+        "GeneratorProfile": 1952,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr3f"
+    },
+    {
+      "entity": "47003BB0",
+      "properties": {
+        "GeneratorProfile": 1965,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4a"
+    },
+    {
+      "entity": "47003BB1",
+      "properties": {
+        "GeneratorProfile": 1966,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4b"
+    },
+    {
+      "entity": "47003BB2",
+      "properties": {
+        "GeneratorProfile": 1967,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4c"
+    },
+    {
+      "entity": "47003BB3",
+      "properties": {
+        "GeneratorProfile": 1968,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4d"
+    },
+    {
+      "entity": "47003BB4",
+      "properties": {
+        "GeneratorProfile": 1969,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4e"
+    },
+    {
+      "entity": "47003BB5",
+      "properties": {
+        "GeneratorProfile": 1970,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr4f"
+    },
+    {
+      "entity": "47003BB6",
+      "properties": {
+        "GeneratorProfile": 1980,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5a"
+    },
+    {
+      "entity": "47003BB7",
+      "properties": {
+        "GeneratorProfile": 1981,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5b"
+    },
+    {
+      "entity": "47003BB8",
+      "properties": {
+        "GeneratorProfile": 1986,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742489
+      },
+      "profile_name": "GP_MasterKnorr5FalatacotSolo"
+    },
+    {
+      "entity": "47003BB9",
+      "properties": {
+        "GeneratorProfile": 1989,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742493
+      },
+      "profile_name": "GP_MasterKnorr5OlthoiSolo"
+    },
+    {
+      "entity": "47003BBA",
+      "properties": {
+        "GeneratorProfile": 1986,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5FalatacotSolo"
+    },
+    {
+      "entity": "47003BBB",
+      "properties": {
+        "GeneratorProfile": 1984,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742488
+      },
+      "profile_name": "GP_MasterKnorr5e"
+    },
+    {
+      "entity": "47003BBC",
+      "properties": {
+        "GeneratorProfile": 1988,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742492
+      },
+      "profile_name": "GP_MasterKnorr5h"
+    },
+    {
+      "entity": "47003BBD",
+      "properties": {
+        "GeneratorProfile": 1984,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5e"
+    },
+    {
+      "entity": "47003BBE",
+      "properties": {
+        "GeneratorProfile": 1986,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742490
+      },
+      "profile_name": "GP_MasterKnorr5FalatacotSolo"
+    },
+    {
+      "entity": "47003BBF",
+      "properties": {
+        "GeneratorProfile": 1989,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742494
+      },
+      "profile_name": "GP_MasterKnorr5OlthoiSolo"
+    },
+    {
+      "entity": "47003BC0",
+      "properties": {
+        "GeneratorProfile": 1989,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5OlthoiSolo"
+    },
+    {
+      "entity": "47003BC1",
+      "properties": {
+        "GeneratorProfile": 1984,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742491
+      },
+      "profile_name": "GP_MasterKnorr5e"
+    },
+    {
+      "entity": "47003BC2",
+      "properties": {
+        "GeneratorProfile": 1988,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1,
+        "GeneratorToggleStateGameEvent": 1073742495
+      },
+      "profile_name": "GP_MasterKnorr5h"
+    },
+    {
+      "entity": "47003BC3",
+      "properties": {
+        "GeneratorProfile": 1988,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5h"
+    },
+    {
+      "entity": "47003BC9",
+      "properties": {
+        "GeneratorProfile": 2047
+      },
+      "profile_name": "GP_CorpseLordNuvillusAG"
+    },
+    {
+      "entity": "47003BD6",
+      "properties": {
+        "GeneratorProfile": 1929,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr1g"
+    },
+    {
+      "entity": "47003C43",
+      "properties": {
+        "GeneratorProfile": 2083
+      },
+      "profile_name": "GP_CorpseAerfalleFoundry"
+    },
+    {
+      "entity": "47003C44",
+      "properties": {
+        "GeneratorProfile": 2084
+      },
+      "profile_name": "GP_CorpseGolemPortalFoundry"
+    },
+    {
+      "entity": "47003C45",
+      "properties": {
+        "GeneratorProfile": 2085
+      },
+      "profile_name": "GP_CorpseRefineryChiefFoundry"
+    },
+    {
+      "entity": "47003C46",
+      "properties": {
+        "GeneratorProfile": 2086
+      },
+      "profile_name": "GP_CorpseSmithFoundry"
+    },
+    {
+      "entity": "47003C7F",
+      "properties": {
+        "GeneratorProfile": 2080
+      },
+      "profile_name": "GP_CryptChestHoard"
+    },
+    {
+      "entity": "47003E3B",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47003E3C",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47003E3D",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47003E3E",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47003E3F",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47003E40",
+      "properties": {
+        "GeneratorProfile": 2069
+      },
+      "profile_name": "GP_ChromaChestHoard"
+    },
+    {
+      "entity": "47004048",
+      "properties": {
+        "GeneratorProfile": 2126
+      },
+      "profile_name": "GP_ChestTreasuryEerukHoardEmpyrean"
+    },
+    {
+      "entity": "4700405F",
+      "properties": {
+        "GeneratorProfile": 2072
+      },
+      "profile_name": "GP_CAExcavationMap1Hoard"
+    },
+    {
+      "entity": "47004060",
+      "properties": {
+        "GeneratorProfile": 2073
+      },
+      "profile_name": "GP_CAExcavationMap2Hoard"
+    },
+    {
+      "entity": "47004061",
+      "properties": {
+        "GeneratorProfile": 2074
+      },
+      "profile_name": "GP_CAExcavationMap3Hoard"
+    },
+    {
+      "entity": "47004062",
+      "properties": {
+        "GeneratorProfile": 2075
+      },
+      "profile_name": "GP_CAExcavationMap4Hoard"
+    },
+    {
+      "entity": "47004063",
+      "properties": {
+        "GeneratorProfile": 2076
+      },
+      "profile_name": "GP_CAExcavationMap5Hoard"
+    },
+    {
+      "entity": "47004064",
+      "properties": {
+        "GeneratorProfile": 2077
+      },
+      "profile_name": "GP_CAExcavationMap6Hoard"
+    },
+    {
+      "entity": "47004065",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004066",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004067",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004068",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004069",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406A",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406B",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406C",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406D",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406E",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "4700406F",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004070",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004071",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004072",
+      "properties": {
+        "GeneratorProfile": 2071
+      },
+      "profile_name": "GP_CAExcavationLootHoard"
+    },
+    {
+      "entity": "47004088",
+      "properties": {
+        "GeneratorProfile": 2117
+      },
+      "profile_name": "GP_KnorrTier1Hoard"
+    },
+    {
+      "entity": "47004089",
+      "properties": {
+        "GeneratorProfile": 2118
+      },
+      "profile_name": "GP_KnorrTier2Hoard"
+    },
+    {
+      "entity": "4700408A",
+      "properties": {
+        "GeneratorProfile": 2119
+      },
+      "profile_name": "GP_KnorrTier3Hoard"
+    },
+    {
+      "entity": "4700408B",
+      "properties": {
+        "GeneratorProfile": 2120
+      },
+      "profile_name": "GP_KnorrTier4Hoard"
+    },
+    {
+      "entity": "4700408C",
+      "properties": {
+        "GeneratorProfile": 2121
+      },
+      "profile_name": "GP_KnorrTier5Hoard"
+    },
+    {
+      "entity": "4700408D",
+      "properties": {
+        "GeneratorProfile": 2122
+      },
+      "profile_name": "GP_KnorrTier6Hoard"
+    },
+    {
+      "entity": "4700408E",
+      "properties": {
+        "GeneratorProfile": 2123
+      },
+      "profile_name": "GP_KnorrTier7Hoard"
+    },
+    {
+      "entity": "4700408F",
+      "properties": {
+        "GeneratorProfile": 2124
+      },
+      "profile_name": "GP_KnorrTier8Hoard"
+    },
+    {
+      "entity": "47004090",
+      "properties": {
+        "GeneratorProfile": 2125
+      },
+      "profile_name": "GP_KnorrTier9Hoard"
+    },
+    {
+      "entity": "47004091",
+      "properties": {
+        "GeneratorProfile": 2114
+      },
+      "profile_name": "GP_KnorrTier10Hoard"
+    },
+    {
+      "entity": "47004092",
+      "properties": {
+        "GeneratorProfile": 2115
+      },
+      "profile_name": "GP_KnorrTier11Hoard"
+    },
+    {
+      "entity": "47004093",
+      "properties": {
+        "GeneratorProfile": 2116
+      },
+      "profile_name": "GP_KnorrTier12Hoard"
+    },
+    {
+      "entity": "470040F7",
+      "properties": {
+        "GeneratorProfile": 2103
+      },
+      "profile_name": "GP_CorpseGolemBoneZTBookFoundry"
+    },
+    {
+      "entity": "470040F8",
+      "properties": {
+        "GeneratorProfile": 2104
+      },
+      "profile_name": "GP_CorpseSkeletonBonesCursedZTPasskey"
+    },
+    {
+      "entity": "470040F9",
+      "properties": {
+        "GeneratorProfile": 2105
+      },
+      "profile_name": "GP_CorpseUndeadLichLordZTGlyph2"
+    },
+    {
+      "entity": "470040FA",
+      "properties": {
+        "GeneratorProfile": 2106
+      },
+      "profile_name": "GP_CorpseUndeadLichLordZTGolemHeartHOS"
+    },
+    {
+      "entity": "470040FB",
+      "properties": {
+        "GeneratorProfile": 2107
+      },
+      "profile_name": "GP_CorpseUndeadLichLordZTScrollTroopStatusAG"
+    },
+    {
+      "entity": "470040FC",
+      "properties": {
+        "GeneratorProfile": 2108
+      },
+      "profile_name": "GP_CorpseUndeadLichMagisterZTGlyph3"
+    },
+    {
+      "entity": "470040FD",
+      "properties": {
+        "GeneratorProfile": 2109
+      },
+      "profile_name": "GP_CorpseUndeadLichZTDirectionsBurialGrounds"
+    },
+    {
+      "entity": "470040FE",
+      "properties": {
+        "GeneratorProfile": 2110
+      },
+      "profile_name": "GP_CorpseUndeadLichZTDirectionsShipyard"
+    },
+    {
+      "entity": "470040FF",
+      "properties": {
+        "GeneratorProfile": 2111
+      },
+      "profile_name": "GP_CorpseUndeadLichZTGlyph1"
+    },
+    {
+      "entity": "47004141",
+      "properties": {
+        "GeneratorProfile": 2097
+      },
+      "profile_name": "GP_ChestSiegeStoresHoard"
+    },
+    {
+      "entity": "47004142",
+      "properties": {
+        "GeneratorProfile": 2094
+      },
+      "profile_name": "GP_ChestRegion3MapquestHoard"
+    },
+    {
+      "entity": "47004143",
+      "properties": {
+        "GeneratorProfile": 2095
+      },
+      "profile_name": "GP_ChestRegion4MapquestHoard"
+    },
+    {
+      "entity": "47004144",
+      "properties": {
+        "GeneratorProfile": 2096
+      },
+      "profile_name": "GP_ChestRegion5MapquestHoard"
+    },
+    {
+      "entity": "47004145",
+      "properties": {
+        "GeneratorProfile": 2092
+      },
+      "profile_name": "GP_ChestRegion1MapquestHoard"
+    },
+    {
+      "entity": "47004146",
+      "properties": {
+        "GeneratorProfile": 2093
+      },
+      "profile_name": "GP_ChestRegion2MapquestHoard"
+    },
+    {
+      "entity": "4700417C",
+      "properties": {
+        "GeneratorProfile": 2101
+      },
+      "profile_name": "GP_MapRoomKeyHoardTO"
+    },
+    {
+      "entity": "4700417D",
+      "properties": {
+        "GeneratorProfile": 2102
+      },
+      "profile_name": "GP_StoreroomKeyHoardTO"
+    },
+    {
+      "entity": "470041DD",
+      "properties": {
+        "GeneratorProfile": 1907
+      },
+      "profile_name": "GP_CorpseProspectorHoardKnorr"
+    },
+    {
+      "entity": "470041E9",
+      "properties": {
+        "GeneratorProfile": 1908
+      },
+      "profile_name": "GP_CorpseProspectorHoardLinvak"
+    },
+    {
+      "entity": "470041F4",
+      "properties": {
+        "GeneratorProfile": 1909
+      },
+      "profile_name": "GP_CorpseProspectorHoardOmishan"
+    },
+    {
+      "entity": "470041F9",
+      "properties": {
+        "GeneratorProfile": 1910
+      },
+      "profile_name": "GP_CorpseProspectorHoardOsteth"
+    },
+    {
+      "entity": "4700423E",
+      "properties": {
+        "GeneratorProfile": 2070
+      },
+      "profile_name": "GP_CAChestHoard"
+    },
+    {
+      "entity": "47004286",
+      "properties": {
+        "GeneratorProfile": 1982,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5c_Event"
+    },
+    {
+      "entity": "47004287",
+      "properties": {
+        "GeneratorProfile": 1983,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5d_Event"
+    },
+    {
+      "entity": "47004288",
+      "properties": {
+        "GeneratorProfile": 1985,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5f_Event"
+    },
+    {
+      "entity": "47004289",
+      "properties": {
+        "GeneratorProfile": 1987,
+        "GeneratorRegenPeriod": 150.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_MasterKnorr5g_Event"
+    },
+    {
+      "entity": "470042D1",
+      "properties": {
+        "GeneratorProfile": 1915,
+        "GeneratorRegenPeriod": 1800.0,
+        "GeneratorDontCheckpoint": 1,
+        "GeneratorExitWorldBehavior": 1
+      },
+      "profile_name": "GP_CorpsesBonusTrait"
+    },
+    {
+      "entity": "47004332",
+      "properties": {
+        "GeneratorProfile": 2112
+      },
+      "profile_name": "GP_ZTChestHoard"
+    }
+  ],
+  "placements": [],
+  "limitation": "Profile labels and template properties do not provide child lists, spawn regions, probabilities or population sizes. Do not bind them to captured monsters by name.",
+  "inputs": {
+    "portal.dat": "8246734e39fa81eec49d4fffe9560ae25c2a9424b37b15d39330aab2650294ed",
+    "cell_1.dat": "efd347b61f3a5dd1c343d26276c50551fc1985c25e05dc5f5b58e896a9339f9a",
+    "population_audit": "cd6b6e588d603f9bd21b686ef246b168c89ca0995a301078c8a0b08d1dc5e9ff"
+  }
+}

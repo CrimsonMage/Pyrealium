@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "policy": "Authored workshop yards. Native ground validation required; approximate settlement anchors, not captured retail placements.",
+  "npcs": [
+    {
+      "id": 9313444029404282880,
+      "entity": 1191184428,
+      "land": [
+        958.53,
+        1469.3
+      ],
+      "evidence": {
+        "name": "Arwic",
+        "land": [
+          957.78,
+          1468.8
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282881,
+      "entity": 1191184429,
+      "land": [
+        959.28,
+        1469.3
+      ],
+      "evidence": {
+        "name": "Arwic",
+        "land": [
+          957.78,
+          1468.8
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282882,
+      "entity": 1191184430,
+      "land": [
+        960.03,
+        1469.3
+      ],
+      "evidence": {
+        "name": "Arwic",
+        "land": [
+          957.78,
+          1468.8
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282896,
+      "entity": 1191184428,
+      "land": [
+        900.39,
+        1366.28
+      ],
+      "evidence": {
+        "name": "Cragstone",
+        "land": [
+          899.64,
+          1365.78
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282897,
+      "entity": 1191184429,
+      "land": [
+        901.14,
+        1366.28
+      ],
+      "evidence": {
+        "name": "Cragstone",
+        "land": [
+          899.64,
+          1365.78
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282898,
+      "entity": 1191184430,
+      "land": [
+        901.89,
+        1366.28
+      ],
+      "evidence": {
+        "name": "Cragstone",
+        "land": [
+          899.64,
+          1365.78
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282912,
+      "entity": 1191184428,
+      "land": [
+        1306.544999315,
+        1186.015000345
+      ],
+      "evidence": {
+        "name": "Observed Omishan workshop",
+        "land": [
+          1305.794999315,
+          1185.515000345
+        ]
+      }
+    },
+    {
+      "id": 9313444029404282914,
+      "entity": 1191184430,
+      "land": [
+        1308.044999315,
+        1186.015000345
+      ],
+      "evidence": {
+        "name": "Observed Omishan workshop",
+        "land": [
+          1305.794999315,
+          1185.515000345
+        ]
+      }
+    }
+  ],
+  "camps": [],
+  "templates": {
+    "1191184428": {
+      "visual": 520095322,
+      "name": "Crafting Workshop"
+    },
+    "1191184429": {
+      "visual": 520095082,
+      "name": "Refining Workshop"
+    },
+    "1191184430": {
+      "visual": 520095079,
+      "name": "Spellbinding Workshop"
+    }
+  }
+}

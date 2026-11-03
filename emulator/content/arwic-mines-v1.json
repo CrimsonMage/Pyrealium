@@ -1,0 +1,90 @@
+{
+  "version": 1,
+  "title": "Arwic Mines and Crafting Quest",
+  "summary": "In return for clearing out the Drudges who have overrun the New Arwic Mines, the Mines Overseer has promised to reward you with crafting lessons and experience.",
+  "phases": [
+    "Leave town to the north and go east to the New Arwic Mines. Fight the Drudge Outcasts within to retrieve one of the miners' flat hammers.\n\nThe Overseer told you, \"Arwic's rebuilding efforts have stalled! Supplies were cut off when the Drudge Outcasts overran my mines. The miners dropped their flat hammers during their escape. If you clear out the Drudges and return with a hammer, I will teach you the basics of crafting.\"",
+    "Return to the Arwic Mines Overseer.",
+    "Use the special quest recipe to craft an Arwic Mines Short Sword.\n\nThe Mines Overseer told you, \"Click on the Craft Tab in your Skill panel. I have put a recipe for an Arwic Mines Short sword into your Quest recipes. Examine it to learn how to make the sword. When you succeed, give it to me so I can inspect your progress!\"",
+    "The Mines Overseer told you, \"When you suceed in making the Arwic Mines Short Sword, give me the short sword so I can inspect your progress!\""
+  ],
+  "items": [
+    {
+      "id": 1191187881,
+      "name": "Crude Flat Hammer",
+      "visual": 520097175,
+      "physical": 1191187927,
+      "quality_hash": "2c23e007d63bb95e"
+    },
+    {
+      "id": 1191187882,
+      "name": "Arwic Mines Short Sword",
+      "visual": 520094968,
+      "physical": 1191183662,
+      "quality_hash": "d6f2e4fdf1ebc161"
+    },
+    {
+      "id": 1191186675,
+      "name": "Iron",
+      "visual": 520094260,
+      "physical": 1191182944,
+      "quality_hash": "de67da3f9d6c205d"
+    },
+    {
+      "id": 1191186591,
+      "name": "Arwic Outlands Glyph",
+      "visual": 520094159,
+      "physical": 1191182954,
+      "quality_hash": "1b88f9fcdd175fb1"
+    },
+    {
+      "id": 1191192855,
+      "name": "The Shaper's Guide",
+      "visual": 520097240,
+      "physical": 1191188075,
+      "quality_hash": "188c16e7e767b00a"
+    }
+  ],
+  "evidence": {
+    "url": "http://ac2wiki.info/index.php/Arwic_Mines_and_Crafting_Quest",
+    "html_sha256": "191c750fa8d0ea10439583c03cc22e21f7cd13ee60a0858f31eec2a547e34700",
+    "recipe": "6f001f0e",
+    "recipe_sha256": "1b85de8b8dad07d91cd89623423de57728f76e8e9239303e45ed54da8e5ff299",
+    "guide_table": "25007a50",
+    "guide_page_keys": [
+      "a2f04c08",
+      "a2f04f08",
+      "a2f04e08",
+      "a2f04908",
+      "a2f04808",
+      "a2f04b08",
+      "a2f04a08",
+      "a2f04508",
+      "a2f04408",
+      "a2f04c68",
+      "a2f04c6a",
+      "a2f04c6c",
+      "a2f04c6e",
+      "a2f04c60",
+      "a2f04c62"
+    ]
+  },
+  "policy": "Native quest, recipe and item identities. Historical guide: 20 Iron, retained hammer, 150 XP, glyph/book, 20-hour repeat. Quest hammer drops guaranteed once per eligible player from mine Outcasts; exact retail probability is unavailable. A retained hammer may be reused on repeat; the book cycles through 15 native pages in the notice/chat presentation.",
+  "guide_pages": [
+    "Introduction Greetings from the Brotherhood of Shapers! We are a fellowship dedicated to restoring the arts of Golden Age craftsmanship to Auberean. Our methods blend mundane and magical techniques to create artifacts of surpassing quality. If you are clever, industrious, and ready to learn, you too can become a Master Shaper! Raw Materials: Surveying and Mining Never doubt that Surveying and Mining are noble occupations, for all craftsmanship springs from the gifts of Auberean.",
+    "The Brotherhood recognizes five Mined Traits: IRON holds the sharpest edge of all base metals. SILVER is precious to the spirits of Dereth. CRYSTAL focuses and reflects magical power. STONE can withstand great punishment in battle. WOOD is indispensable for stout bows and staves. Dereth's crafters once relied on a few deep mines that were dug before the Devastation.",
+    "Those mines are exhausted, and now Surveyors must search the wilderness for new raw materials to mine. A typical Surveying and Mining expedition follows these steps: 1. Use your Surveying skill to create a map for the Trait you want to harvest and the continent you want to explore. 2. Travel to the coordinates indicated on the map, or allow a Brotherhood Cartomancer (located in all capital cities) to teleport you to the map's general region free of",
+    "charge. 3. Explore the surrounding area until you reach the exact point indicated on your map. Using the map at this location will uncover new raw materials. 4. While holding the correct Mining Tool, harvest the materials you just discovered. You will need a Pickaxe to mine Iron, a Mattock to mine Silver, a Chisel to mine Crystal, a Rock Hammer to mine Stone, and a Hatchet to mine Wood. The most important factor in Mining efficiency is the quality of your tool. Always wield the best tool you can handle!",
+    "Raw Materials: Butchering Some of Auberean's gifts are harvested from the bodies of slain beasts. There are five Butchered Traits which may be recovered: BONE may be carved into intricate grips and fittings. CHITIN from hard-shelled creatures is strong and resilient. HIDE keeps out winter cold and absorbs the shock of crushing blows. SINEW is perfect for stringing bows and binding things together. TALLOW is used in weatherproofing and the curing of raw materials. To gather these Traits, you will need a Hunting Knife.",
+    "Simply use your Hunting Knife on any corpse, and you'll recover its useful parts. Even more than Mining, Butchering is dependent on the quality of your tool. Learning to use better Hunting Knives will increase your profits considerably. Raw Materials: Refining The greatest artifacts require advanced materials that can't be found in nature. Instead, a skilled Refiner must combine Mined Traits at a Refining Workshop to create them.",
+    "There are five Refined Traits: STEEL, created from Iron and Wood, is wickedly sharp and never rusts. DRAMASTIC, forged from Iron and Silver, is the most flexible and beautiful of metals. MOONGLASS, made of Silver and Crystal, is a potent conduit for magical spells. TUKALITE, forged from Crystal and Stone, is as hard and unyielding as a warrior's heart. RUNEWOOD, the finest Wood inlaid with Stone, is a ward against harmful magic. Refining consumes great amounts of Mined Trait and is difficult to master.",
+    "Still, crafters will always demand the best ingredients for their masterworks. Raw Materials: Purchased The Brotherhood keeps Crafting Workshops fueled throughout Dereth, but many high-quality items require additional COAL to heat the forge. This can be bought cheaply from Brotherhood Traders in the capital cities of Cragstone, Ikeras and Linvak Tukal. There are also three ingredients that simply can't be produced by amateurs: FLAWLESS PYREAL is created by Human mages in Cavendo. GATHERED DERUWOOD is ritually blessed by Tumerok shamans in Hakata. IMBUED OBSIDIAN is fashioned by master Lugian smiths in Ondekodo. All of these materials can be purchased from Brotherhood Traders in their respective cities. Forging Weapons, Armor and Tools Most items must be created at a Crafting Workshop.",
+    "While standing near such a Workshop, select a recipe. Then decide how powerful you wish the final product to be by selecting a quality level. As an item's level increases, so do its costs. When you finish designing your item, check your recipe's title color to judge your chances of success. Be warned that failure will consume all your ingredients! Weapons and Armor can be crafted in several different Styles, each granting a benefit to the finished product:",
+    "LIGHT ARMOR is open and airy, allowing wounds to heal quickly. FLEXIBLE ARMOR is comfortable, helping the wearer conserve his vigor. REINFORCED ARMOR offers a variety of benefits for different situations. BATTLE ARMOR boasts the best Armor Level of any style. LIGHT WEAPONS cost less vigor to use in special attacks. BALANCED WEAPONS inflict greater average damage by decreasing damage variance. WEIGHTED WEAPONS inflict more raw damage with every strike. HEAVY WEAPONS have an improved chance of inflicting critical wounds.",
+    "GUARDIAN WEAPONS are excellent at parrying, increasing the wielder's Armor Level. CHAMPION WEAPONS improve the wielder's Offensive Masteries. ARCANE WEAPONS can hold an extra Spellbound enchantment. Although crafted weapons and armor are powerful in themselves, they only reach their true potential when further enchanted with the art of Spellbinding.",
+    "Spellbinding Spellbinding must be performed near a Spellbinding Workshop. By combining a monster trophy and a looted item, a Spellbinder can extract that item's enchantments into Totems. These Totems can then be used to reapply those enchantments to looted or crafted items. It is possible to create very powerful items by mixing and matching the strongest enchantments you can find. Every type of looted item requires a Trophy with the correct Essence to empower its Totem.",
+    "Just look at a Trophy's examine panel to see what Essences it contains. Major Spellbinding recipes extract all the enchantments from an item, while Minor Spellbinding enchantments only extract one enchantment at random. You may only use a Totem on an item with a free Spellbinding Slot. Also, the target item must not be greatly weaker than the item from which you created the Totem.",
+    "Further Tips Recipes with GREEN titles have the highest chance of success, followed by BLUE, WHITE, YELLOW, RED and PURPLE recipes. Instead of trying to do everything yourself, why not buy the raw ingredients you need from skillful Miners? A crafter of all trades is often a master of none. As you gain skill in Crafting, it becomes important to use the best tools you can manage.",
+    "A decent Miner with a decent tool will outproduce a great Miner with a crude tool. Realize that all crafted items, including Tools, wear out over time. Don't let your last Pickaxe shatter halfway through a mining expedition! Finally, don't be afraid to experiment! The path to becoming a Master Shaper is long, and everyone makes mistakes at first. But when your magical arms are famed throughout the world, you'll be glad you devoted yourself to crafting, the most difficult and rewarding of professions."
+  ]
+}
