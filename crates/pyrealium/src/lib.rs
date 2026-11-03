@@ -28,6 +28,7 @@ pub mod falling;
 pub mod geometry;
 pub mod equipment;
 pub mod examination;
+pub mod fellowship_xp;
 pub mod groups;
 pub mod gun;
 pub mod interaction;

@@ -369,6 +369,20 @@ pub fn localized(table: u32, key: u32) -> Result<Vec<u8>, WorldError> {
         .into_iter().flat_map(u32::to_le_bytes).collect())
 }
 
+/// `Tokenize("NAME")`, the name variable of the client's string tables.
+pub const VAR_NAME: u32 = 0x9d06_6c50;
+/// A native StringInfo reference with one literal `NAME` variable (variable type 9, a nested
+/// StringInfo holding the literal), as the retail fellowship lines carry it
+/// ("<NAME> has joined your Fellowship.", captured 2005 `0x82050011`).
+pub fn localized_name(table: u32, key: u32, name: &str) -> Result<Vec<u8>, WorldError> {
+    if table >> 24 != 0x25 || key == 0 { return Err(WorldError::InvalidValue); }
+    let mut bytes: Vec<u8> = [5u32,1,1,0x44000100,0,0xffff006a,key,table,1,VAR_NAME,9]
+        .into_iter().flat_map(u32::to_le_bytes).collect();
+    bytes.extend(world::literal_name(name)?);
+    bytes.extend(0u32.to_le_bytes());
+    Ok(bytes)
+}
+
 /// 82040019 -> 1aa400b2 -> 9aac000f -> native EndSpecialAttack.
 /// Echo only the action counter, never a skill ID or an error code.
 pub fn skill_finished(request_id: u32) -> Result<Vec<u8>, WorldError> {

@@ -292,6 +292,9 @@ pub enum Event {
     },
     /// A player's kill of a creature, for the fellows' quest credit (`quest_emotes::fellow_kill`).
     Kill { player: u64, entity: u32 },
+    /// A kill's experience for the server to split among `player`'s fellowship
+    /// (`fellowship_xp`); not yet paid to anyone.
+    KillXp { player: u64, xp: u64 },
     /// A creature a player escorted died or left the world (`quest_emotes` EscortLost sets).
     EscortLost { player: u64, entity: u32 },
     Health {
@@ -357,6 +360,9 @@ pub struct Encounters {
     regen_interval: u64,
     next_regen: u64,
     training_loot: bool,
+    /// The players whose kill experience the server splits among their fellowship
+    /// (`fellowship_xp`): their kills leave it out of the reward and raise [`Event::KillXp`].
+    shared_xp: BTreeSet<u64>,
 }
 fn in_range(a: Option<Placement>, b: Option<Placement>, range: f32) -> bool {
     a.zip(b).and_then(|(a,b)|a.distance(b)).is_some_and(|d|d<=range)
@@ -368,6 +374,10 @@ const ESCORT_WARP: f32 = 60.0;
 const ESCORT_REJOIN_MS: u64 = 3000;
 
 impl Encounters {
+    /// The players in an experience-sharing fellowship, set before each tick.
+    pub fn set_shared_xp(&mut self, players: BTreeSet<u64>) {
+        self.shared_xp = players;
+    }
     /// The nearest living, unengaged creature of `entity` within 30 m of `player` follows it;
     /// the actor, or None when there is none (Pyrealium policy: the search radius).
     pub fn start_escort(&mut self, player: u64, entity: u32, scene: &Scene) -> Option<u64> {
@@ -816,6 +826,7 @@ impl Encounters {
             next_regen: 0,
             burns: Vec::new(), mends: Vec::new(), regen: BTreeMap::new(), ratings: Vec::new(), ledger: Vec::new(), escorts: BTreeMap::new(), escort_far: BTreeMap::new(), next_eid: 0, abilities: crate::abilities::creature_abilities(), drains: Vec::new(),
             training_loot: false,
+            shared_xp: BTreeSet::new(),
             dice:crate::combat::Dice::seeded(),
         })
     }
@@ -1190,7 +1201,8 @@ impl Encounters {
             let drained = if hit { attack.strike.map_or(0, |s| s.vigor_damage).min(actor.vigor.unwrap_or(0)) } else { 0 };
             let killed = dealt == actor.health;
             let mut commands = if cost > 0 { vec![Command::SpendVigor(cost)] } else { Vec::new() };
-            if killed && actor.rule.xp > 0 {
+            let shared_kill = killed && actor.rule.xp > 0 && self.shared_xp.contains(&player);
+            if killed && actor.rule.xp > 0 && !shared_kill {
                 commands.push(Command::AwardXp(actor.rule.xp));
             }
             if killed && actor.rule.gold > 0 {
@@ -1263,6 +1275,7 @@ impl Encounters {
             let corpse_loot=killed && self.training_loot && (corpse_too || (quest_drop.is_none() && loot.is_none()));
             if corpse_loot {events.push(Event::Loot{actor:attack.target,player,entity:actor.entity,ai:actor.ai});}
             if killed {events.push(Event::Kill{player,entity:actor.entity});}
+            if shared_kill {events.push(Event::KillXp{player,xp:actor.rule.xp});}
             if store.characters[&player].quests != previous_quests {
                 events.push(Event::Quest {
                     player,
@@ -1324,10 +1337,14 @@ impl Encounters {
                 actor.route.clear();
                 events.push(Event::Note {
                     player,
-                    text: format!(
-                        "Creature defeated. Earned {} XP and {} gold.",
-                        actor.rule.xp, actor.rule.gold
-                    ),
+                    text: if shared_kill {
+                        format!("Creature defeated. Earned {} gold.", actor.rule.gold)
+                    } else {
+                        format!(
+                            "Creature defeated. Earned {} XP and {} gold.",
+                            actor.rule.xp, actor.rule.gold
+                        )
+                    },
                 });
                 // Death mode/behavior is shared by the native creature tables;
                 // the receiving client selects that creature's own DAT graph.

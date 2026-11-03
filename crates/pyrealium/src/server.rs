@@ -1730,6 +1730,71 @@ fn group_online(
         .collect()
 }
 
+/// A kill's experience split among the earner's fellowship (`fellowship_xp`) and paid, each
+/// recipient's progression published as `encounters::Event::Owner` publishes the earner's.
+/// Fellows count by the level rule whether alive or not (the panel's parts); only living ones
+/// in the world receive.
+fn share_kill_xp(
+    player: u64,
+    xp: u64,
+    groups: &crate::groups::Runtime,
+    store: &mut Store,
+    scene: &mut crate::scene::Scene,
+    active: &BTreeMap<u64, SocketAddr>,
+    initialize_ui: bool,
+) -> io::Result<Vec<crate::scene::Delivery>> {
+    let fellows = groups.sharing(player).map(|sharing| {
+        let fellows: Vec<crate::fellowship_xp::Fellow> = sharing
+            .members
+            .iter()
+            .filter(|id| active.contains_key(id))
+            .filter_map(|id| {
+                let saved = store.characters.get(id).filter(|c| !c.deleted)?;
+                Some(crate::fellowship_xp::Fellow {
+                    id: *id,
+                    level: u32::from(saved.progression.level().number),
+                    placement: scene.player_placement(*id),
+                })
+            })
+            .collect();
+        (sharing.leader, sharing.shared, fellows)
+    });
+    let paid = match fellows {
+        Some((leader, shared, fellows)) => crate::fellowship_xp::split(player, xp, leader, shared, &fellows),
+        None => vec![(player, xp)],
+    };
+    let mut updates = Vec::new();
+    for (id, amount) in paid {
+        let Some(saved) = store.characters.get(&id).filter(|c| !c.deleted && c.progression.alive()) else {
+            continue;
+        };
+        let (account, previous) = (saved.account.clone(), saved.progression.clone());
+        if store
+            .progression_command(&account, id, crate::progression::Command::AwardXp(amount))
+            .is_err()
+        {
+            continue;
+        }
+        let saved = &store.characters[&id];
+        let state = saved.progression.clone();
+        updates.extend(scene.player_stats(id, &state));
+        if initialize_ui
+            && saved.skills.available_credits(&previous) != saved.skills.available_credits(&state)
+        {
+            updates.push(crate::scene::Delivery {
+                recipient: id,
+                data: crate::ui::skills_state(&saved.skills, &state, &saved.skill_used)
+                    .map_err(other)?
+                    .into(),
+            });
+        }
+        for wire in state.private_changes(&previous) {
+            updates.push(crate::scene::Delivery { recipient: id, data: wire.into() });
+        }
+    }
+    Ok(updates)
+}
+
 fn group_admit(
     deliveries: &[crate::groups::Delivery],
     active: &BTreeMap<u64, SocketAddr>,
@@ -5225,10 +5290,12 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                             .as_str()
                                                         {
                                                             "create" if !name.is_empty() => Some(
+                                                                // The fellowship panel's defaults: looting method 1
+                                                                // (`InitLootingMenu`), experience shared.
                                                                 crate::groups::Request::Create {
                                                                     name,
-                                                                    looting: 2,
-                                                                    social: true,
+                                                                    looting: 1,
+                                                                    social: false,
                                                                 },
                                                             ),
                                                             "invite" => target.map(
@@ -5260,7 +5327,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                             group_requests
                                                                 .push((character, request));
                                                         } else {
-                                                            replies.extend(peer.send_event(&script::chat("Groups use individual XP and personal rewards. Commands: @group create NAME; invite/accept/decline/dismiss PLAYER; leave; disband. Use @g MESSAGE for group chat. Named players must be online.", 1).map_err(other)?, now)?);
+                                                            replies.extend(peer.send_event(&script::chat("Fellowship commands: @group create NAME; invite/accept/decline/dismiss PLAYER; leave; disband. Use @g MESSAGE for group chat. Named players must be online.", 1).map_err(other)?, now)?);
                                                         }
                                                         return Ok(replies);
                                                     }
@@ -6248,25 +6315,28 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                 }
                 for (character, request) in group_requests {
                     let online = group_online(&active_characters, &store, &scene);
-                    let result = (|| -> io::Result<()> {
-                        let plan = groups
-                            .prepare(character, &request, now_ms, &online)
-                            .map_err(io::Error::other)?;
+                    // A refused request answers with the client's own line (`GroupError::wire`).
+                    let result = (|| -> io::Result<Result<(), crate::groups::GroupError>> {
+                        let plan = match groups.prepare(character, &request, now_ms, &online) {
+                            Ok(plan) => plan,
+                            Err(refused) => return Ok(Err(refused)),
+                        };
                         let packets = group_admit(plan.deliveries(), &active_characters, &peers)?;
                         groups.commit(plan).map_err(io::Error::other)?;
-                        group_publish(packets, &mut peers)
+                        group_publish(packets, &mut peers)?;
+                        Ok(Ok(()))
                     })();
-                    if let Err(error) = result {
+                    let reply = match result {
+                        Ok(Ok(())) => None,
+                        Ok(Err(refused)) => Some(refused.wire().map_err(other)?),
+                        Err(error) => Some(script::chat(&error.to_string(), 1).map_err(other)?),
+                    };
+                    if let Some(reply) = reply {
                         if let Some(peer) = active_characters
                             .get(&character)
                             .and_then(|addr| peers.get_mut(addr))
                         {
-                            if peer
-                                .queue_ordered_batch(vec![
-                                    script::chat(&error.to_string(), 1).map_err(other)?
-                                ])
-                                .is_err()
-                            {
+                            if peer.queue_ordered_batch(vec![reply]).is_err() {
                                 failed_peers.insert(addr);
                             }
                         }
@@ -6309,6 +6379,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
         let chest_updates=scene.expire_chest_views(now_ms,|id|store.characters.get(&id).is_some_and(|c|!c.deleted && c.progression.alive()))?;
         deliver_scene(chest_updates,&active_characters,&mut peers,&primary,now,&mut failed_peers)?;
         if let Some(runtime) = &mut encounters {
+            runtime.set_shared_xp(groups.sharing_players());
             let events = runtime.tick(
                 now_ms,
                 &scene,
@@ -6525,6 +6596,9 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                 updates.push(crate::scene::Delivery { recipient: fellow, data: event.into() });
                             }
                         }
+                    }
+                    crate::encounters::Event::KillXp { player, xp } => {
+                        updates.extend(share_kill_xp(player, xp, &groups, &mut store, &mut scene, &active_characters, config.initialize_ui)?);
                     }
                     crate::encounters::Event::Quest { player, previous, book } => {
                         for event in book.updates_since(&previous).map_err(other)? {
@@ -6782,6 +6856,21 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
             }
         }
         let online = group_online(&active_characters, &store, &scene);
+        // Invitations whose time ran out close the recruit's dialog (`groups::EXPIRED`).
+        match groups.prepare_expiry(now_ms, &online) {
+            Ok(Some(plan)) => {
+                let result = group_admit(plan.deliveries(), &active_characters, &peers)
+                    .and_then(|packets| {
+                        groups.commit(plan).map_err(io::Error::other)?;
+                        group_publish(packets, &mut peers)
+                    });
+                if let Err(error) = result {
+                    eprintln!("Fellowship invitation expiry deferred: {error}");
+                }
+            }
+            Ok(None) => {}
+            Err(error) => eprintln!("Fellowship invitation expiry deferred: {error}"),
+        }
         for player in groups
             .participant_ids()
             .into_iter()
@@ -6810,7 +6899,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                     online.get(id).is_none_or(|member| {
                         group_cache
                             .get(id)
-                            .is_none_or(|old| old.name != member.name || old.level != member.level)
+                            .is_none_or(|old| old.name != member.name)
                     })
                 });
                 if !snapshot
