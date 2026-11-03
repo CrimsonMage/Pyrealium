@@ -45,7 +45,12 @@ impl Query {
 /// Captured browsing.allegiance.tree.elog corroborates the thirteen field tags,
 /// but its populated character graphs are not copied. Native acceptance of
 /// this newly encoded constructor-only profile remains unverified in-game.
-pub fn unaffiliated() -> Result<Vec<u8>, WorldError> {
+///
+/// `faction` (a kingdom member's FactionType) goes in field 10, which AllegianceProfile 01b50018
+/// reads (`this`, load field 10) for 01b50002's SetFactionType (efun 00830008,
+/// AllegianceProfileAdaptor::m_faction); None keeps the constructor's 0. gmAllegianceUI shows no
+/// faction, so this is state for the script, not a display.
+pub fn unaffiliated(faction: Option<u32>) -> Result<Vec<u8>, WorldError> {
     let mut arguments = Vec::with_capacity(96);
     for word in [5u32, 1, 1, 0x44000100, 0, 0x01b50000, 13] {
         arguments.extend(word.to_le_bytes());
@@ -53,6 +58,8 @@ pub fn unaffiliated() -> Result<Vec<u8>, WorldError> {
     for field in 0..13 {
         let value: u32 = if [0, 1, 2, 3, 6, 7, 8, 12].contains(&field) {
             u32::MAX
+        } else if field == 10 {
+            faction.unwrap_or(0)
         } else {
             0
         };

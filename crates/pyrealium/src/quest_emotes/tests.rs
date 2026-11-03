@@ -687,3 +687,21 @@ fn a_quest_sent_back_to_its_offer_is_shown_failed() {
     assert!(!words(&again[0]).contains(&0x2000_0000));
     assert!(book(0).updates_since(&book(0)).unwrap().is_empty());
 }
+
+/// The kingdom reaches the client as the player's Faction_Membership (int stat 2000, private
+/// update 0x10069) in FactionType bits: Order 2, Dominion 1, Shadow 4, none Neutral.
+#[test]
+fn the_kingdom_is_sent_as_faction_membership() {
+    use crate::quests::Command as C;
+    let word = |w: u32| w.to_le_bytes();
+    let event = |v: u32| [word(0x10069), word(2000), word(v)].concat();
+    let order = Book::default().apply(&C::Kingdom(1)).unwrap();
+    assert!(order.updates_since(&Book::default()).unwrap().contains(&event(2)));
+    let shadow = order.apply(&C::Kingdom(3)).unwrap();
+    assert!(shadow.updates_since(&order).unwrap().contains(&event(4)));
+    let none = shadow.apply(&C::Kingdom(0)).unwrap();
+    assert!(none.updates_since(&shadow).unwrap().contains(&event(0x8000_0000)));
+    assert_eq!(Book::default().apply(&C::Kingdom(2)).unwrap().faction_type(), 1);
+    let points = order.apply(&C::KingdomPoints(5)).unwrap();
+    assert!(!points.updates_since(&order).unwrap().contains(&event(2)), "points alone send no faction");
+}

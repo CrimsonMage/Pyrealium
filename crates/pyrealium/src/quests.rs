@@ -11,6 +11,12 @@ pub const UPDATE: u32 = 0x82130024;
 const ICON: u32 = 0x4100034b;
 const UNDERWAY: u32 = 0x10000000;
 const COMPLETED: u32 = 0x30000000;
+/// gmintstats.emp Faction_Membership.
+pub const FACTION_MEMBERSHIP: u32 = 2000;
+/// [`Book::faction_type`] of a kingdom (0 none, 1 Order, 2 Dominion, 3 Shadow).
+pub fn faction_type(kingdom: u8) -> u32 {
+    match kingdom { 1 => 2, 2 => 1, 3 => 4, _ => 0x8000_0000 }
+}
 /// gmQuestInfo::InqExtraText 0060aca0: ID_Quest_Failed.
 const FAILED: u32 = 0x20000000;
 
@@ -302,6 +308,18 @@ impl Book {
     pub fn kingdom(&self) -> (u8, u32) { (self.kingdom, self.kingdom_points) }
     /// The character's Quest Points.
     pub fn quest_points(&self) -> u32 { self.quest_points }
+    /// The kingdom as the client's `FactionType` (portal enum mapper 0x230000A0: Faction1 1,
+    /// Faction2 2, Faction3 4, Neutral 0x80000000), for the player's int stat
+    /// `Faction_Membership` (2000; gmWeenieDesc carries it under data mask 0x2000,
+    /// gmWeenieDesc::InqInt 006021b0). Which FactionN is which kingdom is read from
+    /// aipetclass.emp (0x2300010E: Dominion 1, Order 2, Shadow 4, Kingdom 7), the one enum that
+    /// names the three bits (an inference: no record names FactionN).
+    pub fn faction_type(&self) -> u32 { faction_type(self.kingdom) }
+    /// The private int stat update (0x10069) of `Faction_Membership`: at login for a kingdom
+    /// member, and whenever the kingdom changes (leaving it sends Neutral).
+    pub fn faction_update(&self) -> Vec<u8> {
+        [0x10069u32, FACTION_MEMBERSHIP, self.faction_type()].iter().flat_map(|w| w.to_le_bytes()).collect()
+    }
     /// A data-driven quest's further counter `counter`.
     pub fn subcount(&self, quest: u32, counter: u8) -> u16 { self.subcounts.get(&(quest, counter)).copied().unwrap_or(0) }
     /// The quest effects still running at `now` (Unix seconds): each `Effect` state and its end.
@@ -413,6 +431,7 @@ impl Book {
     /// reliable queue. Login still sends the complete list_graph snapshot.
     pub fn updates_since(&self, previous:&Self) -> Result<Vec<Vec<u8>>, WorldError> {
         let mut events = Vec::new();
+        if self.kingdom != previous.kingdom { events.push(self.faction_update()); }
         // A stage change, or a kill counted on a stage whose line shows the count.
         for (quest, stage) in self.journal_stages().filter(|(q, s)| previous.stage(*q) != *s || previous.count(*q) != self.count(*q)) {
             let mut args=script::integer(0);

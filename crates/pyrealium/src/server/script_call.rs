@@ -68,9 +68,13 @@ pub(super) fn script_call(
                 ));
             }
             // No server operation currently creates allegiance membership.
-            // Report actual unaffiliated state, never a captured hierarchy.
+            // Report actual unaffiliated state, never a captured hierarchy,
+            // with the player's kingdom as the profile's faction.
+            let faction = srv.store.characters[&target].quests.kingdom().0;
             peer.queue_ordered_batch(vec![
-                crate::allegiance::unaffiliated().map_err(other)?,
+                crate::allegiance::unaffiliated(
+                    (faction != 0).then(|| crate::quests::faction_type(faction)),
+                ).map_err(other)?,
             ])?;
             return Ok(replies);
         }

@@ -707,6 +707,10 @@ pub(super) fn client_event(
                             events.push(crate::story::granted(scene).map_err(other)?);
                             eprintln!("story: scene {scene:08x} granted to character {}", saved.id);
                         }
+                        // A kingdom member's Faction_Membership (Pyrealium's kingdom state).
+                        if saved.quests.kingdom().0 != 0 {
+                            events.push(saved.quests.faction_update());
+                        }
                         peer.queue_event_batch(events)?;
                     } else {
                         peer.queue_scene(Arc::from(packet))?;
