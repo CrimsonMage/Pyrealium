@@ -8,7 +8,8 @@ dat_dir = "/dats"
 run_dir = "/var/lib/pyrealium/run"
 
 [database]
-url = "host=127.0.0.1 user=pyrealium password=pyrealium dbname=pyrealium"
+# In the compose file's `data` volume.
+path = "/var/lib/pyrealium/pyrealium.db"
 
 [accounts]
 enabled = true

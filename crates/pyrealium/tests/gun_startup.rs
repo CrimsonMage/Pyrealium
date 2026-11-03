@@ -34,8 +34,9 @@ fn custom_adapter_is_opt_in_and_legacy_explicit_option_still_works() {
         ("off", Some(("--gun-adapter-bind", "off"))),
         ("legacy-off", Some(("--gun-bind", "off"))),
     ] {
+        let database = pyrealium::db::testdb::fresh();
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_pyrealium"));
-        cmd.env("PYREALIUM_DATABASE_URL", pyrealium::db::testdb::fresh().url());
+        cmd.env("PYREALIUM_DATABASE", database.path());
         cmd.args([
             "serve",
             "--bind",
@@ -70,8 +71,9 @@ fn custom_adapter_is_opt_in_and_legacy_explicit_option_still_works() {
     }
     // An explicitly requested listener must not be silently skipped.
     let busy = TcpListener::bind("127.0.0.1:0").unwrap();
+    let database = pyrealium::db::testdb::fresh();
     let result = Command::new(env!("CARGO_BIN_EXE_pyrealium"))
-        .env("PYREALIUM_DATABASE_URL", pyrealium::db::testdb::fresh().url())
+        .env("PYREALIUM_DATABASE", database.path())
         .args([
             "serve",
             "--gun-adapter-bind",

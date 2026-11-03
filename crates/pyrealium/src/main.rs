@@ -15,7 +15,7 @@ use std::{
 
 fn usage() {
     println!(
-        "Pyrealium - Asheron's Call 2 server (build 7230 data)\n\n  pyrealium [run] [--config pyrealium.toml]\n    Start the game server (and its account service) from the settings file.\n  pyrealium init [--config pyrealium.toml]\n    Write a commented settings file to edit before the first start.\n  pyrealium db migrate|status|drop\n    Create/upgrade the PostgreSQL schema, show its version, or drop the database.\n  pyrealium stop [--seconds N]\n    Ask the running server to save and stop.\n  pyrealium accounts\n    Run only the account service (when it is hosted apart from the game server).\n\nEvery command reads the database from --database URL, else PYREALIUM_DATABASE_URL, else the settings file.\n"
+        "Pyrealium - Asheron's Call 2 server (build 7230 data)\n\n  pyrealium [run] [--config pyrealium.toml]\n    Start the game server (and its account service) from the settings file.\n  pyrealium init [--config pyrealium.toml]\n    Write a commented settings file to edit before the first start.\n  pyrealium db migrate|status|drop\n    Create/upgrade the database, show its version, or delete the database file.\n  pyrealium stop [--seconds N]\n    Ask the running server to save and stop.\n  pyrealium accounts\n    Run only the account service (when it is hosted apart from the game server).\n\nEvery command reads the database file from --database PATH, else PYREALIUM_DATABASE, else the settings file.\n"
     );
     println!("  serve --local-accounts PATH --bind 127.0.0.1:19070 --account local\n    Loopback password accounts plus the existing configured developer profile. Mutually exclusive with --auth-data.");
     println!("  inventory-starter --account NAME --character-id N --data PATH --game-data PATH\n    Offline once-only racial starter gear; retains existing possessions and equipment.");
@@ -89,7 +89,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     let mut public_port = None;
     let mut data = PathBuf::from("run");
     let mut config_path: Option<PathBuf> = None;
-    let mut database_url: Option<String> = None;
+    let mut database_path: Option<PathBuf> = None;
     let mut db_action: Option<String> = None;
     let mut seconds = None;
     let mut visual = None;
@@ -128,7 +128,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             .ok_or_else(|| format!("missing value for {arg}"))?;
         match arg.as_str() {
             "--config" => config_path = Some(value.into()),
-            "--database" => database_url = Some(value),
+            "--database" => database_path = Some(value.into()),
             "--bind" => bind = value.parse()?,
             "--account" => account = value,
             "--auth-data" => auth_data = Some(PathBuf::from(value)),
@@ -184,7 +184,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             return Err(format!("{} already exists; edit it or remove it first", path.display()).into());
         }
         std::fs::write(&path, config::TEMPLATE)?;
-        println!("Wrote {}. Set dat_dir and the database url, then start with `pyrealium`.", path.display());
+        println!("Wrote {}. Set dat_dir, then start with `pyrealium`.", path.display());
         return Ok(());
     }
     let located = Settings::locate(config_path.as_deref());
@@ -200,9 +200,9 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         None => Settings::default(),
     };
     let database = Database::new(
-        database_url
-            .or_else(|| env::var("PYREALIUM_DATABASE_URL").ok())
-            .unwrap_or_else(|| settings.database.url.clone()),
+        database_path
+            .or_else(|| env::var_os("PYREALIUM_DATABASE").map(PathBuf::from))
+            .unwrap_or_else(|| settings.database.path.clone()),
     )?;
     if located.is_some() && command != "serve" && command != "serve-training" {
         data = settings.server.run_dir.clone();
@@ -213,28 +213,32 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
             Some("migrate") => {
                 database.ensure_exists()?;
                 let version = database.migrate()?;
-                println!("Database {:?} is at schema version {version}.", database.name());
+                println!("Database {} is at schema version {version}.", database.name());
             }
             Some("status") => {
-                let mut client = database.connect()?;
-                let version = pyrealium::db::schema_version(&mut client)?;
+                if !database.exists()? {
+                    println!("Database {} does not exist.", database.name());
+                    return Ok(());
+                }
+                let client = database.connect()?;
+                let version = pyrealium::db::schema_version(&client)?;
                 let characters: i64 = if version > 0 {
-                    client.query_one("SELECT count(*) FROM characters", &[])?.get(0)
+                    client.query_row("SELECT count(*) FROM characters", [], |r| r.get(0))?
                 } else {
                     0
                 };
-                println!("Database {:?}: schema version {version}, {characters} characters.", database.name());
+                println!("Database {}: schema version {version}, {characters} characters.", database.name());
             }
             Some("drop") => {
                 if !database.exists()? {
-                    println!("Database {:?} does not exist.", database.name());
+                    println!("Database {} does not exist.", database.name());
                     return Ok(());
                 }
                 if server_running(&database)? {
-                    return Err(format!("a server is running on database {:?}; stop it first", database.name()).into());
+                    return Err(format!("a server is running on database {}; stop it first", database.name()).into());
                 }
                 database.drop_database()?;
-                println!("Dropped database {:?}.", database.name());
+                println!("Deleted database {}.", database.name());
             }
             _ => return Err("usage: pyrealium db migrate|status|drop".into()),
         },
@@ -531,7 +535,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
         "stop" => {
             if !server_running(&database)? {
-                return Err(format!("no server is running on database {:?}", database.name()).into());
+                return Err(format!("no server is running on database {}", database.name()).into());
             }
             std::fs::create_dir_all(&data)?;
             std::fs::write(data.join("stop.request"), b"stop\n")?;
@@ -638,7 +642,7 @@ fn run_settings(settings: Settings, database: Database) -> Result<(), Box<dyn st
     // the account port.
     database.ensure_exists()?;
     if server_running(&database)? {
-        return Err(format!("a server is already running on database {:?}; `pyrealium stop` first", database.name()).into());
+        return Err(format!("a server is already running on database {}; `pyrealium stop` first", database.name()).into());
     }
     if let Some(dat_dir) = &settings.server.dat_dir {
         let is_7230 = pyrealium::bootstrap::is_7230(dat_dir)
@@ -739,18 +743,7 @@ fn prepared_world(
 
 /// Whether a game server holds the database's server lock.
 fn server_running(database: &Database) -> std::io::Result<bool> {
-    let mut client = database.connect()?;
-    let (high, low) = ((pyrealium::db::SERVER_LOCK >> 32) as u32, pyrealium::db::SERVER_LOCK as u32);
-    let held: bool = client
-        .query_one(
-            "SELECT EXISTS (SELECT 1 FROM pg_locks WHERE locktype = 'advisory' AND granted
-                AND database = (SELECT oid FROM pg_database WHERE datname = current_database())
-                AND classid::bigint = $1 AND objid::bigint = $2 AND objsubid = 1)",
-            &[&i64::from(high), &i64::from(low)],
-        )
-        .map_err(pyrealium::db::error)?
-        .get(0);
-    Ok(held)
+    database.server_running()
 }
 
 fn wait_for_stop(database: &Database, seconds: u64) -> Result<(), Box<dyn std::error::Error>> {

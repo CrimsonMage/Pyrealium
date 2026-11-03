@@ -341,7 +341,7 @@ pub struct Hub {
     state: Mutex<State>,
     /// The service's database connection (lists and tickets); None only in unit tests, where
     /// every save fails. Always taken after `state`, never before.
-    db: Mutex<Option<postgres::Client>>,
+    db: Mutex<Option<crate::db::Connection>>,
     auth: GunAuth,
 }
 
@@ -349,12 +349,12 @@ impl Hub {
     fn save_user(&self, account: &str, user: &User) -> io::Result<()> {
         let mut db = self.db.lock().unwrap_or_else(|poison| poison.into_inner());
         let client = db.as_mut().ok_or_else(|| io::Error::other("no GUN database"))?;
-        let lists = serde_json::to_value(user)?;
+        let lists = serde_json::to_string(user)?;
         client
             .execute(
-                "INSERT INTO gun_users (account, lists) VALUES ($1, $2)
+                "INSERT INTO gun_users (account, lists) VALUES (?1, ?2)
                  ON CONFLICT (account) DO UPDATE SET lists = excluded.lists",
-                &[&account, &lists],
+                [account, lists.as_str()],
             )
             .map_err(crate::db::error)?;
         Ok(())
@@ -956,9 +956,14 @@ pub fn start(config: GunConfig) -> io::Result<GunHandle> {
     let mut client = config.database.connect()?;
     crate::db::migrate(&mut client)?;
     let mut users = BTreeMap::new();
-    for row in client.query("SELECT account, lists FROM gun_users", &[]).map_err(crate::db::error)? {
-        let user: User = serde_json::from_value(row.get(1)).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        users.insert(row.get::<_, String>(0), user);
+    {
+        let mut statement = client.prepare("SELECT account, lists FROM gun_users").map_err(crate::db::error)?;
+        let mut rows = statement.query([]).map_err(crate::db::error)?;
+        while let Some(row) = rows.next().map_err(crate::db::error)? {
+            let lists: String = row.get(1).map_err(crate::db::error)?;
+            let user: User = serde_json::from_str(&lists).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+            users.insert(row.get::<_, String>(0).map_err(crate::db::error)?, user);
+        }
     }
     let listener = TcpListener::bind(config.bind)?;
     listener.set_nonblocking(true)?;
@@ -1200,7 +1205,7 @@ mod tests {
     fn developer_mode_refuses_a_public_bind() {
         let result = start(GunConfig {
             bind: "0.0.0.0:0".parse().unwrap(),
-            database: crate::db::Database::new("host=/nonexistent dbname=unused").unwrap(),
+            database: crate::db::Database::new("/nonexistent/unused.db").unwrap(),
             auth: GunAuth::Developer,
         });
         assert!(result.is_err());

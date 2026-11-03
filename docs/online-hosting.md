@@ -156,15 +156,15 @@ cargo build --locked --release --manifest-path Cargo.toml
 Use a dedicated `pyrealium` system user. Install the binary and legal notices
 (`LICENSE`, `NOTICE`, `LICENSING.md` and the entire `LICENSES/` directory) under
 `/opt/pyrealium`, the content packs (`content`) at `/opt/pyrealium/content`, and
-the build 7230 DATs under `/srv/pyrealium/game-data`. Install PostgreSQL and create the
-role and database (`createuser --pwprompt pyrealium`, `createdb --owner pyrealium pyrealium`).
+the build 7230 DATs under `/srv/pyrealium/game-data`. The database is a SQLite file the
+server creates; no database server is needed.
 
 Write `/etc/pyrealium/pyrealium.toml` with `pyrealium init --config /etc/pyrealium/pyrealium.toml`
 and set: `[server] bind = "0.0.0.0:19370"`, `game_host`, `dat_dir =
-"/srv/pyrealium/game-data"`, `run_dir = "/var/lib/pyrealium/run"`; the `[database]` url;
+"/srv/pyrealium/game-data"`, `run_dir = "/var/lib/pyrealium/run"`; `[database] path =
+"/var/lib/pyrealium/pyrealium.db"` (on a local disk, inside the service's writable directory);
 `[accounts] public_origin = "https://accounts.example.com"`; `[world] content_dir =
-"/opt/pyrealium/content"`. Keep the file readable only by the service user (it holds the
-database password). `pyrealium db migrate --config ...` creates the schema; the server
+"/opt/pyrealium/content"`. Keep the file readable only by the service user. `pyrealium db migrate --config ...` creates the schema; the server
 also does on start.
 
 Before opening registration, provision the owner's account interactively:
@@ -197,8 +197,10 @@ to choose a different source port for that ACK without trusting port arithmetic
 or unauthenticated endpoint rebinding.
 
 The service waits for the normal stop request (a final save) before terminating the
-process. After a crash nothing needs cleaning up: the database lock goes with the
-connection. Back up the database off-host (`pg_dump`) with restrictive permissions. Tickets expire
+process. After a crash nothing needs cleaning up: the server lock goes with the
+process. Back up the database off-host with restrictive permissions; take the copy with
+`sqlite3 /var/lib/pyrealium/pyrealium.db ".backup /path/to/backup.db"`, which is safe while the
+server runs (copying the file itself is not). Tickets expire
 and are not durable player state.
 
 ## Local account-page development

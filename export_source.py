@@ -32,7 +32,7 @@ def source_files(root):
             continue
         if any(part in EXCLUDED_PARTS or part.startswith('.env') for part in relative.parts):
             continue
-        # An operator's settings (database password) beside the tree, never the deploy templates.
+        # An operator's own settings beside the tree, never the deploy templates.
         if relative.as_posix() == 'pyrealium.toml':
             continue
         if path.name in SOURCE_NAMES or path.suffix.lower() in SOURCE_SUFFIXES:

@@ -1,5 +1,5 @@
 # Start Pyrealium from pyrealium.toml (beside this script). The first run writes a commented
-# pyrealium.toml to edit (DAT directory and PostgreSQL database).
+# pyrealium.toml to edit (the DAT directory).
 [CmdletBinding()]
 param(
     [string]$Config = (Join-Path $PSScriptRoot 'pyrealium.toml'),
@@ -20,7 +20,7 @@ if ($Rebuild -or (!$SkipBuild -and !(Test-Path -LiteralPath $binary))) {
 if (!(Test-Path -LiteralPath $binary)) { throw "No server binary at $binary; run Build-Pyrealium.ps1." }
 if (!(Test-Path -LiteralPath $Config)) {
     & $binary init --config $Config
-    Write-Output "Edit $Config (dat_dir and the [database] url), then run start-pyrealium.bat again."
+    Write-Output "Edit $Config (set dat_dir), then run start-pyrealium.bat again."
     exit 1
 }
 Write-Output "Pyrealium: $binary"

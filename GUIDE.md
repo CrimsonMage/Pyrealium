@@ -77,7 +77,7 @@ The scene snapshot retains the selected combat mode for observers entering later
 The account service runs inside the game server at `http://127.0.0.1:19400` (`[accounts]
 web_bind`); the client login form defaults to that address. `[server] game_host` sets the
 game address returned to clients. Accounts and login tickets live in the database (`accounts`,
-`login_tickets`); back the database up with `pg_dump`. Ticket mode rejects development/no-ticket
+`login_tickets`); back the database up while it runs with `sqlite3 pyrealium.db ".backup backup.db"`. Ticket mode rejects development/no-ticket
 login. The client can also use `Launch-AC2.ps1 -Online -AccountUrl http://127.0.0.1:19400 -Account NAME`.
 
 To host the account service apart from the game, set `[accounts] enabled = false` for the

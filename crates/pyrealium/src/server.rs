@@ -20,7 +20,7 @@ use std::{
 pub struct Config {
     pub bind: SocketAddr,
     pub account: String,
-    /// PostgreSQL database holding accounts, characters and prepared content.
+    /// SQLite database holding accounts, characters and prepared content.
     pub database: crate::db::Database,
     /// Time between periodic character saves (`Store::save_due`).
     pub save_interval: Duration,

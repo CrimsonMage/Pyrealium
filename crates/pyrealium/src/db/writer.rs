@@ -1,14 +1,14 @@
 //! The game server's database thread: one connection, jobs run strictly in submission order, so
-//! a character's logoff save always lands before anything queued after it. The thread holds
-//! `SERVER_LOCK` for its whole life.
-use super::{Database, SERVER_LOCK, error};
+//! a character's logoff save always lands before anything queued after it. The thread holds the
+//! server lock (`Database::try_server_lock`) for its whole life.
+use super::{Connection, Database};
 use std::{
     io,
     sync::mpsc::{self, Receiver, Sender},
     thread::{self, JoinHandle},
 };
 
-type Job = Box<dyn FnOnce(&mut postgres::Client) + Send>;
+type Job = Box<dyn FnOnce(&mut Connection) + Send>;
 
 pub struct Writer {
     jobs: Option<Sender<Job>>,
@@ -25,26 +25,25 @@ impl Writer {
         let thread = thread::Builder::new()
             .name("pyrealium-db".into())
             .spawn(move || {
-                let mut client = match database.connect().and_then(|mut client| {
-                    let locked: bool = client
-                        .query_one("SELECT pg_try_advisory_lock($1)", &[&SERVER_LOCK])
-                        .map_err(error)?
-                        .get(0);
-                    if !locked {
-                        return Err(io::Error::new(
+                let opened = database.try_server_lock().and_then(|lock| {
+                    let lock = lock.ok_or_else(|| {
+                        io::Error::new(
                             io::ErrorKind::AddrInUse,
                             format!(
-                                "another Pyrealium server is already using database {:?}; stop it first",
+                                "another Pyrealium server is already using database {}; stop it first",
                                 database.name()
                             ),
-                        ));
-                    }
-                    super::migrate(&mut client)?;
-                    Ok(client)
-                }) {
-                    Ok(client) => {
+                        )
+                    })?;
+                    let mut connection = database.connect()?;
+                    super::migrate(&mut connection)?;
+                    Ok((lock, connection))
+                });
+                // The lock file stays locked until `_lock` drops when this thread ends.
+                let (_lock, mut connection) = match opened {
+                    Ok(opened) => {
                         let _ = ready_tx.send(Ok(()));
-                        client
+                        opened
                     }
                     Err(e) => {
                         let _ = ready_tx.send(Err(e));
@@ -52,18 +51,15 @@ impl Writer {
                     }
                 };
                 for job in queue {
-                    job(&mut client);
+                    job(&mut connection);
                 }
-                // Release now rather than when the backend notices the closed socket, so an
-                // immediate restart (tests, `stop` then start) finds the lock free.
-                let _ = client.execute("SELECT pg_advisory_unlock_all()", &[]);
             })?;
         ready_rx.recv().map_err(|_| io::Error::other("database thread ended during startup"))??;
         Ok(Self { jobs: Some(jobs), thread: Some(thread) })
     }
 
     /// Queues `job`; it runs after every job queued before it.
-    pub fn submit(&self, job: impl FnOnce(&mut postgres::Client) + Send + 'static) {
+    pub fn submit(&self, job: impl FnOnce(&mut Connection) + Send + 'static) {
         if let Some(jobs) = &self.jobs {
             let _ = jobs.send(Box::new(job));
         }
@@ -72,11 +68,11 @@ impl Writer {
     /// Queues `job` and waits for its result (startup loads, character creation).
     pub fn call<T: Send + 'static>(
         &self,
-        job: impl FnOnce(&mut postgres::Client) -> io::Result<T> + Send + 'static,
+        job: impl FnOnce(&mut Connection) -> io::Result<T> + Send + 'static,
     ) -> io::Result<T> {
         let (tx, rx) = mpsc::channel();
-        self.submit(move |client| {
-            let _ = tx.send(job(client));
+        self.submit(move |connection| {
+            let _ = tx.send(job(connection));
         });
         rx.recv().map_err(|_| io::Error::other("database thread ended"))?
     }

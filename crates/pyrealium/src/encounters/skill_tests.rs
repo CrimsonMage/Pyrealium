@@ -1,7 +1,7 @@
 use super::*;
 use crate::{scene::Body, world};
 
-fn fixture(_label: &str) -> (Encounters, Scene, Store, crate::db::Database, u64) {
+fn fixture(_label: &str) -> (Encounters, Scene, Store, crate::db::testdb::TestDatabase, u64) {
     let path = crate::db::testdb::fresh();
     let mut store = Store::open(&path).unwrap();
     store.create("local", "Spell Tester").unwrap();

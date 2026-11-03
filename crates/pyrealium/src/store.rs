@@ -1,4 +1,4 @@
-//! Characters and ground items, held in memory and saved to PostgreSQL (`db::shard`).
+//! Characters and ground items, held in memory and saved to the SQLite database (`db::shard`).
 //!
 //! Every mutator validates a candidate state and publishes it in memory, marking the character
 //! dirty; nothing touches the database on the game loop. `save` (called periodically, at logoff
@@ -1718,11 +1718,12 @@ mod tests {
             s.credit_offline(id,250).unwrap();
             assert!(s.credit_offline(id+1,1).is_err());
         }
-        let mut client=dir.connect().unwrap();
-        let row=client.query_one("SELECT xp, available_xp FROM characters WHERE id=$1",&[&(id as i64)]).unwrap();
-        assert_eq!((row.get::<_,i64>(0),row.get::<_,i64>(1)),(250,250));
+        let client=dir.connect().unwrap();
+        let row:(i64,i64)=client.query_row("SELECT xp, available_xp FROM characters WHERE id=?1",[id as i64],|r|Ok((r.get(0)?,r.get(1)?))).unwrap();
+        assert_eq!(row,(250,250));
         // An external SQL credit of an offline character is read at the next start.
-        client.execute("UPDATE characters SET xp=xp+10, available_xp=available_xp+10 WHERE id=$1",&[&(id as i64)]).unwrap();
+        client.execute("UPDATE characters SET xp=xp+10, available_xp=available_xp+10 WHERE id=?1",[id as i64]).unwrap();
+        drop(client);
         let s=Store::open(&dir).unwrap();
         assert_eq!(s.characters[&id].progression.xp,260);
     }

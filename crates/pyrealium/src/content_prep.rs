@@ -837,29 +837,31 @@ pub fn input_key(directory: &Path, content: &Path, options: Options) -> io::Resu
 pub const WORLD_FILE: &str = "world.tsv";
 
 /// Replaces the stored prepared content in one transaction.
-pub fn store(client: &mut postgres::Client, key: &str, prepared: &Prepared) -> io::Result<()> {
-    let mut tx = client.transaction().map_err(crate::db::error)?;
-    tx.execute("DELETE FROM content_files", &[]).map_err(crate::db::error)?;
-    tx.execute("DELETE FROM content_meta", &[]).map_err(crate::db::error)?;
-    tx.execute("INSERT INTO content_files (name, body) VALUES ($1, $2)", &[&WORLD_FILE, &prepared.world])
-        .map_err(crate::db::error)?;
+pub fn store(connection: &mut crate::db::Connection, key: &str, prepared: &Prepared) -> io::Result<()> {
+    use crate::db::error;
+    let tx = connection.transaction().map_err(error)?;
+    tx.execute("DELETE FROM content_files", []).map_err(error)?;
+    tx.execute("DELETE FROM content_meta", []).map_err(error)?;
+    tx.execute("INSERT INTO content_files (name, body) VALUES (?1, ?2)", [WORLD_FILE, prepared.world.as_str()])
+        .map_err(error)?;
     for (name, text) in &prepared.tables {
-        tx.execute("INSERT INTO content_files (name, body) VALUES ($1, $2)", &[name, text]).map_err(crate::db::error)?;
+        tx.execute("INSERT INTO content_files (name, body) VALUES (?1, ?2)", [name, text]).map_err(error)?;
     }
     tx.execute(
-        "INSERT INTO content_meta (input_hash, version, report) VALUES ($1, $2, $3)",
-        &[&key, &VERSION, &prepared.report],
+        "INSERT INTO content_meta (id, input_hash, version, report) VALUES (1, ?1, ?2, ?3)",
+        rusqlite::params![key, VERSION, crate::db::json_text(&prepared.report)?],
     )
-    .map_err(crate::db::error)?;
-    tx.commit().map_err(crate::db::error)
+    .map_err(error)?;
+    tx.commit().map_err(error)
 }
 
 /// The stored preparation's input key, if any.
-pub fn stored_key(client: &mut postgres::Client) -> io::Result<Option<String>> {
-    Ok(client
-        .query_opt("SELECT input_hash FROM content_meta WHERE version = $1", &[&VERSION])
-        .map_err(crate::db::error)?
-        .map(|r| r.get(0)))
+pub fn stored_key(connection: &mut crate::db::Connection) -> io::Result<Option<String>> {
+    use rusqlite::OptionalExtension;
+    connection
+        .query_row("SELECT input_hash FROM content_meta WHERE version = ?1", [VERSION], |r| r.get(0))
+        .optional()
+        .map_err(crate::db::error)
 }
 
 /// Prepared content as the server loads it: the world table and the quest tables.
@@ -885,11 +887,15 @@ impl World {
     }
 }
 
-pub fn load(client: &mut postgres::Client) -> io::Result<Option<World>> {
+pub fn load(client: &mut crate::db::Connection) -> io::Result<Option<World>> {
     let mut out = World::default();
     let mut found = false;
-    for row in client.query("SELECT name, body FROM content_files ORDER BY name", &[]).map_err(crate::db::error)? {
-        let (name, body): (String, String) = (row.get(0), row.get(1));
+    let mut statement = client.prepare("SELECT name, body FROM content_files ORDER BY name").map_err(crate::db::error)?;
+    let files = statement
+        .query_map([], |row| Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?)))
+        .map_err(crate::db::error)?;
+    for file in files {
+        let (name, body) = file.map_err(crate::db::error)?;
         if name == WORLD_FILE {
             out.world = body;
             found = true;

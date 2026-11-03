@@ -60,6 +60,10 @@ captures/
 # Accounts, character saves, credentials and private host configuration
 data/
 *.journal
+# The SQLite database (accounts, password hashes, characters) and its WAL files.
+*.db
+*.db-wal
+*.db-shm
 *.lock
 !Cargo.lock
 .env
@@ -140,5 +144,5 @@ Thumbs.db
 # Versioned local launcher builds while the current executable is open
 /launcher/dist-*/
 
-# An operator's settings (holds the database password)
+# An operator's own settings
 /pyrealium.toml

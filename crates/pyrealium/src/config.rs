@@ -49,8 +49,8 @@ pub struct Server {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields, default)]
 pub struct DatabaseSettings {
-    /// libpq URL or key/value string.
-    pub url: String,
+    /// The SQLite database file (created on first start).
+    pub path: PathBuf,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -114,7 +114,7 @@ impl Default for Server {
 }
 impl Default for DatabaseSettings {
     fn default() -> Self {
-        Self { url: "host=localhost user=pyrealium dbname=pyrealium".into() }
+        Self { path: "pyrealium.db".into() }
     }
 }
 impl Default for Accounts {
@@ -164,6 +164,7 @@ impl Settings {
             anchor(p);
         }
         anchor(&mut settings.server.run_dir);
+        anchor(&mut settings.database.path);
         if let Some(p) = settings.world.content_dir.as_mut() {
             anchor(p);
         }
@@ -223,10 +224,9 @@ dat_dir = "dataset-7230"
 run_dir = "run"
 
 [database]
-# PostgreSQL: a URL (postgres://user:password@host/pyrealium) or key/value string.
-# The database is created on first start when this role may create databases; otherwise run
-#   createuser --pwprompt pyrealium && createdb --owner pyrealium pyrealium
-url = "host=localhost user=pyrealium dbname=pyrealium"
+# The SQLite database file: accounts, characters and the prepared world. Created on first
+# start. Back it up while the server runs with: sqlite3 pyrealium.db ".backup backup.db"
+path = "pyrealium.db"
 
 [accounts]
 # Account registration and login web service, run inside the game server.
@@ -270,7 +270,7 @@ mod tests {
         let defaults = Settings::default();
         assert_eq!(parsed.server.bind, defaults.server.bind);
         assert_eq!(parsed.server.auth, Auth::Tickets);
-        assert_eq!(parsed.database.url, defaults.database.url);
+        assert_eq!(parsed.database.path, defaults.database.path);
         assert_eq!(parsed.save.interval_seconds, 300);
         assert!(parsed.accounts.enabled);
         assert!(toml::from_str::<Settings>("[server]\nbogus = 1\n").is_err());

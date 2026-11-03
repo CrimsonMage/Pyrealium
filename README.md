@@ -198,8 +198,8 @@ The server is self-contained: the DAT, resource, world, physics and protocol cod
 in `crates/` (taken from the AC2_Rusted client project at commit `bcf67b4b` and kept here as the
 server's own). Nothing else needs to be checked out beside it.
 
-Install Rust through rustup with `cargo` on PATH, and PostgreSQL 14 or newer
-(the server is tested on 18). Python is needed only for the offline content-authoring
+Install Rust through rustup with `cargo` on PATH. SQLite is compiled into the server; there
+is no database server to install. Python is needed only for the offline content-authoring
 tools and the Python network tests, not to build or run the server. The verified
 Rust toolchain is 1.99.1.
 
@@ -210,26 +210,27 @@ compilation. DATs stay on disk and are read on demand; they never go into the da
 
 ## Run
 
-One binary, one settings file, one database.
+One binary, one settings file, one database file.
 
-1. Create a PostgreSQL role (`createuser --pwprompt pyrealium`, and either let it create
-   databases or `createdb --owner pyrealium pyrealium`).
-2. `pyrealium init` (or the first `start-pyrealium.bat`) writes a commented
-   `pyrealium.toml`. Set `dat_dir` and the `[database]` url.
-3. `pyrealium` (or `start-pyrealium.bat`) starts everything: it creates and migrates the
-   database, prepares the world content from `content` when it or the DATs
+1. `pyrealium init` (or the first `start-pyrealium.bat`) writes a commented
+   `pyrealium.toml`. Set `dat_dir`.
+2. `pyrealium` (or `start-pyrealium.bat`) starts everything: it creates and migrates the
+   SQLite database (`[database] path`, default `pyrealium.db` beside the settings file), prepares the world content from `content` when it or the DATs
    changed, starts the account service (loopback HTTP 19400) and the game server (UDP
    9000/9001). `pyrealium stop` saves and stops it.
 
-Every table sits in the database's default schema: accounts and one-use login tickets,
-characters with their items, ground items, the world clock, GUN lists, and the prepared
-placements and quest tables (`content_files`, `content_meta`). Characters are kept in memory while
+The database holds accounts and one-use login tickets, characters with their items, ground
+items, the world clock, GUN lists, and the prepared placements and quest tables
+(`content_files`, `content_meta`). It runs in WAL mode with full sync: a committed save
+survives a crash or power loss, and tools can read it while the server runs. Characters are kept in memory while
 the server runs and saved every `save.interval_seconds` (default 300), at logoff
 and at shutdown, each save one transaction for every changed character and the ground
 items, so a crash rolls the world back to the last save as a whole. Experience and gold
 are columns, so an offline character can be read or credited with plain SQL while the
-server is stopped. Back up with `pg_dump`. A second server on the same database refuses
-to start; a crashed one leaves no lock behind.
+server is stopped (`sqlite3 pyrealium.db`). Back up while it runs with
+`sqlite3 pyrealium.db ".backup backup.db"`. A second server on the same database file refuses
+to start (an OS lock on `pyrealium.db.lock`); a crashed one leaves no lock behind. Keep the
+file on a local disk, not a network share.
 
 An AC2 client signs in at the account service with a new account name and a password of
 12–128 characters; first sign-in creates the account, later sign-ins require the same
@@ -240,7 +241,7 @@ only) trusts the client's account name instead; `local-accounts` combines both.
 living character out of combat may travel to a map point, with a five-second cooldown.
 
 Docker: `PYREALIUM_DATS=/path/to/dataset-7230 docker compose -f deploy/docker/compose.yml up --build`
-runs PostgreSQL and the server together. Hosting with systemd: `deploy/pyrealium.service`
+runs the server with its database in a `data` volume. Hosting with systemd: `deploy/pyrealium.service`
 and [online hosting](docs/online-hosting.md).
 
 ## Build and verify
@@ -251,9 +252,8 @@ and [online hosting](docs/online-hosting.md).
 python .\test_export_source.py
 ```
 
-The Rust tests start their own throwaway PostgreSQL cluster (the system's `initdb` and
-`postgres` must be on PATH), or use `PYREALIUM_TEST_DATABASE_URL` (a role that may create
-databases). `Build-AC2Network.ps1` builds the server and the native protocol bridge
+Each Rust test that needs a database gets its own temporary SQLite file, deleted afterwards.
+`Build-AC2Network.ps1` builds the server and the native protocol bridge
 (`crates/ac2-network-bridge/`), the scripted AC2 client the network tests drive.
 
 Network integration tests prepare their own content and isolated stores:

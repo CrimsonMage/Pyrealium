@@ -3,6 +3,7 @@
 //! database connection.
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier, password_hash::SaltString};
 use crate::db::{self, error};
+use rusqlite::OptionalExtension;
 use sha2::{Digest, Sha256};
 use std::{
     collections::BTreeMap,
@@ -84,7 +85,7 @@ fn ticket_hash(token: &str) -> Vec<u8> {
 }
 
 pub struct Accounts {
-    client: postgres::Client,
+    client: db::Connection,
     dummy_hash: String,
 }
 impl Accounts {
@@ -104,7 +105,7 @@ impl Accounts {
                 "Use a lowercase account name of 1-32 letters, digits or underscores and a password of 12-128 characters.",
             ));
         }
-        let count: i64 = self.client.query_one("SELECT count(*) FROM accounts", &[]).map_err(error)?.get(0);
+        let count: i64 = self.client.query_row("SELECT count(*) FROM accounts", [], |r| r.get(0)).map_err(error)?;
         if count >= MAX_ACCOUNTS as i64 {
             return Err(invalid("Account registration is unavailable."));
         }
@@ -112,8 +113,8 @@ impl Accounts {
         let inserted = self
             .client
             .execute(
-                "INSERT INTO accounts (name, password_hash) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
-                &[&name, &hash],
+                "INSERT INTO accounts (name, password_hash) VALUES (?1, ?2) ON CONFLICT (name) DO NOTHING",
+                [name, hash.as_str()],
             )
             .map_err(error)?;
         if inserted == 0 {
@@ -125,15 +126,14 @@ impl Accounts {
         Ok(self.stored_hash(name)?.is_some())
     }
     fn stored_hash(&mut self, name: &str) -> io::Result<Option<String>> {
-        Ok(self
-            .client
-            .query_opt("SELECT password_hash FROM accounts WHERE name = $1", &[&name])
-            .map_err(error)?
-            .map(|r| r.get(0)))
+        self.client
+            .query_row("SELECT password_hash FROM accounts WHERE name = ?1", [name], |r| r.get(0))
+            .optional()
+            .map_err(error)
     }
     /// Whether characters are already saved under `account` (see `account_web`'s reservation).
     pub fn owns_characters(&mut self, account: &str) -> io::Result<bool> {
-        db::shard::account_owns_characters(&mut self.client, account)
+        db::shard::account_owns_characters(&self.client, account)
     }
     pub fn verify(&mut self, name: &str, password: &str) -> io::Result<bool> {
         if !valid_account(name) || password.len() > 512 {
@@ -148,7 +148,7 @@ impl Accounts {
                 .is_ok()
         });
         if stored.is_some() && matched {
-            let _ = self.client.execute("UPDATE accounts SET last_login_at = now() WHERE name = $1", &[&name]);
+            let _ = self.client.execute("UPDATE accounts SET last_login_at = unixepoch() WHERE name = ?1", [name]);
             return Ok(true);
         }
         Ok(false)
@@ -160,19 +160,18 @@ impl Accounts {
             ));
         }
         self.client
-            .execute("DELETE FROM login_tickets WHERE expires_at <= now() OR used_at IS NOT NULL", &[])
+            .execute("DELETE FROM login_tickets WHERE expires_at <= unixepoch() OR used_at IS NOT NULL", [])
             .map_err(error)?;
-        let live: i64 = self.client.query_one("SELECT count(*) FROM login_tickets", &[]).map_err(error)?.get(0);
+        let live: i64 = self.client.query_row("SELECT count(*) FROM login_tickets", [], |r| r.get(0)).map_err(error)?;
         if live >= MAX_LIVE_TICKETS {
             return Err(invalid("Login ticket capacity."));
         }
         let token = hex(&random::<32>()?);
-        let seconds = TICKET_SECONDS as f64;
         self.client
             .execute(
                 "INSERT INTO login_tickets (token_hash, account, ip, expires_at)
-                 VALUES ($1, $2, $3, now() + make_interval(secs => $4))",
-                &[&ticket_hash(&token), &account, &ip, &seconds],
+                 VALUES (?1, ?2, ?3, unixepoch() + ?4)",
+                rusqlite::params![ticket_hash(&token), account, ip.to_string(), TICKET_SECONDS as i64],
             )
             .map_err(error)?;
         Ok(token)
@@ -180,7 +179,7 @@ impl Accounts {
 }
 
 /// Atomically consume a SHA256-indexed, single-use ticket. Never log its value.
-pub fn consume(client: &mut postgres::Client, account: &str, ip: IpAddr, token: &str) -> io::Result<()> {
+pub fn consume(client: &mut db::Connection, account: &str, ip: IpAddr, token: &str) -> io::Result<()> {
     if !valid_account(account)
         || token.len() != 64
         || !token
@@ -191,10 +190,10 @@ pub fn consume(client: &mut postgres::Client, account: &str, ip: IpAddr, token: 
     }
     let claimed = client
         .execute(
-            "UPDATE login_tickets SET used_at = now()
-             WHERE token_hash = $1 AND used_at IS NULL AND account = $2 AND ip = $3
-               AND expires_at > now() AND expires_at <= now() + make_interval(secs => $4)",
-            &[&ticket_hash(token), &account, &ip, &(TICKET_SECONDS as f64)],
+            "UPDATE login_tickets SET used_at = unixepoch()
+             WHERE token_hash = ?1 AND used_at IS NULL AND account = ?2 AND ip = ?3
+               AND expires_at > unixepoch() AND expires_at <= unixepoch() + ?4",
+            rusqlite::params![ticket_hash(token), account, ip.to_string(), TICKET_SECONDS as i64],
         )
         .map_err(|_| invalid("Public login rejected."))?;
     if claimed != 1 {

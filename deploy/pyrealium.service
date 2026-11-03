@@ -1,6 +1,6 @@
 [Unit]
 Description=Pyrealium AC2 server (game and account service)
-After=network-online.target postgresql.service
+After=network-online.target
 Wants=network-online.target
 
 [Service]
@@ -10,8 +10,9 @@ Group=pyrealium
 Slice=pyrealium.slice
 Nice=10
 WorkingDirectory=/var/lib/pyrealium
-# pyrealium.toml sets the DATs, the PostgreSQL url, the content directory
-# (/opt/pyrealium/content), the account service and run_dir = "/var/lib/pyrealium/run".
+# pyrealium.toml sets the DATs, the database file (path = "/var/lib/pyrealium/pyrealium.db"),
+# the content directory (/opt/pyrealium/content), the account service and
+# run_dir = "/var/lib/pyrealium/run".
 ExecStart=/opt/pyrealium/pyrealium run --config /etc/pyrealium/pyrealium.toml
 ExecStop=/opt/pyrealium/pyrealium stop --config /etc/pyrealium/pyrealium.toml --seconds 20
 Restart=on-failure
