@@ -70,6 +70,8 @@ impl Bootstrap {
             // tools/make_7148_test_assets.py.
             (0x0fb49f0fddeda7f2, 0x3594e7ba65dcd613) => {
                 crate::data_profile::set_unconverted_7230(true);
+                // The items' appearance sets observed in the captures, confirmed by these DATs.
+                crate::item_appearance::install(&mut portal)?;
                 "7230"
             }
             (0xc0b0230d626998c2, 0x83c30e31275ab0e3) => "7148",

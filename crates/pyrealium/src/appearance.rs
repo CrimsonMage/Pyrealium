@@ -272,31 +272,67 @@ impl Body {
     }
 }
 
-/// Byte length of a VisualDesc this server writes: parent-only (flags 2) or
-/// the creation appearance layout (flags 0x122). None for anything else.
+/// An item's VisualDesc: parent-only (flags 2) without mods, else flags 0x102, the parent and
+/// the global part group (bitfield 0x21, key 0x40000002) with its appearance hash, as retail
+/// sent items (`crate::item_appearance`).
+pub fn item_visual_desc(parent: u32, mods: &[(u32, Vec<(u32, f32)>)]) -> Result<Vec<u8>, WorldError> {
+    let mut bytes = Vec::new();
+    if mods.is_empty() {
+        bytes.extend(2u32.to_le_bytes());
+        bytes.extend(parent.to_le_bytes());
+        return Ok(bytes);
+    }
+    bytes.extend(0x102u32.to_le_bytes());
+    bytes.extend(parent.to_le_bytes());
+    global_mods(&mut bytes, mods)?;
+    Ok(bytes)
+}
+
+fn global_mods(bytes: &mut Vec<u8>, mods: &[(u32, Vec<(u32, f32)>)]) -> Result<(), WorldError> {
+    let tables: std::collections::BTreeMap<u32, std::collections::BTreeMap<u32, f32>> = mods
+        .iter()
+        .map(|(table, keys)| (*table, keys.iter().copied().collect()))
+        .collect();
+    bytes.extend(0x21u32.to_le_bytes());
+    bytes.extend(0x4000_0002u32.to_le_bytes());
+    bytes.extend(table_header(tables.len())?.to_le_bytes());
+    for (table, keys) in bucket_order(&tables) {
+        bytes.extend(table.to_le_bytes());
+        bytes.extend(table_header(keys.len())?.to_le_bytes());
+        for (key, &value) in bucket_order(keys) {
+            bytes.extend(key.to_le_bytes());
+            bytes.extend(value.to_le_bytes());
+        }
+    }
+    Ok(())
+}
+
+/// Byte length of a VisualDesc this server writes: parent-only (flags 2), an item's parent and
+/// global mods (flags 0x102) or the creation appearance layout (flags 0x122). None for anything
+/// else.
 pub fn visual_len(bytes: &[u8]) -> Option<usize> {
     let word = |at: usize| -> Option<u32> {
         Some(u32::from_le_bytes(bytes.get(at..at + 4)?.try_into().ok()?))
     };
-    match word(0)? {
-        2 => Some(8),
-        0x122 => {
-            if word(20)? != 0x21 || word(24)? != 0x4000_0002 {
-                return None;
-            }
-            let aspects = word(28)? & 0xff_ffff;
-            let mut at = 32;
-            for _ in 0..aspects.min(256) {
-                let traits = word(at + 4)? & 0xff_ffff;
-                if traits > 256 {
-                    return None;
-                }
-                at += 8 + traits as usize * 8;
-            }
-            (at <= bytes.len() && aspects <= 256).then_some(at)
-        }
-        _ => None,
+    let start = match word(0)? {
+        2 => return Some(8),
+        0x102 => 8,
+        0x122 => 20,
+        _ => return None,
+    };
+    if word(start)? != 0x21 || word(start + 4)? != 0x4000_0002 {
+        return None;
     }
+    let aspects = word(start + 8)? & 0xff_ffff;
+    let mut at = start + 12;
+    for _ in 0..aspects.min(256) {
+        let traits = word(at + 4)? & 0xff_ffff;
+        if traits > 256 {
+            return None;
+        }
+        at += 8 + traits as usize * 8;
+    }
+    (at <= bytes.len() && aspects <= 256).then_some(at)
 }
 
 /// Retail appearance hashes use bucket-size index 2 (47 buckets, client table

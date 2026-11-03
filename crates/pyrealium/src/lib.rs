@@ -34,6 +34,7 @@ pub mod gun;
 pub mod interaction;
 pub mod inventory;
 pub mod inventory_request;
+pub mod item_appearance;
 pub mod item_names;
 pub mod item_services;
 pub mod legacy;

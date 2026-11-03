@@ -628,8 +628,10 @@ pub fn create_inventory_item(
     }
     let mut bytes = CREATE_OBJECT.to_le_bytes().to_vec();
     bytes.extend(item.id.to_le_bytes());
-    bytes.extend(2u32.to_le_bytes()); // VisualDesc parent-DID bit, 0063d7f0.
-    bytes.extend(item.visual.to_le_bytes());
+    // VisualDesc (0063d7f0): the parent, with the item's global appearance mods when it has
+    // any (`item_appearance`).
+    let mods = crate::item_appearance::for_item(item.id, item.definition, item.visual);
+    bytes.extend(crate::appearance::item_visual_desc(item.visual, &mods)?);
     bytes.extend(0u32.to_le_bytes()); // PhysicsDesc has no optional fields.
     bytes.extend(instance.to_le_bytes());
     bytes.extend(0u16.to_le_bytes());
@@ -681,9 +683,10 @@ pub fn create_hand_item(
         return Err(WorldError::InvalidValue);
     }
     let mut bytes = create_inventory_item(item, owner, instance)?;
+    let physics = physics_start(&bytes)?;
     let scale = crate::starter_gear::hand_scale(item.definition, item.visual);
     let initialized = scale.is_some();
-    bytes[20..24].copy_from_slice(&(if initialized { 0xa2u32 } else { 0x20 }).to_le_bytes());
+    bytes[physics..physics + 4].copy_from_slice(&(if initialized { 0xa2u32 } else { 0x20 }).to_le_bytes());
     let mut parent = Vec::new();
     if initialized {
         // Same-definition held weapon in cleaned Inventar/ac2_load_inventar:
@@ -698,8 +701,14 @@ pub fn create_hand_item(
     parent.extend(location.to_le_bytes());
     parent.extend(parent_instance.to_le_bytes());
     parent.extend(0u16.to_le_bytes()); // Native alignment before timestamps.
-    bytes.splice(28..28, parent);
+    bytes.splice(physics + 8..physics + 8, parent);
     Ok(bytes)
+}
+
+/// Where an item CreateObject's PhysicsDesc starts: after the opcode, the id and the VisualDesc.
+fn physics_start(spawn: &[u8]) -> Result<usize, WorldError> {
+    Ok(12 + crate::appearance::visual_len(spawn.get(12..).ok_or(WorldError::InvalidValue)?)
+        .ok_or(WorldError::InvalidValue)?)
 }
 
 /// Validate the two generated hand profiles and locate their stamped parent.
@@ -708,21 +717,25 @@ pub(crate) fn hand_parent(spawn: &[u8]) -> Result<(u64, u16), WorldError> {
     if spawn.len() < 72 || spawn[..4] != CREATE_OBJECT.to_le_bytes() {
         return Err(WorldError::InvalidValue);
     }
-    let flags = u32::from_le_bytes(spawn[20..24].try_into().unwrap());
-    let offset = match (flags, spawn.len()) {
-        (0x20, 72) => 28,
+    // The fixed layout after the VisualDesc (8 bytes when parent-only, longer with the item's
+    // appearance mods).
+    let p = physics_start(spawn)?;
+    let extra = p - 20;
+    let flags = u32::from_le_bytes(spawn[p..p + 4].try_into().unwrap());
+    let offset = match (flags, spawn.len() - extra) {
+        (0x20, 72) => p + 8,
         (0xa2, 92) => {
-            let definition = u32::from_le_bytes(spawn[76..80].try_into().unwrap());
+            let definition = u32::from_le_bytes(spawn[p + 56..p + 60].try_into().unwrap());
             let visual = u32::from_le_bytes(spawn[16..20].try_into().unwrap());
             let scale = crate::starter_gear::hand_scale(definition, visual).ok_or(WorldError::InvalidValue)?;
             let expected: Vec<u8> = [0x40000001u32, 1, 0x4000000a, scale.to_bits(), 0]
                 .into_iter()
                 .flat_map(u32::to_le_bytes)
                 .collect();
-            if spawn[28..48] != expected {
+            if spawn[p + 8..p + 28] != expected {
                 return Err(WorldError::InvalidValue);
             }
-            48
+            p + 28
         }
         _ => return Err(WorldError::InvalidValue),
     };
