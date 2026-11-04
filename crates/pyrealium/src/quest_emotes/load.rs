@@ -96,6 +96,7 @@ impl Tables {
         }
         let aliases = super::spec::aliases(&rows.aliases)?;
         t.instances(&rows, &aliases)?;
+        t.items = super::items::overrides(&rows.items)?;
         let counters = super::spec::counters(&rows.counters, &t.keys)?;
         let entity_or_alias = |v: &str| hex32(v).or_else(|| aliases.get(v).filter(|(k, _)| *k == super::spec::AliasKind::Entity).and_then(|(_, v)| hex32(v)));
         let mut lines = BTreeMap::new();
@@ -104,10 +105,22 @@ impl Tables {
             let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             let trigger = Trigger::parse(f[3]).ok_or_else(|| bad(&format!("trigger must be one of {}",
                 Trigger::NAMES.map(|(n, _)| n).join(", "))))?;
-            let owner_entity = if f[1].is_empty() { None } else { Some(entity_or_alias(f[1]).filter(|e| e >> 24 == 0x47).ok_or_else(|| bad("owner_entity must be an EntityDesc DID or an entity alias"))?) };
-            let owner_iid = if f[2].is_empty() { None } else { Some(hex64(f[2]).ok_or_else(|| bad("owner_iid must be hex"))?) };
-            if matches!(trigger, Trigger::Crafted | Trigger::EscortLost | Trigger::EscortAbandoned) && (owner_entity.is_none() || owner_iid.is_some()) {
-                return Err(bad("a Crafted, EscortLost or EscortAbandoned set names an EntityDesc in owner_entity (no owner_iid)"));
+            // An owner is a DID or iid, an alias of one, or an `entities` / `objects` alias of several.
+            use super::spec::AliasKind;
+            let owner_entities: Vec<u32> = if f[1].is_empty() { Vec::new() } else {
+                match aliases.get(f[1]) {
+                    Some((AliasKind::Entities, list)) => list.split(',').filter_map(|v| hex32(v.trim())).collect(),
+                    _ => vec![entity_or_alias(f[1]).filter(|e| e >> 24 == 0x47).ok_or_else(|| bad("owner_entity must be an EntityDesc DID, an entity alias or an entities alias"))?],
+                }
+            };
+            let owner_iids: Vec<u64> = if f[2].is_empty() { Vec::new() } else {
+                match aliases.get(f[2]) {
+                    Some((AliasKind::Objects, list)) => list.split(',').filter_map(|v| hex64(v.trim())).collect(),
+                    _ => vec![hex64(f[2]).ok_or_else(|| bad("owner_iid must be hex or an objects alias"))?],
+                }
+            };
+            if matches!(trigger, Trigger::Crafted | Trigger::EscortLost | Trigger::EscortAbandoned | Trigger::UseItem) && (owner_entities.is_empty() || !owner_iids.is_empty()) {
+                return Err(bad("a Crafted, EscortLost, EscortAbandoned or UseItem set names its entity in owner_entity (no owner_iid)"));
             }
             if trigger == Trigger::Enter && f[2].is_empty() {
                 return Err(bad("an Enter set names its point: owner_iid, the world object it is around (range: the radius)"));
@@ -116,11 +129,11 @@ impl Tables {
             let owner_slots = f.get(11).filter(|v| !v.is_empty()).map(|v| v.to_string());
             if owner_slots.as_ref().is_some_and(|g| !t.groups.contains_key(g)) { return Err(bad("owner_slots is not an instance_group")); }
             let ownerless = trigger.branch() || trigger.personal();
-            if ownerless == (owner_entity.is_some() || owner_iid.is_some() || owner_slots.is_some()) {
-                return Err(bad("a branch, Goto, PlayerDeath, QuestExpired or Logout set has no owner; every other set names owner_entity or owner_iid"));
+            if ownerless == (!owner_entities.is_empty() || !owner_iids.is_empty() || owner_slots.is_some()) {
+                return Err(bad("a branch, Goto, PlayerDeath, QuestExpired, Logout or EnterWorld set has no owner; every other set names owner_entity, owner_iid or owner_slots"));
             }
             if trigger.personal() && f[5].is_empty() {
-                return Err(bad("a PlayerDeath, QuestExpired or Logout set names its quest (and the stages it applies to)"));
+                return Err(bad("a PlayerDeath, QuestExpired, Logout or EnterWorld set names its quest (and the stages it applies to)"));
             }
             let item = if f[4].is_empty() { None } else { Some(entity_or_alias(f[4]).ok_or_else(|| bad("item must be hex or an entity alias"))?) };
             let quest = if f[5].is_empty() { None } else { Some(*t.keys.get(f[5]).ok_or_else(|| bad("quest is not in the registry"))?) };
@@ -131,7 +144,7 @@ impl Tables {
             let probability = if f[9].is_empty() { 1.0 } else { f[9].parse().ok().filter(|p: &f32| (0.0..=1.0).contains(p) && *p > 0.0).ok_or_else(|| bad("probability must be in (0, 1]"))? };
             if f[0].is_empty() || f[10].is_empty() { return Err(bad("set and source must not be empty")); }
             if lines.insert(f[0].to_owned(), at.clone()).is_some() { return Err(bad("duplicate set")); }
-            t.sets.push(Set { id: f[0].to_owned(), owner_entity, owner_iid, trigger, item, quest, stages, range, probability, owner_slots });
+            t.sets.push(Set { id: f[0].to_owned(), owner_entities, owner_iids, trigger, item, quest, stages, range, probability, owner_slots });
         }
         let mut orders = BTreeMap::<String, Vec<(u32, String, (u32, Action))>>::new();
         for (at, f) in &tables[3] {
@@ -177,7 +190,7 @@ impl Tables {
     /// A death, a logout or a run's expiry changes quests and talks only: no set they reach (by
     /// a branch or Goto) gives, takes, awards or moves.
     fn check_personal(&self, lines: &BTreeMap<String, String>) -> io::Result<()> {
-        for start in self.sets.iter().filter(|s| s.trigger.personal()) {
+        for start in self.sets.iter().filter(|s| s.trigger.personal() || matches!(s.trigger, Trigger::Bind | Trigger::Travel)) {
             let mut seen = std::collections::BTreeSet::new();
             let mut todo = vec![start.id.as_str()];
             while let Some(set) = todo.pop() {
@@ -186,7 +199,8 @@ impl Tables {
                     let refused = matches!(action, Action::GiveItem { .. } | Action::TakeItem { .. } | Action::RandomGive(_)
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
                         | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. }
-                        | Action::GenerateStep { .. } | Action::MoveToStep { .. } | Action::AwardXpShare { .. } | Action::AwardGoldShare { .. });
+                        | Action::GenerateStep { .. } | Action::MoveToStep { .. } | Action::AwardXpShare { .. } | Action::AwardGoldShare { .. }
+                        | Action::TakeQuantity { .. } | Action::GiveStack { .. });
                     if refused {
                         let at = lines.get(start.id.as_str()).map_or("", String::as_str);
                         return Err(io::Error::other(format!("{at}: a {:?} set changes quests and talks only, but reaches {action:?} in set {set}",

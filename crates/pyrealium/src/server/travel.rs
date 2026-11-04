@@ -73,6 +73,7 @@ pub(super) fn use_portal(
     let portal = scene
         .examination_content(character, target)
         .ok_or_else(|| invalid("Portal is not visible."))?;
+    let portal_entity = portal.entity;
     let distance: f64 = player
         .coordinates
         .into_iter()
@@ -94,6 +95,8 @@ pub(super) fn use_portal(
     }
     peer.validate_scene_batch(&events)?;
     store.relocate_training_portal(&peer.session.account, character, route.destination, target)?;
+    // The quests' Travel sets (`quest_emotes`).
+    let travelled = object_quests(store, character, crate::quest_emotes::Trigger::Travel, portal_entity, target);
     if let Some(runtime) = encounters {
         runtime.stop(character);
     }
@@ -104,6 +107,7 @@ pub(super) fn use_portal(
     peer.target = None;
     peer.last_world_use_ms = Some(now_ms);
     peer.queue_ordered_batch(events)?;
+    if !travelled.is_empty() { peer.queue_ordered_batch(travelled)?; }
     Ok(updates)
 }
 pub(super) fn map_travel_character(

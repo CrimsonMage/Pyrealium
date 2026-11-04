@@ -9,8 +9,10 @@ use crate::quest_emotes::{Outcome, Resume, Trigger};
 pub(super) fn commit_quest_outcome(store: &mut Store, character: u64, outcome: &Outcome) -> io::Result<Vec<Vec<u8>>> {
     let before = store.characters.get(&character).ok_or_else(|| invalid("Quest record owner unavailable"))?.quests.clone();
     store.quest_records(character, &outcome.quests)?;
-    let mut events = store.characters[&character].quests.updates_since(&before).map_err(other)?;
+    let after = store.characters[&character].quests.clone();
+    let mut events = after.updates_since(&before).map_err(other)?;
     for (table, key) in &outcome.tells { events.push(crate::quest_emotes::tell(*table, *key).map_err(other)?); }
+    events.extend(outcome_lines(outcome, None, &before, &after)?);
     for line in &outcome.lines { events.push(script::chat(line, 1).map_err(other)?); }
     crate::quest_emotes::instances::committed(character, outcome);
     Ok(events)
@@ -26,6 +28,19 @@ pub(super) fn personal_quests(store: &mut Store, character: u64, trigger: Trigge
     let mut events = Vec::new();
     for outcome in &outcomes { events.extend(commit_quest_outcome(store, character, outcome)?); }
     Ok(events)
+}
+
+/// A trigger on a world object with no use behind it (a lifestone bound, a portal travelled):
+/// the object's set, committed as quest state and talk (`load` holds those sets to that).
+pub(super) fn object_quests(store: &mut Store, character: u64, trigger: Trigger, entity: u32, iid: u64) -> Vec<Vec<u8>> {
+    let mut run = || -> io::Result<Vec<Vec<u8>>> {
+        let Some(tables) = crate::quest_emotes::tables() else { return Ok(Vec::new()) };
+        let Some(c) = store.characters.get(&character).filter(|c| !c.deleted) else { return Ok(Vec::new()) };
+        let Some(outcome) = tables.run(trigger, entity, iid, None, &c.quests, &c.inventory, &c.progression, store.next_item_id()?, 0.0,
+            crate::recovered_quests::now(), &crate::quest_emotes::item)? else { return Ok(Vec::new()) };
+        commit_quest_outcome(store, character, &outcome)
+    };
+    run().unwrap_or_else(|error| { eprintln!("Quest {trigger:?} sets for character {character:x}: {error}"); Vec::new() })
 }
 
 /// The same, where a failure must not stop the caller (a death, a departure): logged instead.
@@ -93,7 +108,7 @@ fn resume_set(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer>, tables: 
         crate::quest_emotes::pending::defer(character, Resume { frames: resume.frames.clone(), after_ms: 1000 });
         return Ok(());
     }
-    let updates = commit_emote(peer, character, &outcome, Vec::new(), &mut srv.store, &mut srv.scene, &srv.inventory_metadata,
+    let updates = commit_emote(peer, character, &outcome, Vec::new(), None, &mut srv.store, &mut srv.scene, &srv.inventory_metadata,
         &mut srv.encounters, &mut srv.bootstrap, srv.now_ms)?;
     deliver_scene(updates, &srv.active_characters, peers, &srv.primary, srv.now, &mut srv.failed_peers)
 }

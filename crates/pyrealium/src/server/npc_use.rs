@@ -25,17 +25,40 @@ pub(super) fn use_emote(peer:&mut Peer,character:u64,target:u64,trigger:crate::q
     let events=vec![crate::interaction::success(character,target,player,distance).map_err(other)?];
     if outcome.moveto.is_some() && peer.last_world_use_ms.is_some_and(|last|now.saturating_sub(last)<5000) {return Err(invalid("Wait a few seconds."));}
     peer.admit_npc_dialogue(now)?;
-    commit_emote(peer,character,&outcome,events,store,scene,metadata,encounters,bootstrap,now)
+    let speaker=object.name.clone().unwrap_or_default();
+    commit_emote(peer,character,&outcome,events,Some((target,&speaker)),store,scene,metadata,encounters,bootstrap,now)
+}
+
+/// The client lines of a committed outcome beyond its items and stages: the NPC's Say lines
+/// (speech from `speaker` when one stands there, and the dialogue window), and the scenes and
+/// recipes the quest book gained.
+pub(super) fn outcome_lines(outcome:&crate::quest_emotes::Outcome,speaker:Option<(u64,&str)>,before:&crate::quests::Book,after:&crate::quests::Book)
+    ->io::Result<Vec<Vec<u8>>> {
+    let mut events=Vec::new();
+    for (name,text) in &outcome.says {
+        let name=name.as_deref().or(speaker.map(|(_,n)|n)).unwrap_or("");
+        if let Some((iid,_))=speaker {events.push(crate::interaction::speech(iid,name,text).map_err(other)?);}
+        events.push(crate::interaction::dialogue(name,text).map_err(other)?);
+    }
+    for scene in after.scenes().filter(|s|!before.scenes().any(|b|b==*s)) {events.push(crate::story::granted(scene).map_err(other)?);}
+    for recipe in outcome.quests.iter().filter_map(|q|if let crate::quests::Command::Recipe(r)=q {Some(*r)} else {None}).filter(|r|!before.knows(*r)) {
+        events.push(crate::crafting::learned_recipe(recipe).map_err(other)?);
+        events.push(crate::crafting::shown_recipe(recipe).map_err(other)?);
+    }
+    Ok(events)
 }
 
 /// Commits a quest emote outcome for the player (alive, out of combat): its lines, items,
 /// experience, effects, escort and move, as one record; a set that paused for a delay is queued
 /// (`quest_emotes::pending`). `events` go first (the use's own answer).
 #[allow(clippy::too_many_arguments)]
-pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_emotes::Outcome,mut events:Vec<Vec<u8>>,store:&mut Store,
+pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_emotes::Outcome,mut events:Vec<Vec<u8>>,speaker:Option<(u64,&str)>,store:&mut Store,
     scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,
     encounters:&mut Option<crate::encounters::Encounters>,bootstrap:&mut Option<crate::bootstrap::Bootstrap>,now:u64)->io::Result<Vec<crate::scene::Delivery>> {
     for (table,key) in &outcome.tells {events.push(crate::quest_emotes::tell(*table,*key).map_err(other)?);}
+    let before=store.characters[&character].quests.clone();
+    let after=outcome.quests.iter().try_fold(before.clone(),|b,c|b.apply(c)).map_err(other)?;
+    events.extend(outcome_lines(outcome,speaker,&before,&after)?);
     let prepared=outcome.moveto.map(|to|prepare_forced_move(peer,character,to,scene,bootstrap)).transpose()?;
     if let Some(prepared)=&prepared {
         events.push(prepared.wire.clone());
@@ -85,6 +108,9 @@ pub(super) fn trigger_emotes(peer:&mut Peer,character:u64,trigger:crate::quest_e
             store.next_item_id()?,(now % 1000) as f32/1000.,unix,&crate::quest_emotes::item)? else {continue};
         let mut events=Vec::new();
         for (table,key) in &outcome.tells {events.push(crate::quest_emotes::tell(*table,*key).map_err(other)?);}
+        let before=saved.quests.clone();
+        let after=outcome.quests.iter().try_fold(before.clone(),|b,c|b.apply(c)).map_err(other)?;
+        events.extend(outcome_lines(&outcome,None,&before,&after)?);
         updates.extend(item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(&outcome),None,None)?);
         crate::quest_emotes::instances::committed(character,&outcome);
         if let Some(runtime)=encounters.as_mut() {

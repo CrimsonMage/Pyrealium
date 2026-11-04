@@ -57,21 +57,30 @@ pub enum Trigger {
     /// An escort gave up on a player who stayed out of its radar too long (owner_entity: the
     /// escorted entity; a quest without one fails by its EscortLost sets).
     EscortAbandoned,
+    /// The player entered the world (personal: names its quest).
+    EnterWorld,
+    /// The player used an item from the bag with no target (owner_entity: the item).
+    UseItem,
+    /// The player bound at a lifestone (owner: the lifestone).
+    Bind,
+    /// The player travelled through a portal (owner: the portal).
+    Travel,
 }
 
 impl Trigger {
-    pub const NAMES: [(&'static str, Trigger); 14] = [
+    pub const NAMES: [(&'static str, Trigger); 18] = [
         ("Use", Trigger::Use), ("Give", Trigger::Give), ("Kill", Trigger::Kill), ("ItemUsedOn", Trigger::ItemUsedOn),
         ("Enter", Trigger::Enter), ("Crafted", Trigger::Crafted), ("EscortLost", Trigger::EscortLost),
         ("QuestSuccess", Trigger::QuestSuccess), ("QuestFailure", Trigger::QuestFailure), ("Goto", Trigger::Goto),
         ("PlayerDeath", Trigger::PlayerDeath), ("QuestExpired", Trigger::QuestExpired), ("Logout", Trigger::Logout),
-        ("EscortAbandoned", Trigger::EscortAbandoned),
+        ("EscortAbandoned", Trigger::EscortAbandoned), ("EnterWorld", Trigger::EnterWorld), ("UseItem", Trigger::UseItem),
+        ("Bind", Trigger::Bind), ("Travel", Trigger::Travel),
     ];
     pub fn parse(name: &str) -> Option<Self> { Self::NAMES.iter().find(|(n, _)| *n == name).map(|(_, t)| *t) }
     /// A set with no owner: reached from another set (a branch or Goto).
     pub fn branch(self) -> bool { matches!(self, Trigger::QuestSuccess | Trigger::QuestFailure | Trigger::Goto) }
     /// A set about the player alone (no owner object; it names its quest).
-    pub fn personal(self) -> bool { matches!(self, Trigger::PlayerDeath | Trigger::QuestExpired | Trigger::Logout) }
+    pub fn personal(self) -> bool { matches!(self, Trigger::PlayerDeath | Trigger::QuestExpired | Trigger::Logout | Trigger::EnterWorld) }
 }
 
 /// A player stat an InqStat row reads.
@@ -107,7 +116,8 @@ pub struct Quest {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Set {
-    pub id: String, pub owner_entity: Option<u32>, pub owner_iid: Option<u64>, pub trigger: Trigger,
+    /// The entities and world objects the set answers for (empty: any; an alias may list several).
+    pub id: String, pub owner_entities: Vec<u32>, pub owner_iids: Vec<u64>, pub trigger: Trigger,
     pub item: Option<u32>, pub quest: Option<u32>, pub stages: (u8, u8), pub range: f32, pub probability: f32,
     /// An instance group: the set answers for any creature of the group's spawn slots
     /// (`emote_set.owner_slots`).
@@ -163,6 +173,17 @@ pub enum Action {
     AwardXpShare { basis_points: u64, quest: u32, part: u8, whole: u8 },
     /// AwardGold scaled by counter `part` over counter `whole` of the quest.
     AwardGoldShare { gold: u32, quest: u32, part: u8, whole: u8 },
+    /// The NPC says the text: a speech bubble and the dialogue window (titled `speaker`, else the
+    /// NPC's name).
+    Say { text: String, speaker: Option<String> },
+    /// Takes `quantity` units of the item from the bag's stacks (the whole set fails when short).
+    TakeQuantity { entity: u32, quantity: u32 },
+    /// Gives `quantity` units of the item as one stack.
+    GiveStack { entity: u32, quantity: u32 },
+    /// Grants a story scene (the Quest panel's Story page).
+    GrantScene(u32),
+    /// Teaches a recipe: a recipe some quest teaches can be crafted only once learned.
+    LearnRecipe(u32),
     SetCounter { quest: u32, counter: u8, value: u16 },
     /// Whether the player's level reaches the quest's `min_level`.
     InqLevel { quest: u32, success: Option<String>, failure: Option<String> },
@@ -206,6 +227,8 @@ pub struct Tables {
     /// Instance groups and spawn slots, by name (`instances`).
     groups: BTreeMap<String, instances::Group>,
     slots: BTreeMap<String, instances::Slot>,
+    /// Item profiles the quests grant where the DAT's defaults do not fit (`quest_item`).
+    items: BTreeMap<u32, items::Override>,
 }
 
 /// What one trigger did for one player, to be committed as one record.
@@ -230,6 +253,8 @@ pub struct Outcome {
     pub resume: Option<Resume>,
     /// Creatures summoned or sent away (`instances`; applied by the server's tick).
     pub world: Vec<instances::WorldOp>,
+    /// The NPC's lines (Say): speaker override and text.
+    pub says: Vec<(Option<String>, String)>,
     /// Instance lanes taken and freed (group id, lane).
     pub claims: Vec<(u32, u8)>,
     pub releases: Vec<(u32, u8)>,
@@ -292,7 +317,7 @@ pub fn fellow_kill(book: &Book, inventory: &Inventory, progression: &crate::prog
     -> Option<Outcome> {
     let tables = tables()?;
     let first = inventory.high_water().max(crate::inventory::ITEM_NAMESPACE) + 1;
-    let set = tables.sets.iter().find(|s| s.trigger == Trigger::Kill && s.owner_entity == Some(entity)
+    let set = tables.sets.iter().find(|s| s.trigger == Trigger::Kill && s.owner_entities.contains(&entity)
         && s.quest.is_some_and(|q| tables.quests.get(&q).is_some_and(|r| r.credit == Credit::Fellowship)
             && (s.stages.0..=s.stages.1).contains(&tables.stage_now(book, q, now))))?;
     tables.perform_named(&set.id, set.range, book, inventory, progression, first, now, &item).ok()

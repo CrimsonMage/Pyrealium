@@ -91,6 +91,8 @@ pub const ACTIONS: &[Spec] = &[
         doc: "Says a DAT string (StringInfo table and key) to the player as the NPC's chat line." },
     Spec { name: "Message", params: &[req("text", Kind::Text)],
         doc: "Says Pyrealium text to the player, where retail has no DAT line." },
+    Spec { name: "Say", params: &[req("text", Kind::Text), opt("speaker", Kind::Text)],
+        doc: "The NPC says the text: a speech bubble over it and the dialogue window, titled with the speaker (else the NPC's name)." },
     // Rewards and costs
     Spec { name: "AwardXP", params: &[req("xp", Kind::Range(1, u64::MAX))], doc: "Gives experience." },
     Spec { name: "AwardLevelProportionalXP", params: &[req("percent", Kind::Percent), opt("min", Kind::Range(0, u64::MAX)), opt("max", Kind::Range(0, u64::MAX))],
@@ -105,6 +107,13 @@ pub const ACTIONS: &[Spec] = &[
     Spec { name: "TakeItem", params: &[ITEM, req("count", Kind::Range(1, 16))],
         doc: "Takes items from the bag. The whole set fails when the player has fewer." },
     Spec { name: "RandomGive", params: &[req("items", Kind::Weights)], doc: "Gives one item drawn by weight." },
+    Spec { name: "GiveStack", params: &[ITEM, req("quantity", Kind::Range(1, 65_535))],
+        doc: "Gives the quantity of a stackable item as one stack (merged into one the bag holds when it fits)." },
+    Spec { name: "TakeQuantity", params: &[ITEM, req("quantity", Kind::Range(1, 65_535))],
+        doc: "Takes the quantity of a stackable item from the bag's stacks. The whole set fails when the player has less." },
+    Spec { name: "GrantScene", params: &[req("scene", Kind::Hex)], doc: "Grants a story scene (the Quest panel's Story page)." },
+    Spec { name: "LearnRecipe", params: &[req("recipe", Kind::Hex)],
+        doc: "Teaches a recipe: a recipe any quest teaches can be crafted only once learned." },
     Spec { name: "AwardKingdomPoints", params: &[req("points", Kind::Range(1, u32::MAX as u64)), opt("max", U32)],
         doc: "Adds Kingdom Points, up to max (empty or 0: no cap)." },
     Spec { name: "SetKingdom", params: &[req("kingdom", Kind::Range(0, 3))], doc: "Sets the player's kingdom: 1 Order, 2 Dominion, 3 Shadow, 0 none." },
@@ -188,7 +197,7 @@ pub struct Names<'a> {
 
 /// What an alias (`alias.kind`) stands for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AliasKind { Entity, Effect, Hex, Placement }
+pub enum AliasKind { Entity, Effect, Hex, Placement, Entities, Objects }
 
 /// The `alias` rows (name, kind, value, source), each value checked for its kind.
 pub fn aliases(rows: &[super::Row]) -> std::io::Result<BTreeMap<String, (AliasKind, String)>> {
@@ -196,14 +205,18 @@ pub fn aliases(rows: &[super::Row]) -> std::io::Result<BTreeMap<String, (AliasKi
     for (at, f) in rows {
         let bad = |why: &str| std::io::Error::other(format!("{at}: {why}"));
         let kind = match f[1].as_str() { "entity" => AliasKind::Entity, "effect" => AliasKind::Effect, "hex" => AliasKind::Hex,
-            "placement" => AliasKind::Placement, _ => return Err(bad("kind must be entity, effect, hex or placement")) };
+            "placement" => AliasKind::Placement, "entities" => AliasKind::Entities, "objects" => AliasKind::Objects,
+            _ => return Err(bad("kind must be entity, effect, hex, placement, entities or objects")) };
+        let list = |each: &dyn Fn(&str) -> bool| !f[2].trim().is_empty() && f[2].split(',').all(|v| each(v.trim()));
         let ok = match kind {
             AliasKind::Entity => hex(&f[2]).is_some_and(|e| e >> 24 == 0x47),
             AliasKind::Effect => hex(&f[2]).is_some_and(|e| e >> 24 == 0x6f),
             AliasKind::Hex => hex(&f[2]).is_some(),
             AliasKind::Placement => placement(&f[2]).is_some(),
+            AliasKind::Entities => list(&|v| hex(v).is_some_and(|e| e >> 24 == 0x47)),
+            AliasKind::Objects => list(&|v| v.strip_prefix("0x").is_some_and(|h| u64::from_str_radix(h, 16).is_ok())),
         };
-        if !ok { return Err(bad("value does not fit its kind (entity 0x47..., effect 0x6f..., hex 0x..., placement `cell x y z heading`)")); }
+        if !ok { return Err(bad("value does not fit its kind (entity 0x47..., effect 0x6f..., hex 0x..., placement `cell x y z heading`, entities `0x47...,0x47...`, objects `0x...,0x...`)")); }
         out.insert(f[0].clone(), (kind, f[2].clone()));
     }
     Ok(out)
@@ -303,6 +316,11 @@ pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
     Ok(match name {
         "Tell" => Action::Tell { table: v[0].u32(), key: v[1].u32() },
         "Message" => Action::Message(match &v[0] { V::Text(t) => t.clone(), _ => String::new() }),
+        "Say" => Action::Say { text: text(&v[0]), speaker: match &v[1] { V::Text(t) => Some(t.clone()), _ => None } },
+        "GiveStack" => Action::GiveStack { entity: v[0].u32(), quantity: v[1].u32() },
+        "TakeQuantity" => Action::TakeQuantity { entity: v[0].u32(), quantity: v[1].u32() },
+        "GrantScene" => Action::GrantScene(v[0].u32()),
+        "LearnRecipe" => Action::LearnRecipe(v[0].u32()),
         "AwardXP" => Action::AwardXp(v[0].u()),
         "AwardLevelProportionalXP" => {
             let (min, max) = (v[1].opt_u().unwrap_or(0), v[2].opt_u().unwrap_or(0));

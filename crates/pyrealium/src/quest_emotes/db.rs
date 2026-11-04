@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 7;
+pub const SCHEMA_VERSION: i32 = 8;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -53,9 +53,10 @@ CREATE TABLE IF NOT EXISTS emote_set (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   priority INTEGER NOT NULL,
   owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*' OR owner_entity GLOB '[a-z]*'),
-  owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
+  owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*' OR owner_iid GLOB '[a-z]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
-    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
+    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned',
+    'EnterWorld', 'UseItem', 'Bind', 'Travel')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
   owner_slots TEXT REFERENCES instance_group(name) ON UPDATE CASCADE,
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
@@ -82,7 +83,7 @@ CREATE TABLE IF NOT EXISTS emote_action (
 );
 CREATE TABLE IF NOT EXISTS alias (
   name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
-  kind TEXT NOT NULL CHECK (kind IN ('entity', 'effect', 'hex', 'placement')),
+  kind TEXT NOT NULL CHECK (kind IN ('entity', 'effect', 'hex', 'placement', 'entities', 'objects')),
   value TEXT NOT NULL CHECK (value <> ''),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
@@ -175,6 +176,14 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
   PRIMARY KEY (name, lane),
   FOREIGN KEY (instance_group, lane) REFERENCES instance_lane(instance_group, lane) ON UPDATE CASCADE ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS quest_item (
+  entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
+  visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
+  stack_limit INTEGER CHECK (stack_limit BETWEEN 1 AND 65535),
+  equipment_mask INTEGER CHECK (equipment_mask BETWEEN 0 AND 2047),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
 ";
 
 /// Each table with its columns (the four TSV tables first, in TSV column order; `emote_set`'s
@@ -215,7 +224,8 @@ pub(super) const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 5] = [
+const SHAPES_TAIL: [Shape; 6] = [
+    Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
     Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
@@ -323,7 +333,7 @@ fn named(db: &Connection, shape: &Shape) -> io::Result<Vec<Row>> {
 #[derive(Default)]
 pub struct QuestRows {
     pub tables: [Vec<Row>; 4], pub aliases: Vec<Row>, pub counters: Vec<Row>,
-    pub groups: Vec<Row>, pub lanes: Vec<Row>, pub slots: Vec<Row>,
+    pub groups: Vec<Row>, pub lanes: Vec<Row>, pub slots: Vec<Row>, pub items: Vec<Row>,
 }
 
 pub fn rows(db: &Connection) -> io::Result<QuestRows> {
@@ -344,6 +354,7 @@ pub fn rows(db: &Connection) -> io::Result<QuestRows> {
         groups: named(db, shape("instance_group"))?,
         lanes: named(db, shape("instance_lane"))?,
         slots: named(db, shape("spawn_slot"))?,
+        items: named(db, shape("quest_item"))?,
     })
 }
 

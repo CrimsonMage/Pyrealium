@@ -78,6 +78,9 @@ pub struct Book {
     /// The instance lanes the character holds (`quest_emotes` ClaimInstance), by group id.
     #[serde(default)]
     lanes: std::collections::BTreeMap<u32, u8>,
+    /// Recipes the quests taught the character (`quest_emotes` LearnRecipe).
+    #[serde(default)]
+    recipes: std::collections::BTreeSet<u32>,
 }
 
 /// A data-driven quest's times, in Unix seconds (0: never).
@@ -117,6 +120,8 @@ pub enum Command {
     /// A data-driven quest reset to stage 0: its counters and run start go, its solves stay
     /// (`quest_emotes` EraseQuest).
     Erase { quest: u32 },
+    /// The character learned recipe `0` (`quest_emotes` LearnRecipe).
+    Recipe(u32),
     /// The character holds lane `lane` of instance group `group` (`quest_emotes` ClaimInstance;
     /// the group's id is `quest_emotes::group_id` of its name).
     Lane { group: u32, lane: u8 },
@@ -178,6 +183,7 @@ impl Command {
             Self::Solved { quest, at } => format!("solved,{quest:08x},{at}"),
             Self::Erase { quest } => format!("erase,{quest:08x}"),
             Self::Lane { group, lane } => format!("lane,{group:08x},{lane}"),
+            Self::Recipe(r) => format!("recipe,{r:08x}"),
             Self::LaneOff { group } => format!("laneoff,{group:08x}"),
             Self::RetireHunt { quest } => format!("retire,{quest:08x}"),
             Self::EffectOn { effect, at, until } => format!("effect,{effect:08x},{at},{until}"),
@@ -236,6 +242,11 @@ impl Command {
                 let until = f.next().and_then(|v| v.parse::<u64>().ok()).filter(|u| *u > at).ok_or(QuestError::InvalidRecord)?;
                 if f.next().is_some() { return Err(QuestError::InvalidRecord); }
                 Ok(Self::EffectOn { effect, at, until })
+            }
+            _ if text.starts_with("recipe,") => {
+                let hex = &text["recipe,".len()..];
+                if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
+                Ok(Self::Recipe(u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)?))
             }
             _ if text.starts_with("lane,") || text.starts_with("laneoff,") => {
                 let mut f = text.split(',');
@@ -317,6 +328,8 @@ impl Book {
         self.effects.iter().filter(|(_, (_, until))| *until > now).map(|(e, (_, until))| (*e, *until)).collect()
     }
     /// A data-driven quest's times (all zero for a quest never started under them).
+    /// Whether a quest taught the character `recipe`.
+    pub fn knows(&self, recipe: u32) -> bool { self.recipes.contains(&recipe) }
     /// The lane of instance group `group` the character holds.
     pub fn lane(&self, group: u32) -> Option<u8> { self.lanes.get(&group).copied() }
     pub fn lanes(&self) -> impl Iterator<Item = (u32, u8)> + '_ { self.lanes.iter().map(|(g, l)| (*g, *l)) }
@@ -376,6 +389,7 @@ impl Book {
             }
             Command::RetireHunt { quest } => { next.hunting.0.remove(quest); }
             Command::Lane { group, lane } => { next.lanes.insert(*group, *lane); }
+            Command::Recipe(r) => { next.recipes.insert(*r); }
             Command::LaneOff { group } => { next.lanes.remove(group); }
             Command::Erase { quest } => {
                 next.stages.remove(quest);
@@ -494,7 +508,7 @@ impl Book {
         if let Some(claimed) = self.supplies { payload.extend(supplies_payload(claimed, false)?); }
         if self.potion != 0 { payload.extend(self.lesson_payload(false, false)?); }
         if self.journey != 0 { payload.extend(self.lesson_payload(true, false)?); }
-        for (quest, stage) in self.journal_stages() { payload.extend(stage_payload(quest, stage, self.timer(quest), false)?); }
+        for (quest, stage) in self.journal_stages() { payload.extend(stage_payload(quest, stage, self.timer(quest), self.count(quest), false)?); }
         for (id,state) in &self.recovered.0 { payload.extend(recovered_payload(*id,state,false)?); }
         for (id,state) in &self.exploration.0 { payload.extend(exploration_payload(*id,state,false)?); }
         for (id,state) in &self.hunting.0 { payload.extend(hunting_payload(*id,state,false)?); }
@@ -593,9 +607,10 @@ impl Book {
             args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
             events.push(script::private_call(UPDATE,&args)?);
         }
-        for (quest, stage) in self.journal_stages().filter(|(q, s)| previous.stage(*q) != *s) {
+        // A stage change, or a kill counted on a stage whose line shows the count.
+        for (quest, stage) in self.journal_stages().filter(|(q, s)| previous.stage(*q) != *s || previous.count(*q) != self.count(*q)) {
             let mut args=script::integer(0);
-            args.extend(native_graph(0xa0,&stage_payload(quest,stage,self.timer(quest),true)?));
+            args.extend(native_graph(0xa0,&stage_payload(quest,stage,self.timer(quest),self.count(quest),true)?));
             args.extend(script::integer(if stage_completed(quest,stage) {COMPLETED} else {UNDERWAY}));
             events.push(script::private_call(UPDATE,&args)?);
         }
@@ -761,11 +776,13 @@ fn stage_completed(quest: u32, stage: u8) -> bool {
 }
 /// A data-driven quest's journal entry: the registry's title and level, the stage's line and the
 /// run's start and solve times.
-fn stage_payload(quest: u32, stage: u8, timer: Timer, play_fx: bool) -> Result<Vec<u8>, WorldError> {
+fn stage_payload(quest: u32, stage: u8, timer: Timer, count: u16, play_fx: bool) -> Result<Vec<u8>, WorldError> {
     let tables = crate::quest_emotes::tables().ok_or(WorldError::InvalidValue)?;
     let registry = tables.quests().find(|q| q.journal_id == quest).ok_or(WorldError::InvalidValue)?;
     let title = &registry.title_text;
     let (done, text) = tables.stage(quest, stage).ok_or(WorldError::InvalidValue)?;
+    // The journal line may show the kill counter: `{count}` and `{goal}` (the registry's goal).
+    let text = &text.replace("{count}", &count.to_string()).replace("{goal}", &registry.goal.to_string());
     let mut bytes=Vec::new(); word(&mut bytes,quest);
     bytes.extend(world::literal_name(title)?);
     bytes.extend(world::literal_name(text)?);

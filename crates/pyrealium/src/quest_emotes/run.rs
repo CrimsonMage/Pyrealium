@@ -11,7 +11,7 @@ impl Tables {
     /// Every GiveItem's set and entity, for the start's item-profile check.
     pub fn gives(&self) -> impl Iterator<Item = (&str, u32)> {
         self.actions.iter().flat_map(|(set, list)| list.iter().flat_map(move |(_, a)| match a {
-            Action::GiveItem { entity, .. } => vec![(set.as_str(), *entity)],
+            Action::GiveItem { entity, .. } | Action::GiveStack { entity, .. } => vec![(set.as_str(), *entity)],
             Action::RandomGive(pairs) => pairs.iter().map(|(e, _)| (set.as_str(), *e)).collect(),
             _ => Vec::new() }))
     }
@@ -25,13 +25,13 @@ impl Tables {
     }
 
     fn owned_by(&self, set: &Set, entity: u32, iid: u64) -> bool {
-        set.owner_iid.is_none_or(|i| i == iid) && set.owner_entity.is_none_or(|e| e == entity)
+        (set.owner_iids.is_empty() || set.owner_iids.contains(&iid)) && (set.owner_entities.is_empty() || set.owner_entities.contains(&entity))
             && set.owner_slots.as_ref().is_none_or(|g| self.slots.values().any(|sl| sl.group == *g && sl.iids.values().any(|i| *i == iid)))
     }
     /// The world objects Enter sets are around, with their radius: a player's position within
     /// it runs the set (`server.rs`, on each position update).
     pub fn enter_points(&self) -> impl Iterator<Item = (u64, f32)> + '_ {
-        self.sets.iter().filter(|s| s.trigger == Trigger::Enter).filter_map(|s| s.owner_iid.map(|i| (i, s.range)))
+        self.sets.iter().filter(|s| s.trigger == Trigger::Enter).flat_map(|s| s.owner_iids.iter().map(move |i| (*i, s.range)))
     }
     /// Whether the object (entity, iid) has sets for `trigger` at all.
     pub fn reacts(&self, entity: u32, iid: u64, trigger: Trigger) -> bool {
@@ -189,7 +189,11 @@ impl Tables {
                 Action::AwardXp(xp) => s.change(crate::progression::Command::AwardXp(*xp))?,
                 Action::AwardGold(gold) => s.change(crate::progression::Command::AwardGold(*gold))?,
                 Action::AwardLevelProportionalXp { basis_points, min, max } => {
-                    let span = s.progression.level_span().unwrap_or(0);
+                    // At the last level (no span) a capped reward pays its cap.
+                    let Some(span) = s.progression.level_span() else {
+                        if *max > 0 { s.change(crate::progression::Command::AwardXp(*max))?; }
+                        continue;
+                    };
                     let xp = (span.saturating_mul(*basis_points) / 10_000).max(*min);
                     let xp = if *max == 0 { xp } else { xp.min(*max) };
                     if xp > 0 { s.change(crate::progression::Command::AwardXp(xp))?; }
@@ -267,6 +271,53 @@ impl Tables {
                     let to = self.slots.get(slot).and_then(|sl| sl.arrivals.get(&self.groups.get(&sl.group).and_then(|g| s.book.lane(g.id))?));
                     if let Some(to) = to { s.outcome.moveto = Some(*to); }
                 }
+                Action::Say { text, speaker } => s.outcome.says.push((speaker.clone(), text.clone())),
+                Action::GiveStack { entity, quantity } => {
+                    let mut item = make(*entity, s.next, 0).ok_or_else(|| io::Error::other(format!("No item profile for {entity:08x}")))?;
+                    let limit = item.stack_limit.max(*quantity);
+                    // Merged into a stack the bag holds when the sum fits; else a new stack.
+                    let merge = s.bag.items().find(|i| i.definition == *entity && i.roll.is_none() && matches!(i.location, Location::Bag(_))
+                        && i.quantity.saturating_add(*quantity) <= limit).cloned();
+                    let mut amount = *quantity;
+                    if let Some(old) = merge {
+                        amount += old.quantity;
+                        s.item(I::ConsumeStackDense { item: old.id, quantity: old.quantity })?;
+                    }
+                    let slot = s.bag.free_slot().ok_or_else(|| io::Error::other("Make room in your bag for the quest's rewards."))?;
+                    item.location = Location::Bag(slot);
+                    item.quantity = amount;
+                    item.stack_limit = limit;
+                    s.next = s.next.checked_add(1).ok_or_else(|| io::Error::other("Item identity exhausted"))?;
+                    s.item(I::Grant(item))?;
+                    s.outcome.given.push(*entity);
+                }
+                Action::TakeQuantity { entity, quantity } => {
+                    let mut stacks: Vec<Item> = s.bag.items().filter(|i| i.definition == *entity && matches!(i.location, Location::Bag(_))).cloned().collect();
+                    stacks.sort_by_key(|i| i.id);
+                    if stacks.iter().map(|i| u64::from(i.quantity.max(1))).sum::<u64>() < u64::from(*quantity) {
+                        return Err(io::Error::other("You do not have enough of the required quest item."));
+                    }
+                    let (mut need, mut rest) = (*quantity, None);
+                    for stack in stacks {
+                        if need == 0 { break; }
+                        let have = stack.quantity.max(1);
+                        let used = need.min(have);
+                        need -= used;
+                        s.item(I::ConsumeStackDense { item: stack.id, quantity: stack.quantity })?;
+                        if have > used { rest = Some((stack, have - used)); }
+                    }
+                    // What a partly used stack keeps goes back as a stack of its own.
+                    if let Some((mut stack, left)) = rest {
+                        let slot = s.bag.free_slot().ok_or_else(|| io::Error::other("Make room in your bag."))?;
+                        stack.id = s.next;
+                        s.next = s.next.checked_add(1).ok_or_else(|| io::Error::other("Item identity exhausted"))?;
+                        stack.quantity = left;
+                        stack.location = Location::Bag(slot);
+                        s.item(I::Grant(stack))?;
+                    }
+                }
+                Action::GrantScene(scene) => { if !s.book.scenes().any(|x| x == *scene) { s.quest(Q::Scene(*scene))?; } }
+                Action::LearnRecipe(recipe) => { if !s.book.knows(*recipe) { s.quest(Q::Recipe(*recipe))?; } }
                 Action::Goto(next) => { if let Some(frames) = self.descend(next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
                 Action::SetStage { quest, stage } => self.set_stage(*quest, *stage, s)?,
                 Action::IncrementStage { quest } => {

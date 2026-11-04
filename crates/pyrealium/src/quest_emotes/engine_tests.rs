@@ -129,3 +129,53 @@ fn a_death_logout_or_expiry_runs_each_quests_set_on_quest_state_only() {
     let e = Tables::parse([&reg, &stages, &sets, &greedy], ["r", "s", "e", "a"]).unwrap_err().to_string();
     assert!(e.contains("changes quests and talks only, but reaches AwardGold(5) in set pay"), "{e}");
 }
+
+#[test]
+fn list_owners_stacks_lines_scenes_and_recipes() {
+    let d = db::empty().unwrap();
+    d.execute_batch("INSERT INTO quest (name, journal_id, title_table, title_key, title, goal, source) VALUES ('q', '0x40000071', '0x25000001', '0x1', 'Q', 3, 't');
+        INSERT INTO quest_stage (quest, stage, completed, journal_text, source) VALUES ('q', 1, 0, 'Progress {count} / {goal}.', 't'), ('q', 2, 1, 'Done.', 't');
+        INSERT INTO alias (name, kind, value, source) VALUES ('bugs', 'entities', '0x47000011,0x47000012', 't'), ('stones', 'objects', '0x8140000000030002,0x8140000000030004', 't');
+        INSERT INTO quest_item (entity, stack_limit, source) VALUES ('0x470010f3', 65535, 't');
+        INSERT INTO emote_set (name, priority, owner_entity, owner_iid, trigger, quest, stage_min, stage_max, source) VALUES
+            ('kill', 1, 'bugs', NULL, 'Kill', 'q', '1', '1', 't'),
+            ('talk', 2, '0x47000001', NULL, 'Use', NULL, NULL, NULL, 't'),
+            ('gate', 3, NULL, 'stones', 'Travel', 'q', '1', '1', 't');
+        INSERT INTO emote_action (emote_set, ord, action, p1, p2, source) VALUES
+            ('kill', 1, 'IncrementQuest', 'q', '', 't'),
+            ('talk', 1, 'Say', 'Hammer this iron.', '', 't'), ('talk', 2, 'GiveStack', '0x470010f3', '20', 't'),
+            ('talk', 3, 'TakeQuantity', '0x470010f3', '15', 't'), ('talk', 4, 'GrantScene', '0x40000021', '', 't'),
+            ('talk', 5, 'LearnRecipe', '0x6f001f0e', '', 't'),
+            ('gate', 1, 'SetStage', 'q', '2', 't');").unwrap();
+    let t = Tables::from_db(&d).unwrap();
+    let book = Book::default().apply(&Q::Stage { quest: Q1, stage: 1 }).unwrap();
+    let run = |trigger, entity, iid, book: &Book| t.run(trigger, entity, iid, None, book, &Inventory::default(), &Progression::default(), ITEM_NAMESPACE + 1, 0.0, 100, &item).unwrap();
+    // Either creature of the list counts; the portal of the objects list moves the quest on.
+    assert!(run(Trigger::Kill, 0x47000012, 5, &book).is_some() && run(Trigger::Kill, 0x47000013, 5, &book).is_none());
+    assert_eq!(run(Trigger::Travel, 0x47000099, 0x8140000000030004, &book).unwrap().quests, [Q::Stage { quest: Q1, stage: 2 }, Q::Solved { quest: Q1, at: 100 }]);
+    // Say, a stack given and part of it taken back, a scene and a recipe.
+    let o = run(Trigger::Use, 0x47000001, 9, &Book::default()).unwrap();
+    assert_eq!(o.says, [(None, "Hammer this iron.".to_owned())]);
+    let bag = o.items.iter().try_fold(Inventory::default(), |b, c| b.apply(c)).unwrap();
+    let iron: Vec<u32> = bag.items().filter(|i| i.definition == 0x470010f3).map(|i| i.quantity).collect();
+    assert_eq!(iron, [5]);
+    let after = o.quests.iter().try_fold(Book::default(), |b, c| b.apply(c)).unwrap();
+    assert!(after.scenes().any(|s| s == 0x40000021) && after.knows(0x6f001f0e));
+    assert_eq!(Q::decode(&Q::Recipe(0x6f001f0e).encode()).unwrap(), Q::Recipe(0x6f001f0e));
+    // Short of the quantity: the whole set fails.
+    d.execute("UPDATE emote_action SET p2 = '25' WHERE emote_set = 'talk' AND ord = 3", []).unwrap();
+    let t = Tables::from_db(&d).unwrap();
+    assert!(t.run(Trigger::Use, 0x47000001, 9, None, &Book::default(), &Inventory::default(), &Progression::default(), ITEM_NAMESPACE + 1, 0.0, 100, &item).is_err());
+    // A Travel set changes quests and talks only.
+    d.execute("INSERT INTO emote_action (emote_set, ord, action, p1, source) VALUES ('gate', 2, 'AwardGold', '5', 't')", []).unwrap();
+    assert!(Tables::from_db(&d).unwrap_err().to_string().contains("changes quests and talks only"));
+}
+
+#[test]
+fn a_capped_level_reward_pays_its_cap_at_the_last_level() {
+    let t = tables("talk\t0x47000001\t\tUse\t\t\t\t\t\t\tt\n", "talk\t1\tAwardLevelProportionalXP\t0\t3\t\t500\t\t\tt\n").unwrap();
+    let mut top = Progression::default();
+    while top.level_span().is_some() { top = top.apply(&crate::progression::Command::AwardXp(top.level_span().unwrap())).unwrap(); }
+    let o = t.run(Trigger::Use, NPC, 9, None, &Book::default(), &Inventory::default(), &top, ITEM_NAMESPACE + 1, 0.0, 100, &|_, _, _| None).unwrap().unwrap();
+    assert_eq!(format!("{:?}", o.changes), "[AwardXp(500)]");
+}

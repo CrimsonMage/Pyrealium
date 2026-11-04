@@ -1,6 +1,6 @@
--- Pyrealium quest content (schema 7). Written by `pyrealium-content export`;
+-- Pyrealium quest content (schema 8). Written by `pyrealium-content export`;
 -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 7;
+PRAGMA user_version = 8;
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -29,9 +29,10 @@ CREATE TABLE IF NOT EXISTS emote_set (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   priority INTEGER NOT NULL,
   owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*' OR owner_entity GLOB '[a-z]*'),
-  owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
+  owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*' OR owner_iid GLOB '[a-z]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
-    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
+    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned',
+    'EnterWorld', 'UseItem', 'Bind', 'Travel')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
   owner_slots TEXT REFERENCES instance_group(name) ON UPDATE CASCADE,
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
@@ -58,7 +59,7 @@ CREATE TABLE IF NOT EXISTS emote_action (
 );
 CREATE TABLE IF NOT EXISTS alias (
   name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
-  kind TEXT NOT NULL CHECK (kind IN ('entity', 'effect', 'hex', 'placement')),
+  kind TEXT NOT NULL CHECK (kind IN ('entity', 'effect', 'hex', 'placement', 'entities', 'objects')),
   value TEXT NOT NULL CHECK (value <> ''),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
@@ -150,6 +151,14 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (name, lane),
   FOREIGN KEY (instance_group, lane) REFERENCES instance_lane(instance_group, lane) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS quest_item (
+  entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
+  visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
+  stack_limit INTEGER CHECK (stack_limit BETWEEN 1 AND 65535),
+  equipment_mask INTEGER CHECK (equipment_mask BETWEEN 0 AND 2047),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
 );
 
 INSERT INTO quest (name, journal_id, title_table, title_key, title, goal, credit, min_level, time_limit_seconds, max_solves, repeat_seconds, source, family) VALUES ('gauntlet', '0x400200a1', '0x25007e61', '0xa8607cec', 'Gauntlet', NULL, 'killer', 20, 7200, NULL, 79200, 'Title: DAT 7230 quest table 0x25007e61 key 0xa8607cec; journal id: Pyrealium 0x4002_0000 | AC2 Vault quests/db id 161 (no DAT quest record); level 20, 2 h, 22 h reset: AC2Hero quest/osteth_championgauntlet.html and 20oz.net The_Gauntlet (user choice 2026-11-03 over the Vault''s 1 day)', 'hand');

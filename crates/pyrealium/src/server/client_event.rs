@@ -625,6 +625,9 @@ pub(super) fn client_event(
                             srv.store.quest_command(&peer.session.account, character, crate::quests::Command::Scene(scene))?;
                         }
                     }
+                    // The quests' EnterWorld sets (`quest_emotes`).
+                    let entered = personal_quests_logged(&mut srv.store, character, crate::quest_emotes::Trigger::EnterWorld);
+                    if !entered.is_empty() { peer.queue_ordered_batch(entered)?; }
                 }
                 // The quest book's effects join the ledger the login lists.
                 if let (Phase::Entering { character }, Some(runtime)) = (&peer.session.phase, srv.encounters.as_mut()) { let character = *character;

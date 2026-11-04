@@ -212,6 +212,16 @@ pub(super) fn on_use_object(
         }
         return Ok(replies);
     }
+    // A bag item a quest's UseItem set answers for (`quest_emotes`).
+    let used=srv.store.characters[&character].inventory.items().find(|i|i.id==request.item&&matches!(i.location,crate::inventory::Location::Bag(_))).map(|i|i.definition);
+    if let Some(definition)=used.filter(|d|crate::quest_emotes::tables().is_some_and(|t|t.answers(crate::quest_emotes::Trigger::UseItem,*d,0,None,&srv.store.characters[&character].quests,crate::recovered_quests::now()))) {
+        if request.owner!=character{return Err(invalid("Quest item owner mismatch"));}
+        match trigger_emotes(peer,character,crate::quest_emotes::Trigger::UseItem,&[definition],&mut srv.store,&mut srv.scene,&srv.inventory_metadata,&mut srv.encounters,srv.now_ms) {
+            Ok(updates)=>outbox.deliveries.extend(updates),
+            Err(error)=>replies.extend(peer.send_event(&script::chat(&error.to_string(),1).map_err(other)?,srv.now)?),
+        }
+        return Ok(replies);
+    }
     if srv.store.characters[&character].inventory.items().any(|i|i.id==request.item&&crate::recovered_quests::use_profile(i.definition).is_some()) {
         if request.owner!=character{return Err(invalid("Quest elixir owner mismatch"));}
         if let Err(error)=use_recovered_elixir(peer,character,request.item,&mut srv.store,&mut srv.scene) {
@@ -372,12 +382,16 @@ pub(super) fn on_use_object(
             if saved.quests.journey_phase() == 1 {
                 events.extend(saved.quests.apply(&crate::quests::Command::BoundLifestone).map_err(other)?.updates_since(&saved.quests).map_err(other)?);
             }
+            let lifestone = srv.scene.examination_content(character, request.item).map_or(0, |o| o.entity);
             peer.validate_scene_batch(&events)?;
             srv.store.bind_lifestone(
                 &peer.session.account,
                 character,
                 player,
             )?;
+            // The quests' Bind sets (`quest_emotes`).
+            let bound = object_quests(&mut srv.store, character, crate::quest_emotes::Trigger::Bind, lifestone, request.item);
+            if !bound.is_empty() { peer.queue_ordered_batch(bound)?; }
             peer.last_world_use_ms = Some(srv.now_ms);
             Ok(events)
         })(

@@ -6,6 +6,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 |---|---|---|
 | `Tell` | p1 table: hex (0x...) or alias<br>p2 key: hex (0x...) or alias | Says a DAT string (StringInfo table and key) to the player as the NPC's chat line. |
 | `Message` | p1 text: text | Says Pyrealium text to the player, where retail has no DAT line. |
+| `Say` | p1 text: text<br>[p2 speaker: text] | The NPC says the text: a speech bubble over it and the dialogue window, titled with the speaker (else the NPC's name). |
 | `AwardXP` | p1 xp: whole number, at least 1 | Gives experience. |
 | `AwardLevelProportionalXP` | p1 percent: percent (up to 2 decimals)<br>[p2 min: whole number, at least 0]<br>[p3 max: whole number, at least 0] | Gives a percent of the experience the player's current level spans, at least min and at most max (empty: no limit). |
 | `AwardGold` | p1 gold: whole number, at least 1 | Gives coins. |
@@ -14,6 +15,10 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `GiveItem` | p1 item: entity DID (0x47...) or entity alias<br>p2 count: whole number 1-16 | Gives items (one bag slot each). The whole set fails when the bag is full. |
 | `TakeItem` | p1 item: entity DID (0x47...) or entity alias<br>p2 count: whole number 1-16 | Takes items from the bag. The whole set fails when the player has fewer. |
 | `RandomGive` | p1 items: 0x47...:weight,... | Gives one item drawn by weight. |
+| `GiveStack` | p1 item: entity DID (0x47...) or entity alias<br>p2 quantity: whole number 1-65535 | Gives the quantity of a stackable item as one stack (merged into one the bag holds when it fits). |
+| `TakeQuantity` | p1 item: entity DID (0x47...) or entity alias<br>p2 quantity: whole number 1-65535 | Takes the quantity of a stackable item from the bag's stacks. The whole set fails when the player has less. |
+| `GrantScene` | p1 scene: hex (0x...) or alias | Grants a story scene (the Quest panel's Story page). |
+| `LearnRecipe` | p1 recipe: hex (0x...) or alias | Teaches a recipe: a recipe any quest teaches can be crafted only once learned. |
 | `AwardKingdomPoints` | p1 points: whole number, at least 1<br>[p2 max: whole number, at least 0] | Adds Kingdom Points, up to max (empty or 0: no cap). |
 | `SetKingdom` | p1 kingdom: whole number 0-3 | Sets the player's kingdom: 1 Order, 2 Dominion, 3 Shadow, 0 none. |
 | `ApplyEffect` | p1 effect: Effect state DID (0x6f...) or effect alias<br>p2 seconds: whole number 1-31536000 | Puts an Effect state on the player for a time (a quest's curse or blessing); it shows on the effect strip. |
