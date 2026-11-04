@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 10;
+pub const SCHEMA_VERSION: i32 = 11;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -185,6 +185,19 @@ CREATE TABLE IF NOT EXISTS quest_recipe (
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
+CREATE TABLE IF NOT EXISTS placement_hint (
+  entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
+  what TEXT NOT NULL CHECK (what <> ''),
+  name TEXT NOT NULL,
+  north REAL,
+  east REAL,
+  cell TEXT CHECK (cell GLOB '0x[0-9a-fA-F]*'),
+  x REAL,
+  y REAL,
+  quests TEXT NOT NULL,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
 CREATE TABLE IF NOT EXISTS quest_item (
   entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
   visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
@@ -233,7 +246,7 @@ pub(super) const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 7] = [
+const SHAPES_TAIL: [Shape; 8] = [
     Shape { table: "quest_recipe", order: "recipe", key: 1, columns: &["recipe", "ingredient", "quantity", "output", "source"] },
     Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
@@ -241,6 +254,10 @@ const SHAPES_TAIL: [Shape; 7] = [
     Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
     Shape { table: "instance_lane", order: "instance_group, lane", key: 2, columns: &["instance_group", "lane", "entry", "source"] },
     Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "lane", "instance_group", "iid", "arrival", "step", "source"] },
+    // NPCs and creatures quest rows name that the world does not place yet, with a guide's
+    // position: the world builder's To place list.
+    Shape { table: "placement_hint", order: "entity", key: 1,
+        columns: &["entity", "what", "name", "north", "east", "cell", "x", "y", "quests", "source"] },
 ];
 /// Every table, in dump order.
 pub(super) fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()) }
@@ -440,9 +457,35 @@ fn typed(table: &str, column: &str, v: &str) -> Value {
     }
     if !text_column {
         if let Ok(n) = v.parse::<i64>() { return Value::Integer(n); }
-        if matches!(column, "range" | "probability") { if let Ok(x) = v.parse::<f64>() { return Value::Real(x); } }
+        if matches!(column, "range" | "probability" | "north" | "east" | "x" | "y") { if let Ok(x) = v.parse::<f64>() { return Value::Real(x); } }
     }
     Value::Text(v.to_owned())
+}
+
+/// Replaces `family`'s placement hints with the TSV `text` (a header of `placement_hint`'s
+/// columns, then one hint per line).
+pub fn import_hints(db: &mut Connection, text: &str, family: &str) -> io::Result<usize> {
+    let shape = shape("placement_hint");
+    let mut lines = text.lines();
+    let header: Vec<&str> = lines.next().unwrap_or("").split('\t').collect();
+    if header != shape.columns {
+        return Err(io::Error::other(format!("placement hints: the header must be {}", shape.columns.join(" TAB "))));
+    }
+    let tx = db.transaction().map_err(sql)?;
+    tx.execute("DELETE FROM placement_hint WHERE family = ?1", [family]).map_err(sql)?;
+    let marks: Vec<String> = (1..=shape.columns.len() + 1).map(|i| format!("?{i}")).collect();
+    let query = format!("INSERT INTO placement_hint ({}, family) VALUES ({})", shape.columns.join(", "), marks.join(", "));
+    let mut count = 0;
+    for (n, line) in lines.enumerate().filter(|(_, l)| !l.trim().is_empty()) {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.len() != shape.columns.len() { return Err(io::Error::other(format!("placement hints line {}: {} columns", n + 2, fields.len()))); }
+        let mut values: Vec<Value> = fields.iter().zip(shape.columns).map(|(v, c)| typed("placement_hint", c, v)).collect();
+        values.push(Value::Text(family.to_owned()));
+        tx.execute(&query, rusqlite::params_from_iter(values)).map_err(|e| io::Error::other(format!("placement hints line {}: {e}", n + 2)))?;
+        count += 1;
+    }
+    tx.commit().map_err(sql)?;
+    Ok(count)
 }
 
 /// The database as its dump: the schema version and schema, then every row as one `INSERT`,

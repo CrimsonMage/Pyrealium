@@ -1,4 +1,5 @@
-"""The To place tab over a placement list: a double-click opens the guide's spot, armed."""
+"""The To place tab over the quest database's placement hints: a double-click opens the guide's spot, armed."""
+import sqlite3
 import tempfile
 import tkinter as tk
 import unittest
@@ -7,17 +8,21 @@ from types import SimpleNamespace
 
 from editor_to_place import ToPlace
 
-ROWS = ("what\tname\tentity\tentities\tnorth\teast\tcell\tx\ty\tquests\n"
-        "start NPC\tKiraly Geddon\t0x47001234\t0x47001234\t-4.8\t-44.8\t0x2c4b0021\t12.5\t30.0\tThe Eye (shipped)\n"
-        "creature to spawn\tGurog Emissary\t0x47005678\t0x47005678\t\t\t\t\t\tDarkstone\n")
+ROWS = [("0x47001234", "start NPC", "Kiraly Geddon", -4.8, -44.8, "0x2c4b0021", 12.5, 30.0, "The Eye (shipped)", "vault", "guide"),
+        ("0x47005678", "creature to spawn", "Gurog Emissary", None, None, None, None, None, "Darkstone", "vault", "named only")]
 
 
 class ToPlaceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        path = Path(self.temp.name) / "to-place.tsv"
-        path.write_text(ROWS)
+        path = Path(self.temp.name) / "w.quests.sqlite"
+        db = sqlite3.connect(path)
+        db.execute("CREATE TABLE placement_hint (entity TEXT PRIMARY KEY, what TEXT, name TEXT, north REAL, east REAL, cell TEXT, "
+                   "x REAL, y REAL, quests TEXT, family TEXT, source TEXT)")
+        db.executemany("INSERT INTO placement_hint VALUES (?,?,?,?,?,?,?,?,?,?,?)", ROWS)
+        db.commit()
+        db.close()
         self.root = tk.Tk()
         self.root.withdraw()
         self.addCleanup(self.root.destroy)
@@ -29,15 +34,16 @@ class ToPlaceTests(unittest.TestCase):
         self.tab = ToPlace(self.root, self.editor, path)
 
     def test_a_row_with_coordinates_opens_its_spot_with_the_entity(self):
-        self.tab.list.selection_set("0")
+        row = next(i for i in self.tab.list.get_children() if self.tab.list.item(i, "values")[1] == "Kiraly Geddon")
+        self.tab.list.selection_set(row)
         self.tab.go()
         self.assertEqual(self.editor.fields["Entity"].get(), "47001234")
         self.assertEqual(self.went, [(0x2c4b0021, (12.5, 30.0)), "place"])
 
     def test_a_row_without_coordinates_only_fills_the_entity(self):
         self.tab.find.set("emissary")
-        self.assertEqual(self.tab.list.get_children(), ("1",))
-        self.tab.list.selection_set("1")
+        self.assertEqual(len(self.tab.list.get_children()), 1)
+        self.tab.list.selection_set(self.tab.list.get_children()[0])
         self.tab.go()
         self.assertEqual((self.editor.fields["Entity"].get(), self.went), ("47005678", []))
 

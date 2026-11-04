@@ -2823,9 +2823,8 @@ def main():
     p.add_argument("--ship")
     p.add_argument("--overrides", help="the hand-edited overrides (default: content/vault-quest-overrides.tsv)")
     p.add_argument("--gaps", help="write the per-quest gap list (TSV: quest, vault_id, gap, who, detail, draft, link)")
-    p.add_argument("--to-place", help="write the world builder's placement list (TSV: what, name, entity, entities, "
-                                      "north, east, cell, x, y, quests): NPCs and creatures quest rows name that "
-                                      "Pyrealium's world does not place yet, at the guide's coordinates where it gives them")
+    p.add_argument("--to-place", help="also write the placement hints (with --ship they go into the database's "
+                                      "placement_hint table, the world builder's To place list) to this TSV")
     a = p.parse_args()
     a.content = os.path.abspath(a.content)
     data = Data(a)
@@ -2866,22 +2865,33 @@ def main():
             for r in rows:
                 f.write("\t".join(re.sub(r"\s+", " ", str(x)) for x in r) + "\n")
         print(f"{len(rows)} gaps in {len({r[1] for r in rows})} quests", file=sys.stderr)
+    # The world builder's To place list: NPCs and creatures the shipped and draft rows name that the
+    # world does not place yet, with a guide's position (the database's placement_hint rows).
+    rows = {}
+    for d in drafts:
+        for t in d.get("to_place", []):
+            r = rows.setdefault(t["entity"], dict(t, quests=[]))
+            r["near"] = r["near"] or t["near"]
+            r["quests"].append(d["title"] + (" (shipped)" if d.get("shipped") else ""))
+    hint_lines = ["entity\twhat\tname\tnorth\teast\tcell\tx\ty\tquests\tsource"]
+    for r in sorted(rows.values(), key=lambda r: (r["what"], -len(r["quests"]), r["name"])):
+        n, e = r["near"] or (None, None)
+        c = map_to_cell(n, e) if r["near"] else {}
+        hint_lines.append("\t".join(str(x) for x in (r["entity"], r["what"], r["name"], "" if n is None else n, "" if e is None else e,
+                          c.get("cell", ""), c.get("x", ""), c.get("y", ""), "; ".join(sorted(set(r["quests"]))),
+                          "AC2 Vault / AC2Hero coordinates for the quests listed (import_vault_quests.py)" if r["near"] else
+                          "the quests listed name it; no guide gives its position (import_vault_quests.py)")))
     if a.to_place:
-        rows = {}
-        for d in drafts:
-            for t in d.get("to_place", []):
-                r = rows.setdefault((t["what"], t["entity"]), dict(t, quests=[]))
-                r["near"] = r["near"] or t["near"]
-                r["quests"].append(d["title"] + (" (shipped)" if d.get("shipped") else ""))
         with open(a.to_place, "w", encoding="utf-8") as f:
-            f.write("what\tname\tentity\tentities\tnorth\teast\tcell\tx\ty\tquests\n")
-            for r in sorted(rows.values(), key=lambda r: (r["what"], -len(r["quests"]), r["name"])):
-                n, e = r["near"] or (None, None)
-                c = map_to_cell(n, e) if r["near"] else {}
-                f.write("\t".join(str(x) for x in (r["what"], r["name"], r["entity"], ",".join(r["entities"]),
-                        "" if n is None else n, "" if e is None else e, c.get("cell", ""), c.get("x", ""), c.get("y", ""),
-                        "; ".join(sorted(set(r["quests"]))))) + "\n")
-        print(f"{len(rows)} NPCs and creatures to place", file=sys.stderr)
+            f.write("\n".join(hint_lines) + "\n")
+    if a.ship:
+        with tempfile.NamedTemporaryFile("w", suffix=".tsv", delete=False, encoding="utf-8") as f:
+            f.write("\n".join(hint_lines) + "\n")
+        tool = os.environ.get("PYREALIUM_CONTENT")
+        cmd = [tool] if tool else ["cargo", "run", "-q", "-p", "pyrealium", "--bin", "pyrealium-content", "--"]
+        subprocess.run(cmd + ["import-hints", f.name, "vault", a.ship], check=True)
+        os.unlink(f.name)
+    print(f"{len(rows)} NPCs and creatures to place", file=sys.stderr)
     c = Counter(d["status"] for d in drafts)
     print(f"{len(drafts)} quests: {len(shipped)} shipped, {c['resolved']} resolved, {c['partial']} partial, {c['blocked']} blocked",
           file=sys.stderr)

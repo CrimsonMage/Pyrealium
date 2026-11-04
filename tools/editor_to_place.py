@@ -1,33 +1,44 @@
 """The world builder's To place tab: NPCs and creatures that quest rows already name but the
-world does not place yet (content/vault-to-place.tsv, written by tools/import_vault_quests.py
---to-place).
+world does not place yet: the quest database's `placement_hint` rows (the world's
+NAME.quests.sqlite, else the shipped content/quests.sql).
 
 Double-click a row to open its cell at the guide's coordinates with the placement tool armed for
 its entity. Click a surface to place it, then save as usual. The quests start working as soon as
 their NPCs stand in the world. Rerun the importer after placing and more quests ship.
 """
 from pathlib import Path
+import sqlite3
 import tkinter as tk
 from tkinter import ttk
 
-DEFAULT = Path(__file__).resolve().parent.parent / "content" / "vault-to-place.tsv"
+import editor_quests
+
+SHIPPED = Path(__file__).resolve().parent.parent / "content" / "quests.sql"
+COLUMNS = ("entity", "what", "name", "north", "east", "cell", "x", "y", "quests")
 
 
-def read_rows(path=DEFAULT):
+def read_rows(source=None):
+    """The placement hints of a quest database file (.sqlite) or dump (.sql); [] when it has none."""
+    source = Path(source or SHIPPED)
     try:
-        lines = Path(path).read_text(encoding="utf-8").splitlines()
-    except OSError:
+        if source.suffix == ".sqlite":
+            db = sqlite3.connect(f"{source.resolve().as_uri()}?mode=ro", uri=True)
+        else:
+            db = sqlite3.connect(":memory:")
+            db.executescript(editor_quests.read_dump(source))
+        try:
+            found = db.execute(f"SELECT {', '.join(COLUMNS)} FROM placement_hint ORDER BY what, name").fetchall()
+        finally:
+            db.close()
+    except (OSError, ValueError, sqlite3.Error):
         return []
-    if not lines:
-        return []
-    header = lines[0].split("\t")
-    return [dict(zip(header, line.split("\t"))) for line in lines[1:] if line.strip()]
+    return [{k: ("" if v is None else str(v)) for k, v in zip(COLUMNS, row)} for row in found]
 
 
 class ToPlace(ttk.Frame):
-    def __init__(self, parent, editor, path=DEFAULT):
+    def __init__(self, parent, editor, path=None):
         super().__init__(parent, padding=4)
-        self.editor, self.path = editor, Path(path)
+        self.editor, self.path = editor, path
         self.find = tk.StringVar()
         self.find.trace_add("write", lambda *unused: self.fill())
         self.status = tk.StringVar()
@@ -51,10 +62,22 @@ class ToPlace(ttk.Frame):
         self.rows = []
         self.load()
 
+    def source(self):
+        """The world's quest database when it has one, else the shipped quests."""
+        if self.path:
+            return self.path
+        loaded = getattr(self.editor, "loaded_path", None)
+        if loaded:
+            for candidate in (editor_quests.quests_db_path(loaded), editor_quests.quests_path(loaded)):
+                if candidate.exists():
+                    return candidate
+        return SHIPPED
+
     def load(self):
-        self.rows = read_rows(self.path)
+        source = self.source()
+        self.rows = read_rows(source)
         self.fill()
-        self.status.set(f"{len(self.rows)} to place" if self.rows else f"No {self.path.name} yet: run the importer with --to-place")
+        self.status.set(f"{len(self.rows)} to place ({Path(source).name})" if self.rows else f"No placement hints in {Path(source).name}")
 
     def fill(self):
         self.list.delete(*self.list.get_children())
