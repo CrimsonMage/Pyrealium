@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 5;
+pub const SCHEMA_VERSION: i32 = 6;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
   instance_group TEXT NOT NULL,
   lane INTEGER NOT NULL,
   iid TEXT NOT NULL CHECK (iid GLOB '0x[0-9a-fA-F]*'),
+  arrival TEXT,
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (name, lane),
@@ -178,6 +179,8 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
 /// `priority` and every table's `family` are the database's own), its dump order, and how many
 /// leading columns are its key.
 pub(super) struct Shape { pub(super) table: &'static str, pub(super) columns: &'static [&'static str], order: &'static str, key: usize }
+/// Optional columns added after a table's first schema, which an older dump lacks.
+const OPTIONAL_SINCE: [(&str, &str); 1] = [("spawn_slot", "arrival")];
 /// The TSV tables (`FILES` order) are SHAPES[..TSV].
 const TSV: usize = 4;
 pub(super) const SHAPES: [Shape; 10] = [
@@ -205,7 +208,7 @@ const SHAPES_TAIL: [Shape; 5] = [
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
     Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
     Shape { table: "instance_lane", order: "instance_group, lane", key: 2, columns: &["instance_group", "lane", "entry", "source"] },
-    Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "instance_group", "lane", "iid", "source"] },
+    Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "lane", "instance_group", "iid", "arrival", "source"] },
 ];
 /// Every table, in dump order.
 pub(super) fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()) }
@@ -235,6 +238,13 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
         let mut have: Vec<String> = statement.query_map([], |r| r.get::<_, String>(1)).map_err(sql)?.collect::<Result<_, _>>().map_err(sql)?;
         let mut want: Vec<String> = shape.columns.iter().map(|c| c.to_string()).chain(["family".to_owned()]).collect();
         if shape.table == "emote_set" { want.push("priority".to_owned()); }
+        // An older dump's table lacks the optional columns added since: they are added empty
+        // (export writes the table anew).
+        for column in want.iter().filter(|c| !have.contains(c)).cloned().collect::<Vec<_>>() {
+            if !OPTIONAL_SINCE.contains(&(shape.table, column.as_str())) { continue; }
+            db.execute_batch(&format!("ALTER TABLE {} ADD COLUMN {column} TEXT", shape.table)).map_err(sql)?;
+            have.push(column);
+        }
         have.sort();
         want.sort();
         if have != want {
@@ -429,6 +439,31 @@ fn literal(v: ValueRef) -> String {
         ValueRef::Text(t) => format!("'{}'", String::from_utf8_lossy(t).replace('\'', "''")),
         ValueRef::Blob(b) => format!("X'{}'", b.iter().map(|c| format!("{c:02x}")).collect::<String>()),
     }
+}
+
+/// Replaces family `family`'s rows in every table with the rows the SQL `text` inserts (a
+/// generator's output, each row naming `family`), checked as the server checks them.
+pub fn import_sql(db: &mut Connection, text: &str, family: &str) -> io::Result<()> {
+    let tx = db.transaction().map_err(sql)?;
+    tx.execute_batch("PRAGMA defer_foreign_keys = ON;").map_err(sql)?;
+    let all: Vec<&Shape> = shapes().collect();
+    for shape in all.iter().rev() {
+        tx.execute(&format!("DELETE FROM {} WHERE family = ?1", shape.table), [family]).map_err(sql)?;
+    }
+    let count = |tx: &rusqlite::Transaction, table: &str| -> io::Result<i64> {
+        tx.query_row(&format!("SELECT COUNT(*) FROM {table} WHERE family <> ?1"), [family], |r| r.get(0)).map_err(sql)
+    };
+    let before: Vec<i64> = all.iter().map(|s| count(&tx, s.table)).collect::<io::Result<_>>()?;
+    tx.execute_batch(text).map_err(|e| io::Error::other(format!("the {family} rows: {e}")))?;
+    // Every row the text adds is the family's (a row left at the default `hand` would not be
+    // replaced by the next import).
+    for (shape, was) in all.iter().zip(before) {
+        if count(&tx, shape.table)? != was {
+            return Err(io::Error::other(format!("the {family} rows add {} rows of another family (each row names family '{family}')", shape.table)));
+        }
+    }
+    Tables::from_db(&tx)?;
+    tx.commit().map_err(sql)
 }
 
 /// Writes the dump `text` into a new database file at `path` (replacing it).

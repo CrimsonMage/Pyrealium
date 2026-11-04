@@ -148,6 +148,8 @@ pub enum Action {
     Generate(String),
     /// Moves the player to the entry of its lane of the group.
     MoveToLane(String),
+    /// Moves the player to the slot's arrival point in its lane (a room of its own per slot).
+    MoveToSlot(String),
     SetCounter { quest: u32, counter: u8, value: u16 },
     /// Whether the player's level reaches the quest's `min_level`.
     InqLevel { quest: u32, success: Option<String>, failure: Option<String> },
@@ -311,6 +313,8 @@ mod engine_tests;
 mod template_tests;
 #[cfg(test)]
 mod instance_tests;
+#[cfg(test)]
+mod gauntlet_tests;
 
 /// A Tell action's line: the StringInfo `table`/`key` as a chat line (display type 1).
 pub fn tell(table: u32, key: u32) -> Result<Vec<u8>, crate::world::WorldError> {

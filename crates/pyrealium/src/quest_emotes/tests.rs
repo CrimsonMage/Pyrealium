@@ -25,7 +25,8 @@ fn the_shipped_tables_load() {
     let t = &shipped();
     assert_eq!(t.quest("shelter").map(|q| q.journal_id), Some(SHELTER));
     assert_eq!(t.stage(SHELTER, 6).map(|(done, _)| done), Some(true));
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some()));
+    // The Shelter's pinned items, and the Gauntlet's Frenzy Potion (read from the DATs at start).
+    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || e == 0x4700_326f));
 }
 
 #[test]
@@ -36,7 +37,8 @@ fn the_shipped_dump_is_its_own_export() {
     assert_eq!(db::export(&db::open_dump(&text).unwrap()).unwrap(), text);
     let t = Tables::from_sql(&text).unwrap();
     assert_eq!(t, *shipped());
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some()));
+    // The Shelter's pinned items, and the Gauntlet's Frenzy Potion (read from the DATs at start).
+    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || e == 0x4700_326f));
 }
 
 fn family_tables(family: &str, quest: &str, journal: &str, set: &str) -> [Vec<(String, String)>; 4] {

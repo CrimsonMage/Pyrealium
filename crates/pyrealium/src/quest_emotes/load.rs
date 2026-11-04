@@ -182,7 +182,7 @@ impl Tables {
                 for (_, action) in self.actions.get(set).map_or(&[][..], Vec::as_slice) {
                     let refused = matches!(action, Action::GiveItem { .. } | Action::TakeItem { .. } | Action::RandomGive(_)
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
-                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::ClaimInstance { .. });
+                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. });
                     if refused {
                         let at = lines.get(start.id.as_str()).map_or("", String::as_str);
                         return Err(io::Error::other(format!("{at}: a {:?} set changes quests and talks only, but reaches {action:?} in set {set}",
@@ -220,13 +220,19 @@ impl Tables {
         }
         for (at, f) in &rows.slots {
             let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
-            let lane: u8 = f[2].parse().map_err(|_| bad("lane must be 0 to 255"))?;
-            if !self.groups.get(&f[1]).is_some_and(|g| g.lanes.contains_key(&lane)) { return Err(bad("the slot's group has no such lane")); }
+            let lane: u8 = f[1].parse().map_err(|_| bad("lane must be 0 to 255"))?;
+            if !self.groups.get(&f[2]).is_some_and(|g| g.lanes.contains_key(&lane)) { return Err(bad("the slot's group has no such lane")); }
             let iid = hex64(&f[3]).ok_or_else(|| bad("iid must be hex"))?;
-            let slot = self.slots.entry(f[0].clone()).or_insert_with(|| Slot { group: f[1].clone(), iids: BTreeMap::new() });
-            if slot.group != f[1] { return Err(bad("a slot belongs to one instance group")); }
+            let arrival = if f[4].is_empty() { None } else {
+                let text = aliases.get(&f[4]).filter(|(k, _)| *k == super::spec::AliasKind::Placement).map_or(f[4].as_str(), |(_, v)| v.as_str());
+                Some(super::spec::placement(text).ok_or_else(|| bad("arrival must be `cell x y z heading` or a placement alias"))?)
+            };
+            let slot = self.slots.entry(f[0].clone()).or_insert_with(|| Slot { group: f[2].clone(), iids: BTreeMap::new(), arrivals: BTreeMap::new() });
+            if slot.group != f[2] { return Err(bad("a slot belongs to one instance group")); }
             if self.slots.values().any(|s| s.iids.values().any(|i| *i == iid)) { return Err(bad("another slot already holds this iid")); }
-            self.slots.get_mut(&f[0]).unwrap().iids.insert(lane, iid);
+            let slot = self.slots.get_mut(&f[0]).unwrap();
+            slot.iids.insert(lane, iid);
+            if let Some(arrival) = arrival { slot.arrivals.insert(lane, arrival); }
         }
         Ok(())
     }

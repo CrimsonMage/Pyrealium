@@ -262,6 +262,10 @@ impl Tables {
                 Action::MoveToLane(group) => {
                     if let Some(entry) = self.groups.get(group).and_then(|g| g.lanes.get(&s.book.lane(g.id)?)) { s.outcome.moveto = Some(*entry); }
                 }
+                Action::MoveToSlot(slot) => {
+                    let to = self.slots.get(slot).and_then(|sl| sl.arrivals.get(&self.groups.get(&sl.group).and_then(|g| s.book.lane(g.id))?));
+                    if let Some(to) = to { s.outcome.moveto = Some(*to); }
+                }
                 Action::Goto(next) => { if let Some(frames) = self.descend(next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
                 Action::SetStage { quest, stage } => {
                     let done = |st: u8| self.stage(*quest, st).is_some_and(|(d, _)| d);

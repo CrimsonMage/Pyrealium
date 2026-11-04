@@ -142,6 +142,8 @@ pub const ACTIONS: &[Spec] = &[
         doc: "Sends away the creatures, alive or dead, of the group's slots in the player's lane." },
     Spec { name: "MoveToLane", params: &[req("group", Kind::Group)],
         doc: "Moves the player to the entry of its lane of the group." },
+    Spec { name: "MoveToSlot", params: &[req("slot", Kind::Slot)],
+        doc: "Moves the player to the slot's arrival point in its lane (spawn_slot.arrival: a room of its own per slot)." },
     // World
     Spec { name: "MoveTo", params: &[req("cell", Kind::Hex), req("x", Kind::Number), req("y", Kind::Number), req("z", Kind::Number), req("heading", Kind::Stage)],
         doc: "Moves the player to a place (heading 0-255, clockwise from north)." },
@@ -344,6 +346,7 @@ pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
         "DismissSlots" => Action::DismissSlots(text(&v[0])),
         "Generate" => Action::Generate(text(&v[0])),
         "MoveToLane" => Action::MoveToLane(text(&v[0])),
+        "MoveToSlot" => Action::MoveToSlot(text(&v[0])),
         "EndEscort" => Action::EndEscort,
         other => return Err(format!("action `{other}` has no builder")),
     })

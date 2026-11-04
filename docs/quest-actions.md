@@ -40,6 +40,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `Generate` | p1 slot: spawn slot name | Summons the slot's creature in the player's lane of its group (an earlier one's corpse goes first); nothing without a lane. |
 | `DismissSlots` | p1 group: instance group name | Sends away the creatures, alive or dead, of the group's slots in the player's lane. |
 | `MoveToLane` | p1 group: instance group name | Moves the player to the entry of its lane of the group. |
+| `MoveToSlot` | p1 slot: spawn slot name | Moves the player to the slot's arrival point in its lane (spawn_slot.arrival: a room of its own per slot). |
 | `MoveTo` | p1 cell: hex (0x...) or alias<br>p2 x: number<br>p3 y: number<br>p4 z: number<br>p5 heading: stage (0-255) | Moves the player to a place (heading 0-255, clockwise from north). |
 | `StartEscort` | p1 creature: entity DID (0x47...) or entity alias | The nearest free creature of the entity starts following the player. |
 | `EndEscort` | none | The player's escorts stop following. |

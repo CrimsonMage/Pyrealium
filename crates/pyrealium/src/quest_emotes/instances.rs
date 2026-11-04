@@ -17,7 +17,7 @@ use crate::movement::Placement;
 pub struct Group { pub id: u32, pub lanes: BTreeMap<u8, Placement> }
 /// A spawn slot: its group and its creature (world iid) in each lane.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Slot { pub group: String, pub iids: BTreeMap<u8, u64> }
+pub struct Slot { pub group: String, pub iids: BTreeMap<u8, u64>, pub arrivals: BTreeMap<u8, Placement> }
 
 /// A creature a committed outcome summons or sends away.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

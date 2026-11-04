@@ -207,6 +207,13 @@ Instances (parallel copies of a place a quest hands out one per player, `quest_e
   the lane. A death, logout or expiry set may release and dismiss (not claim, summon or move), so
   a run that ends that way can free its lane: give every instanced quest such sets.
 
+The Gauntlet (Cragstone Excavation) is the `gauntlet` family, written by
+`tools/author_gauntlet_quest.py` from `gauntlet-content-v1.json` and imported with
+`pyrealium-content import-sql OUT.sql gauntlet` (the script's docstring has its evidence and
+policy). Its 128 opponent placements are the world pack `gauntlet-world-v1.tsv`
+(`examples/gauntlet_authoring.rs`), held as the `gauntlet_arenas` spawn slots. It is plain rows:
+edit them in the database as any quest's, or change the script and import again.
+
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that
 family's rows and puts new sets after every existing one.

@@ -246,10 +246,12 @@ mod tests {
         let shipped = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/quests.sql")).unwrap();
         let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
         d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
+        // No item needing the DATs (this folder has none): the Gauntlet's potion goes.
+        d.execute("DELETE FROM emote_action WHERE action = 'GiveItem' AND p1 = 'frenzy_potion'", []).unwrap();
         let dump = crate::quest_emotes::db::export(&d).unwrap();
         let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);
-        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(21), Some(true)), "{pushed}");
+        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(22), Some(true)), "{pushed}");
         assert_eq!(std::fs::read_to_string(folder.join("w.quests.sql")).unwrap(), dump);
         assert_eq!(std::fs::read_to_string(folder.join("w.quests.base.sql")).unwrap(), "", "the shipped quests it was edited from");
         assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));

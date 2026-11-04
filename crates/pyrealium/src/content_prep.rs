@@ -567,6 +567,7 @@ fn prepare_with(
         ("workshops-world-v1.tsv", "workshops-content-v1.json"),
         ("arwic-mines-world-v1.tsv", "arwic-mines-world-v1.json"),
         ("npc-world-v1.tsv", "npc-dialogue-v1.json"),
+        ("gauntlet-world-v1.tsv", "gauntlet-content-v1.json"),
     ];
     for (pack, catalog) in packs {
         let path = content.join(pack);
@@ -590,7 +591,7 @@ fn prepare_with(
     let checked_packs = [
         "recovered-population.tsv", "inferred-world-v1.tsv", "regional-world-v1.tsv", "wilderness-world-v1.tsv",
         "exploration-world-v1.tsv", "hunting-world-v1.tsv", "hunting-world-v2.tsv", "workshops-world-v1.tsv",
-        "npc-world-v1.tsv",
+        "npc-world-v1.tsv", "gauntlet-world-v1.tsv",
     ];
     let state_file = content.join("capture-spawns-audited.report.json");
     let mut state_exclusions: HashMap<String, Value> = HashMap::new();
