@@ -1,7 +1,9 @@
 //! Local live-edit endpoint for the world builder (loopback only).
 //!
-//! `GET /admin/status` and `POST /admin/sync` (JSON `{base, world, rules}`: the
-//! overlay world and rules texts, and the revision they were edited from). The
+//! `GET /admin/status`, `GET /admin/quests` (`{revision, quests}`: the quest database dump
+//! the server runs, for the editor to start from) and `POST /admin/sync` (JSON
+//! `{base, world, rules, quests?}`: the overlay world and rules texts, optionally a whole
+//! quest database dump, and the revision they were edited from). The
 //! request thread parses, checks and diffs (`live_edit::Planner`); the game loop
 //! applies the result between packets and replies; then the texts are saved to the
 //! overlay paths so a restart gives the same world. Every request carries
@@ -27,6 +29,8 @@ pub struct Handle {
 pub struct Paths {
     pub world: PathBuf,
     pub rules: PathBuf,
+    /// The overlay's quest database (`NAME.quests.sql`), which replaces the shipped one at start.
+    pub quests: PathBuf,
 }
 
 fn write_private(path: &Path, text: &str) -> io::Result<()> {
@@ -54,14 +58,17 @@ fn read_or_empty(path: &Path) -> io::Result<String> {
     }
 }
 
-/// Start the endpoint. `world`/`rules` are the texts the server loaded at startup.
+/// Start the endpoint. `world`/`rules` are the texts the server loaded at startup; `quests` the
+/// quest database dump it runs (`None`: no quest tables).
 pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
-             base: std::collections::BTreeMap<u64, crate::content::Object>) -> io::Result<Handle> {
+             base: std::collections::BTreeMap<u64, crate::content::Object>, quests: Option<String>) -> io::Result<Handle> {
     if !bind.ip().is_loopback() {
         return Err(io::Error::other("--admin-bind is local only: use a loopback address such as 127.0.0.1:19373"));
     }
-    if paths.world==paths.rules {return Err(io::Error::other("world and rules paths must be different"));}
-    let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base)?;
+    if paths.world==paths.rules || paths.quests==paths.world || paths.quests==paths.rules {
+        return Err(io::Error::other("world, rules and quests paths must be different"));
+    }
+    let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base, quests.unwrap_or_default())?;
     let mut secret = [0u8; 32];
     getrandom::getrandom(&mut secret).map_err(|error| io::Error::other(error.to_string()))?;
     let token: String = secret.iter().map(|b| format!("{b:02x}")).collect();
@@ -104,7 +111,10 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc:
     let response = match (request.method(), request.url()) {
         (Method::Get, "/admin/status") => json(200, serde_json::json!({
             "revision": planner.revision(), "objects": planner.objects(),
+            "quests": crate::quest_emotes::tables().map_or(0, |t| t.quests().count()),
             "players": players.load(Ordering::Relaxed)})),
+        (Method::Get, "/admin/quests") => json(200, serde_json::json!({
+            "revision": planner.revision(), "quests": planner.quests()})),
         (Method::Post, "/admin/sync") => {
             let mut body = String::new();
             let read = request.as_reader().take(MAX_BODY + 1).read_to_string(&mut body);
@@ -120,17 +130,21 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc:
 
 fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: &Paths) -> Response<io::Cursor<Vec<u8>>> {
     let Ok(request) = serde_json::from_str::<serde_json::Value>(body) else {
-        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules}"}));
+        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules, quests?}"}));
     };
     let (Some(base), Some(world), Some(rules)) =
         (request["base"].as_str(), request["world"].as_str(), request["rules"].as_str()) else {
-        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules}"}));
+        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules, quests?}"}));
     };
+    let quests = request["quests"].as_str();
+    if !request["quests"].is_null() && quests.is_none() {
+        return json(400, serde_json::json!({"error": "quests must be the quest database dump (text)"}));
+    }
     if base != planner.revision() {
         return json(409, serde_json::json!({"error": "the server runs a different revision; resync from it",
             "revision": planner.revision()}));
     }
-    let plan = match planner.plan(world, rules) {
+    let plan = match planner.plan(world, rules, quests) {
         Ok(plan) => plan,
         Err(error) => return json(400, serde_json::json!({"error": error.to_string()})),
     };
@@ -145,10 +159,11 @@ fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: 
         Err(_) => return json(503, serde_json::json!({"error": "the game loop has stopped"})),
     };
     planner.commit(plan.committed);
-    let saved = atomic_write(&paths.world, world).and_then(|()| atomic_write(&paths.rules, rules));
+    let saved = atomic_write(&paths.world, world).and_then(|()| atomic_write(&paths.rules, rules))
+        .and_then(|()| if quests.is_some() { atomic_write(&paths.quests, planner.quests()) } else { Ok(()) });
     json(200, serde_json::json!({
         "revision": planner.revision(), "added": summary.added, "removed": summary.removed,
-        "replaced": summary.replaced, "rules": summary.rules, "messages": summary.messages,
+        "replaced": summary.replaced, "rules": summary.rules, "quests": summary.quests, "messages": summary.messages,
         "apply_us": summary.apply_us,
         "saved": saved.as_ref().map(|()| true).unwrap_or(false),
         "save_error": saved.err().map(|e| e.to_string()),
@@ -162,7 +177,8 @@ mod tests {
 
     fn call(address: SocketAddr, token: &str, method: &str, path: &str, body: &str) -> (u16, serde_json::Value) {
         let mut stream = TcpStream::connect(address).unwrap();
-        write!(stream, "{method} {path} HTTP/1.1\r\nHost: x\r\nAuthorization: Bearer {token}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
+        // HTTP/1.0: a large reply (the quest dump) comes whole, not chunked.
+        write!(stream, "{method} {path} HTTP/1.0\r\nHost: x\r\nAuthorization: Bearer {token}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}", body.len()).unwrap();
         let mut text = String::new();
         stream.read_to_string(&mut text).unwrap();
         let code = text[9..12].parse().unwrap();
@@ -174,8 +190,8 @@ mod tests {
     fn sync_applies_through_the_game_loop_and_saves() {
         let folder = std::env::temp_dir().join(format!("pyrealium-admin-{}", std::process::id()));
         std::fs::create_dir_all(&folder).unwrap();
-        let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv") };
-        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default()).unwrap();
+        let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv"), quests: folder.join("w.quests.sql") };
+        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default(), None).unwrap();
         let token = std::fs::read_to_string(folder.join("admin.token")).unwrap();
         #[cfg(unix)]
         {
@@ -187,7 +203,8 @@ mod tests {
         std::thread::spawn(move || {
             while let Ok(job) = jobs.recv() {
                 let rules = job.change.rules.as_ref().map_or(0, |r| r.affected.len());
-                let _ = job.reply.send(Ok(crate::live_edit::Summary { rules, ..Default::default() }));
+                let quests = job.change.quests.as_ref().map(|q| q.tables.quests().count());
+                let _ = job.reply.send(Ok(crate::live_edit::Summary { rules, quests, ..Default::default() }));
             }
         });
         assert_eq!(call(handle.address, "wrong", "GET", "/admin/status", "").0, 401);
@@ -202,8 +219,31 @@ mod tests {
         assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &body).0, 409, "stale base revision");
         let bad = serde_json::json!({"base": done["revision"], "world": "", "rules": "nonsense"}).to_string();
         assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &bad).0, 400);
+        // The quest database: the editor starts from what the server runs, then pushes a new dump
+        // with the world and rules; the server checks it, swaps it in and saves it beside them.
+        let (code, running) = call(handle.address, &token, "GET", "/admin/quests", "");
+        assert_eq!((code, running["quests"].as_str(), running["revision"].as_str()), (200, Some(""), done["revision"].as_str()));
+        let shipped = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/quests.sql")).unwrap();
+        let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
+        d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
+        let dump = crate::quest_emotes::db::export(&d).unwrap();
+        let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
+        let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);
+        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(21), Some(true)), "{pushed}");
+        assert_eq!(std::fs::read_to_string(folder.join("w.quests.sql")).unwrap(), dump);
+        assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
+        // Unchanged quests, or none sent, change nothing of them.
+        let again = serde_json::json!({"base": pushed["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
+        let (code, same) = call(handle.address, &token, "POST", "/admin/sync", &again);
+        assert_eq!((code, same["quests"].is_null(), same["revision"].clone()), (200, true, pushed["revision"].clone()));
+        // A dump that does not check is refused whole, naming the row.
+        let broken = dump.replace("'0x40fff001'", "'nonsense'");
+        let refused = serde_json::json!({"base": pushed["revision"], "world": "", "rules": rules, "quests": broken}).to_string();
+        let (code, why) = call(handle.address, &token, "POST", "/admin/sync", &refused);
+        assert_eq!(code, 400, "{why}");
+        assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
         assert!(start("0.0.0.0:0".parse().unwrap(), &folder, folder.clone(),
-            Paths { world: folder.join("a"), rules: folder.join("b") }, Default::default()).is_err(), "local only");
+            Paths { world: folder.join("a"), rules: folder.join("b"), quests: folder.join("c") }, Default::default(), None).is_err(), "local only");
         std::fs::remove_dir_all(&folder).unwrap();
     }
 }

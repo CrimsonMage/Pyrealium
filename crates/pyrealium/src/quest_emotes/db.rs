@@ -105,12 +105,43 @@ pub fn empty() -> io::Result<Connection> {
     Ok(db)
 }
 
-/// A database holding the dump `text` (`content/quests.sql`), in memory.
+/// A database holding the dump `text`, in memory: `content/quests.sql`, or any SQL dump of a
+/// quest database (`sqlite3 .dump`, Python's `iterdump`), whatever order its rows come in. Its
+/// tables must be this schema's (a missing one is created empty); a row naming a quest or set
+/// that is not there is refused once every row is in.
 pub fn open_dump(text: &str) -> io::Result<Connection> {
-    let db = empty()?;
+    let db = Connection::open_in_memory().map_err(sql)?;
+    // References are checked once every row is in (the bundled SQLite turns them on by default).
+    db.execute_batch("PRAGMA foreign_keys = OFF;").map_err(sql)?;
     db.execute_batch(text).map_err(|e| io::Error::other(format!("quests.sql: {e}")))?;
+    db.execute_batch(SCHEMA).map_err(sql)?;
+    for shape in &SHAPES {
+        let mut statement = db.prepare(&format!("PRAGMA table_info({})", shape.table)).map_err(sql)?;
+        let mut have: Vec<String> = statement.query_map([], |r| r.get::<_, String>(1)).map_err(sql)?.collect::<Result<_, _>>().map_err(sql)?;
+        let mut want: Vec<String> = shape.columns.iter().map(|c| c.to_string()).chain(["family".to_owned()]).collect();
+        if shape.table == "emote_set" { want.push("priority".to_owned()); }
+        have.sort();
+        want.sort();
+        if have != want {
+            return Err(io::Error::other(format!("quests.sql: table {} has columns {}; this server reads {}", shape.table, have.join(", "), want.join(", "))));
+        }
+    }
+    let broken: Option<(String, i64, String)> = db.query_row("PRAGMA foreign_key_check", [], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))
+        .map(Some).or_else(|e| if e == rusqlite::Error::QueryReturnedNoRows { Ok(None) } else { Err(e) }).map_err(sql)?;
+    if let Some((table, row, parent)) = broken {
+        return Err(io::Error::other(format!("quests.sql: row {row} of {table} names a {parent} that does not exist")));
+    }
+    db.execute_batch("PRAGMA foreign_keys = ON;").map_err(sql)?;
     check_version(&db)?;
     Ok(db)
+}
+
+/// The dump `text` as `export` writes it (checked as the server checks it), so any dump of the
+/// same rows becomes the same text.
+pub fn canonical(text: &str) -> io::Result<String> {
+    let db = open_dump(text)?;
+    Tables::from_db(&db)?;
+    export(&db)
 }
 
 fn check_version(db: &Connection) -> io::Result<()> {

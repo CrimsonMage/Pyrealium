@@ -52,35 +52,48 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
         .transpose()?;
     // Replaying trained skills can initialize the process-wide skill catalog.
     // Select the native data profile before opening the character store.
-    // The scripted quests' tables (`quest_emotes`) beside the world table, before the journal
-    // replays; a bad row refuses the start.
-    let quest_tables = if let Some(prepared) = &config.prepared {
+    // The scripted quests' tables (`quest_emotes`), before the journal replays; a bad row refuses
+    // the start. The shipped database (prepared, or `quests.sql` beside the world table), unless
+    // the world builder's overlay has its own beside it (`NAME.quests.sql`, saved by live edits),
+    // which replaces it whole.
+    let shipped_quests = if let Some(prepared) = &config.prepared {
         let text = prepared.quest_sql().ok_or_else(|| invalid("the prepared content has no quest database (quests.sql)"))?;
-        Some((crate::quest_emotes::Tables::from_sql(text)?, "the database".to_owned()))
+        Some((text.to_owned(), "the prepared content".to_owned()))
     } else if let Some(world) = config.content.as_deref().filter(|p| p.is_file()) {
         let directory = world.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(std::path::Path::new("."));
-        Some((crate::quest_emotes::Tables::load(directory)?, directory.display().to_string()))
+        let path = directory.join(crate::quest_emotes::db::DUMP);
+        Some((std::fs::read_to_string(&path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?, path.display().to_string()))
     } else {
         None
     };
-    if let Some((tables, directory)) = quest_tables {
+    let quests_sidecar = config.content_overlay.as_deref().map(|path| path.with_extension("quests.sql"));
+    let overlay_quests = match quests_sidecar.as_deref().filter(|p| p.is_file()) {
+        Some(path) => Some((std::fs::read_to_string(path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?, path.display().to_string())),
+        None => None,
+    };
+    if let (Some((overlay, origin)), Some((shipped, _))) = (&overlay_quests, &shipped_quests) {
+        let (overlay, shipped) = (crate::quest_emotes::Tables::from_sql(overlay)?, crate::quest_emotes::Tables::from_sql(shipped)?);
+        let missing: Vec<&str> = shipped.quest_names().filter(|q| overlay.quest(q).is_none()).collect();
+        if !missing.is_empty() {
+            println!("World-builder quests {origin} replace the shipped quest tables and leave out {} of their quests: {}.",
+                missing.len(), missing.join(", "));
+        }
+    }
+    let quest_text = overlay_quests.or(shipped_quests);
+    if let Some((text, origin)) = &quest_text {
+        let tables = crate::quest_emotes::Tables::from_sql(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?;
         // Each item a set grants needs a profile: the Shelter's pinned five, or one read from the
         // DATs with the inventory metadata (`quest_emotes::install_items`, below), which refuses
         // the start on an item it cannot read.
-        if let Some((set, entity)) = tables.gives().find(|(_, e)| e >> 24 != 0x47) {
-            return Err(invalid(&format!("emote set {set} gives {entity:08x}, which is not an entity")));
-        }
-        println!("Quest tables: {} quests from {directory}.", tables.quests().count());
+        crate::quest_emotes::check_runnable(&tables).map_err(|e| invalid(&e.to_string()))?;
+        println!("Quest tables: {} quests from {origin}.", tables.quests().count());
         crate::quest_emotes::install(tables)?;
     }
     let mut store = Store::open(&config.database)?;
     store.set_save_interval(config.save_interval);
-    // The hunts the AC2 Vault rows replace (`hunting_quests::retired`): their rows must be loaded,
-    // and each character's state of them moves onto those rows' quests.
-    if let Some(tables) = crate::quest_emotes::tables() {
-        if let Some(id) = crate::hunting_quests::retired_hunts().iter().find(|id| !tables.quests().any(|q| q.journal_id == **id)) {
-            return Err(invalid(&format!("retired hunt {id:08x} has no quest in the loaded quest tables (the vault family of quests.sql)")));
-        }
+    // The hunts the AC2 Vault rows replace (`hunting_quests::retired`; `check_runnable` made sure
+    // their rows are loaded): each character's state of them moves onto those rows' quests.
+    if crate::quest_emotes::tables().is_some() {
         let moved = store.migrate_retired_hunts()?;
         if moved > 0 { println!("Retired hunts moved onto their AC2 Vault quests for {moved} characters."); }
     }
@@ -144,7 +157,7 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             }
             // The items the quest tables grant (`quest_emotes::install_items`).
             if let Some(tables) = crate::quest_emotes::tables() {
-                for (definition,metadata) in crate::quest_emotes::install_items(tables,&mut portal)? {inventory_metadata.entry(definition).or_insert(Some(metadata));}
+                for (definition,metadata) in crate::quest_emotes::install_items(&tables,&mut portal)? {inventory_metadata.entry(definition).or_insert(Some(metadata));}
             }
             if quest_gameplay {
                 for (definition,metadata) in crate::apparel::validate(&mut portal)?.into_iter().chain(crate::arwic_mines::validate(&mut portal)?) {inventory_metadata.insert(definition,Some(metadata));}
@@ -268,7 +281,9 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     }
     // The prepared world under the overlay: live edits override and restore its objects.
     let base_objects = if config.admin_bind.is_some() { content.object_map() } else { BTreeMap::new() };
-    if let Some(path) = config.content_overlay.as_deref().filter(|path| path.exists()) {
+    // An empty overlay (live edits saved before any placement) adds nothing, as the editor reads it.
+    let empty = |path: &std::path::Path| std::fs::read_to_string(path).is_ok_and(|text| text.trim().is_empty());
+    if let Some(path) = config.content_overlay.as_deref().filter(|path| path.exists() && !empty(path)) {
         let directory = config.game_data.as_deref().ok_or_else(|| invalid("--content-overlay requires --game-data"))?;
         let added = content.extend(path, directory)?;
         println!("Loaded {added} world-builder overlay objects from {}.", path.display());
@@ -461,7 +476,8 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     let admin = match (config.admin_bind, config.content_overlay.clone(), sidecar) {
         (Some(bind), Some(world), Some(rules)) => Some(crate::admin::start(bind, &config.data,
             config.game_data.clone().ok_or_else(|| invalid("--admin-bind requires --game-data"))?,
-            crate::admin::Paths { world, rules }, base_objects)?),
+            crate::admin::Paths { world, rules, quests: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
+            base_objects, quest_text.map(|(text, _)| text))?),
         _ => None,
     };
     let next_resource_cleanup=0;

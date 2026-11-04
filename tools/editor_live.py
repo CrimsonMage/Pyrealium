@@ -5,15 +5,21 @@ overlay world and rules texts between game ticks and saves them to its overlay
 paths. The editor's files are the source: connecting pushes them, and each save
 pushes again. Requests run on their own thread; one sync is in flight at a time
 and later saves coalesce into one follow-up with the newest texts.
+
+The quest database (`editor_quests`) travels with them: with no NAME.quests.sql
+yet, connecting loads the server's; after that every push carries it, and a save
+of NAME.quests.sql or NAME.quests.sqlite (in any SQLite tool) pushes on its own.
 """
 from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
+import sqlite3
 import tkinter as tk
 from tkinter import ttk
 import urllib.error
 import urllib.request
 
+import editor_quests
 from editor_rules import rules_path
 from place_content import bounded_text
 
@@ -44,6 +50,7 @@ class LiveLink:
         self.future = None
         self.revision = None
         self.dirty = False
+        self.quest_signature = None
 
     def build(self, parent, row):
         frame = ttk.Frame(parent)
@@ -53,6 +60,22 @@ class LiveLink:
         ttk.Label(frame, text="Server data folder").pack(side="left", padx=(10, 4))
         ttk.Entry(frame, textvariable=self.data_folder).pack(side="left", fill="x", expand=True)
         ttk.Label(frame, textvariable=self.state, style="Muted.TLabel").pack(side="left", padx=8)
+        ttk.Button(frame, text="Edit quests", command=self.edit_quests).pack(side="left", padx=4)
+
+    def edit_quests(self):
+        """Opens NAME.quests.sqlite in the system's SQLite tool; its saves push live."""
+        path = self.editor.loaded_path
+        if path is None:
+            self.editor.status.set("Load a content file first.")
+            return
+        try:
+            database = editor_quests.build_database(path)
+            editor_quests.open_in_tool(database)
+        except (OSError, ValueError, sqlite3.Error) as error:
+            self.editor.status.set(f"Cannot edit the quests: {error}")
+            return
+        live = " Saves there push to the live server." if self.enabled.get() else " Turn on Live server to push its saves."
+        self.editor.status.set(f"Editing {database.name}.{live}")
 
     def token(self):
         folder = self.data_folder.get().strip()
@@ -64,6 +87,7 @@ class LiveLink:
         if self.enabled.get():
             self.revision = None
             self.changed()
+            self.editor.root.after(1000, self.watch)
         else:
             self.state.set("Live server: off")
         if hasattr(self.editor, "show_unsaved"):
@@ -75,7 +99,16 @@ class LiveLink:
             raise ValueError("Load a content file first")
         world = bounded_text(path) if path.exists() else ""
         rules = rules_path(path)
-        return world, bounded_text(rules) if rules.exists() else ""
+        return world, bounded_text(rules) if rules.exists() else "", editor_quests.quest_text(path)
+
+    def watch(self):
+        """While live, a save of the quest files (in another tool) pushes them."""
+        if not self.enabled.get() or self.editor.closing:
+            return
+        path = self.editor.loaded_path
+        if path is not None and self.quest_signature is not None and editor_quests.signature(path) != self.quest_signature:
+            self.changed()
+        self.editor.root.after(1000, self.watch)
 
     def changed(self):
         """A file was saved: push it (or queue one push after the current one)."""
@@ -85,25 +118,36 @@ class LiveLink:
             self.dirty = True
             return
         try:
-            token, (world, rules) = self.token(), self.texts()
-        except (OSError, ValueError) as error:
+            token, (world, rules, quests) = self.token(), self.texts()
+        except (OSError, ValueError, sqlite3.Error) as error:
             self.state.set(f"Live server: {error}")
             return
         self.dirty = False
         self.state.set("Live server: syncing…")
-        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, world, rules)
+        self.quest_signature = editor_quests.signature(self.editor.loaded_path)
+        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, world, rules, quests)
         self.editor.root.after(20, self.finish)
 
     @staticmethod
-    def push(address, token, base, world, rules):
-        """Worker thread. Refuse stale edits without overwriting another editor."""
+    def push(address, token, base, world, rules, quests):
+        """Worker thread. Refuse stale edits without overwriting another editor. Returns the
+        reply and the server's quest dump when the editor should keep it: the first load (no
+        quest file here yet) or the canonical text of quests it pushed."""
         if base is None:
             code, status = request(address, token, "GET", "/admin/status")
             if code != 200:
-                return code, status
+                return code, status, None
             base = status["revision"]
-        code, reply = request(address, token, "POST", "/admin/sync", dict(base=base, world=world, rules=rules))
-        return code, reply
+        body = dict(base=base, world=world, rules=rules)
+        if quests is not None:
+            body["quests"] = quests
+        code, reply = request(address, token, "POST", "/admin/sync", body)
+        if code != 200:
+            return code, reply, None
+        fetched_code, fetched = request(address, token, "GET", "/admin/quests", timeout=30)
+        if fetched_code != 200 or fetched.get("revision") != reply["revision"]:
+            return code, reply, None
+        return code, reply, fetched["quests"]
 
     def finish(self):
         if self.future is None or self.editor.closing:
@@ -113,16 +157,26 @@ class LiveLink:
             return
         future, self.future = self.future, None
         try:
-            code, reply = future.result()
+            code, reply, quests = future.result()
         except (OSError, ValueError, KeyError) as error:
-            code, reply = 0, {"error": f"cannot reach the server ({error})"}
+            code, reply, quests = 0, {"error": f"cannot reach the server ({error})"}, None
         if code == 200:
             self.revision = reply["revision"]
             moved = reply["added"] + reply["removed"] + reply["replaced"]
+            changed_quests = reply.get("quests")
+            quest_note = f", quest tables replaced ({changed_quests} quests)" if changed_quests is not None else ""
             self.state.set(f"Live: +{reply['added']} −{reply['removed']} ~{reply['replaced']} objects, "
-                           f"{reply['rules']} rule changes, applied in {reply['apply_us']} µs")
-            if moved or reply["rules"]:
+                           f"{reply['rules']} rule changes{quest_note}, applied in {reply['apply_us']} µs")
+            if moved or reply["rules"] or changed_quests is not None:
                 self.editor.status.set("Live server updated: players nearby see the change now.")
+            if quests and self.editor.loaded_path is not None:
+                try:
+                    if editor_quests.save_dump(self.editor.loaded_path, quests) and changed_quests is None:
+                        self.editor.status.set(f"Loaded the server's quests into "
+                                               f"{editor_quests.quests_path(self.editor.loaded_path).name}.")
+                except OSError as error:
+                    self.editor.status.set(f"Could not save the server's quests: {error}")
+                self.quest_signature = editor_quests.signature(self.editor.loaded_path)
             if not reply.get("saved", True):
                 self.editor.status.set(f"Live server applied the edit but could not save it: {reply.get('save_error')}")
         else:

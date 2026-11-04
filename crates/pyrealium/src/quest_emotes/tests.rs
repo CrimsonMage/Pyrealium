@@ -22,7 +22,7 @@ fn run(t: &Tables, trigger: Trigger, entity: u32, iid: u64, item: Option<u32>, b
 
 #[test]
 fn the_shipped_tables_load() {
-    let t = shipped();
+    let t = &shipped();
     assert_eq!(t.quest("shelter").map(|q| q.journal_id), Some(SHELTER));
     assert_eq!(t.stage(SHELTER, 6).map(|(done, _)| done), Some(true));
     assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some()));
@@ -97,7 +97,7 @@ fn a_bad_row_names_its_file_and_line() {
 
 #[test]
 fn each_shelter_step_matches_the_quest() {
-    let t = shipped();
+    let t = &shipped();
     let none = Inventory::default();
     // Guard, Lieutenant and Sentry: their DAT lines and the next stage, then the repeat lines.
     for (npc, stage, line, again) in [(G, 0, (0x25001648, 0x2824fd4c), (0x25001648, 0x63691d8f)),
@@ -310,7 +310,7 @@ fn a_registry_rule_must_be_a_positive_number() {
 /// and Destroy the Cahi Takeru (Onakhe, 20 kills, 2% of the level's span).
 #[test]
 fn the_shipped_vault_hunts_play_through() {
-    let t = shipped();
+    let t = &shipped();
     let none = Inventory::default();
     for (key, npc, iid, target, kills, level) in [
         ("v181", 0x470042f0u32, 0x8140f2e375f7cf3bu64, 0x47000f9cu32, 5u8, 3u16),
@@ -352,7 +352,7 @@ fn the_shipped_vault_hunts_play_through() {
 /// stage of its kills; a solved one keeps its solve time; the hunting book drops both.
 #[test]
 fn a_retired_hunts_state_moves_onto_its_vault_quest() {
-    let t = shipped();
+    let t = &shipped();
     let marsh = 0x4000fc20; // Thin the Marsh Armoredillos, now v209
     assert_eq!(t.quest("v209").map(|q| q.journal_id), Some(marsh));
     let mut book = Book::default();
@@ -372,7 +372,7 @@ fn a_retired_hunts_state_moves_onto_its_vault_quest() {
 /// the second link is offered only once the first is solved, and a link not ready falls back.
 #[test]
 fn a_vault_chain_offers_its_links_in_order() {
-    let t = shipped();
+    let t = &shipped();
     let (npc, iid) = (0x47004308u32, 0x8140d5d4c268a38bu64);
     let (ulu, faisi) = (t.quest("v207").unwrap().journal_id, t.quest("v208").unwrap().journal_id);
     assert_eq!((ulu, faisi), (0x4000fc1e, 0x4000fc1f), "the catalog ids are kept");
@@ -397,7 +397,7 @@ fn a_vault_chain_offers_its_links_in_order() {
 /// Journey to Linvak (Vault 64), a talk chain: Akkilea, Pelloran, Kanten, Akkilea.
 #[test]
 fn the_vault_talk_chain_journey_to_linvak_plays_through() {
-    let t = shipped();
+    let t = &shipped();
     let quest = t.quest("v64").unwrap().journal_id;
     let none = Inventory::default();
     let p = at_level(26);
@@ -521,7 +521,7 @@ fn a_killer_quest_gives_fellows_nothing() {
 /// a stage, the reward on return; its Pyrealium title (no DAT string names it) is the Vault's.
 #[test]
 fn a_step_generated_quest_plays_through() {
-    let t = shipped();
+    let t = &shipped();
     let q = t.quest("v227").unwrap();
     assert_eq!((q.title_text.as_str(), q.min_level, q.journal_id), ("Destroy the Toxic Grievvers", 70, 0x400200e3));
     let quest = q.journal_id;
@@ -582,4 +582,22 @@ fn escort_actions_and_the_escort_lost_trigger() {
     assert!(go(Trigger::Enter, 0x47000002, 0x8140000000000002, &book).end_escort);
     let lost = go(Trigger::EscortLost, 0x47000009, 0, &book);
     assert_eq!((lost.lines.as_slice(), lost.quests.last()), (&["Your escort has fallen.".to_owned()][..], Some(&Q::Stage { quest: 0x40000001, stage: 0 })));
+}
+
+#[test]
+fn any_dump_of_the_same_rows_is_the_same_quests() {
+    // A tool's dump (`sqlite3 .dump`, Python's iterdump): plain CREATE TABLE, rows in table-name
+    // order (actions before their sets), no schema version. It reads as the shipped dump.
+    let text = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content").join(db::DUMP)).unwrap();
+    let mut lines: Vec<&str> = text.lines().filter(|l| !l.starts_with("PRAGMA")).collect();
+    lines.sort_by_key(|l| !l.starts_with("CREATE") && !l.starts_with("  ") && !l.starts_with(')'));
+    let (head, mut rows): (Vec<&str>, Vec<&str>) = lines.into_iter().partition(|l| !l.starts_with("INSERT"));
+    rows.reverse();
+    let foreign = format!("BEGIN TRANSACTION;\n{}\n{}\nCOMMIT;\n", head.join("\n").replace("IF NOT EXISTS ", ""), rows.join("\n"));
+    assert_eq!(db::canonical(&foreign).unwrap(), text);
+    // A row naming a set that is not there is refused once every row is in.
+    let orphan = format!("{text}INSERT INTO emote_action (emote_set, ord, action, source) VALUES ('nowhere', 1, 'EndEscort', 't');\n");
+    assert!(db::canonical(&orphan).unwrap_err().to_string().contains("of emote_action names a emote_set that does not exist"));
+    // Another database's tables are not quest tables.
+    assert!(db::canonical("CREATE TABLE quest (name TEXT);").is_err());
 }

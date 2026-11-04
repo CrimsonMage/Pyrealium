@@ -626,7 +626,7 @@ impl Book {
     /// The data-driven quests the journal lists: those past stage 0 that the registry knows.
     fn journal_stages(&self) -> impl Iterator<Item = (u32, u8)> + '_ {
         let tables = crate::quest_emotes::tables();
-        self.stages.iter().filter(move |(q, s)| **s != 0 && tables.is_some_and(|t| t.quests().any(|r| r.journal_id == **q)))
+        self.stages.iter().filter(move |(q, s)| **s != 0 && tables.as_ref().is_some_and(|t| t.quests().any(|r| r.journal_id == **q)))
             .map(|(q, s)| (*q, *s))
     }
     pub fn potion_phase(&self) -> u8 { self.potion }
@@ -719,7 +719,7 @@ fn recovered_payload(id:u32,state:&crate::recovered_quests::State,fx:bool)->Resu
 }
 
 fn stage_completed(quest: u32, stage: u8) -> bool {
-    crate::quest_emotes::tables().and_then(|t| t.stage(quest, stage)).is_some_and(|(done, _)| done)
+    crate::quest_emotes::tables().is_some_and(|t| t.stage(quest, stage).is_some_and(|(done, _)| done))
 }
 /// A data-driven quest's journal entry: the registry's title and level, the stage's line and the
 /// run's start and solve times.

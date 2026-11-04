@@ -92,10 +92,12 @@ pub(super) fn serve(mut srv: Server, mut peers: BTreeMap<SocketAddr, Peer>, mut 
                 let started = Instant::now();
                 let reply = match crate::live_edit::apply(&job.change, &mut srv.scene, srv.encounters.as_mut(), &mut srv.corpse_loot, srv.now_ms) {
                     Ok((deliveries, mut summary)) => {
+                        summary.quests = job.change.quests.as_ref().map(|q| crate::live_edit::apply_quests(q, &mut srv.inventory_metadata));
                         summary.apply_us = started.elapsed().as_micros() as u64;
                         deliver_scene(deliveries, &srv.active_characters, &mut peers, &srv.primary, srv.now, &mut srv.failed_peers)?;
-                        println!("Live edit: +{} -{} ~{} objects, {} rule targets, applied in {} µs.",
-                            summary.added, summary.removed, summary.replaced, summary.rules, summary.apply_us);
+                        println!("Live edit: +{} -{} ~{} objects, {} rule targets{}, applied in {} µs.",
+                            summary.added, summary.removed, summary.replaced, summary.rules,
+                            summary.quests.map_or(String::new(), |n| format!(", quest tables replaced ({n} quests)")), summary.apply_us);
                         Ok(summary)
                     }
                     Err(error) => Err(error.to_string()),

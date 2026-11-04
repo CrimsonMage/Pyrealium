@@ -40,7 +40,7 @@
     #[test]
     fn quest_emote_exchanges_replay_as_recorded() {
         use crate::{inventory::Command as I,quest_emotes::Trigger as T,shelter};
-        let t=crate::quest_emotes::shipped();
+        let t=&crate::quest_emotes::shipped();
         let dir=crate::db::testdb::fresh();
         let room=crate::movement::Placement{cell:0x0299014d,coordinates:[1.0,1.0,1.19],heading:0};
         let final_state;
@@ -112,7 +112,7 @@
     #[test]
     fn a_full_bag_refuses_the_scout_without_taking_the_tool() {
         use crate::{inventory::{Command as I,BAG_SLOTS},quest_emotes::Trigger as T,shelter};
-        let t=crate::quest_emotes::shipped();
+        let t=&crate::quest_emotes::shipped();
         let dir=crate::db::testdb::fresh();
         {
             let mut s=Store::open(&dir).unwrap();let c=s.create_native("local",&request("Full Pack")).unwrap();

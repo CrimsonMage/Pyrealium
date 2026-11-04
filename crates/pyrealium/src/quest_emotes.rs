@@ -27,7 +27,7 @@
 use std::collections::BTreeMap;
 use std::io;
 use std::path::Path;
-use std::sync::OnceLock;
+use std::sync::{Arc, RwLock};
 
 use crate::inventory::{Command as I, Inventory, Item, Location};
 use crate::movement::Placement;
@@ -146,7 +146,8 @@ pub struct Outcome {
     pub end_escort: bool,
 }
 
-static INSTALLED: OnceLock<Tables> = OnceLock::new();
+/// The tables the server runs: set at start (`install`), swapped whole by a live edit (`replace`).
+static INSTALLED: RwLock<Option<Arc<Tables>>> = RwLock::new(None);
 
 fn rows<'a>(text: &'a str, name: &'a str, header: &str, columns: usize)
     -> io::Result<Vec<(usize, Vec<&'a str>)>> {
@@ -384,6 +385,8 @@ impl Tables {
     }
     pub fn quest(&self, key: &str) -> Option<&Quest> { self.keys.get(key).and_then(|id| self.quests.get(id)) }
     pub fn quests(&self) -> impl Iterator<Item = &Quest> { self.quests.values() }
+    /// Every quest's name (`quest.name`).
+    pub fn quest_names(&self) -> impl Iterator<Item = &str> { self.keys.keys().map(String::as_str) }
     /// The journal line and finished flag of `quest` at `stage`.
     pub fn stage(&self, quest: u32, stage: u8) -> Option<(bool, &str)> {
         self.stages.get(&(quest, stage)).map(|(c, t)| (*c, t.as_str()))
@@ -627,15 +630,34 @@ pub fn owned(bag: &Inventory, entity: u32) -> Option<u64> {
 
 /// The tables the server runs with, set once at start, before the journal replays.
 pub fn install(tables: Tables) -> io::Result<()> {
-    if INSTALLED.get().is_some_and(|t| *t != tables) { return Err(io::Error::other("different quest tables are already installed")); }
-    let _ = INSTALLED.set(tables);
+    let mut installed = INSTALLED.write().unwrap_or_else(|e| e.into_inner());
+    if installed.as_deref().is_some_and(|t| *t != tables) { return Err(io::Error::other("different quest tables are already installed")); }
+    if installed.is_none() { *installed = Some(Arc::new(tables)); }
     Ok(())
 }
-pub fn installed() -> io::Result<&'static Tables> {
-    INSTALLED.get().ok_or_else(|| io::Error::other("the quest tables (quests.sql) are not loaded"))
+/// A live edit's tables (`admin.rs`, checked on the admin thread): the next trigger runs them.
+/// What a player has done stays in their quest book; a run of a quest the new tables drop is
+/// only no longer answered.
+pub fn replace(tables: Arc<Tables>) {
+    *INSTALLED.write().unwrap_or_else(|e| e.into_inner()) = Some(tables);
+}
+pub fn installed() -> io::Result<Arc<Tables>> {
+    tables().ok_or_else(|| io::Error::other("the quest tables (quests.sql) are not loaded"))
 }
 /// The tables if loaded (journal views tolerate their absence).
-pub fn tables() -> Option<&'static Tables> { INSTALLED.get() }
+pub fn tables() -> Option<Arc<Tables>> { INSTALLED.read().unwrap_or_else(|e| e.into_inner()).clone() }
+
+/// Refuses tables the running server cannot take: an item a set grants that is not an entity,
+/// or a retired hunt (`hunting_quests::retired_hunts`) whose replacing quest is missing.
+pub fn check_runnable(tables: &Tables) -> io::Result<()> {
+    if let Some((set, entity)) = tables.gives().find(|(_, e)| e >> 24 != 0x47) {
+        return Err(io::Error::other(format!("emote set {set} gives {entity:08x}, which is not an entity")));
+    }
+    if let Some(id) = crate::hunting_quests::retired_hunts().iter().find(|id| !tables.quests().any(|q| q.journal_id == **id)) {
+        return Err(io::Error::other(format!("retired hunt {id:08x} has no quest in the quest tables (the vault family of quests.sql)")));
+    }
+    Ok(())
+}
 
 /// A kill credited to its killer: the creature's Kill sets, for the stage, counter and experience
 /// changes (`store.rs` commits them with the kill) and the items to drop (the encounter's loot).
@@ -662,15 +684,16 @@ pub fn fellow_kill(book: &Book, inventory: &Inventory, progression: &crate::prog
 
 /// The item profiles a quest may grant beyond the Shelter's pinned five: entity DID to its
 /// visual description and equipment slots, read from the DATs at start (`install_items`).
-static ITEMS: OnceLock<BTreeMap<u32, (u32, u16)>> = OnceLock::new();
+static ITEMS: RwLock<BTreeMap<u32, (u32, u16)>> = RwLock::new(BTreeMap::new());
 
 /// A quest item `definition` as a new bag item: the Shelter's pinned profiles, else a profile
 /// `install_items` read. (Unit tests, which have no DATs, give any other entity a placeholder
 /// visual.)
 pub fn item(definition: u32, id: u64, slot: u16) -> Option<Item> {
     if let Some(item) = crate::shelter::item(definition, id, slot) { return Some(item); }
-    let (visual, equipment_mask) = match ITEMS.get().and_then(|items| items.get(&definition)) {
-        Some(profile) => *profile,
+    let profile = ITEMS.read().unwrap_or_else(|e| e.into_inner()).get(&definition).copied();
+    let (visual, equipment_mask) = match profile {
+        Some(profile) => profile,
         #[cfg(test)]
         None if definition >> 24 == 0x47 => (TEST_VISUAL, 0),
         None => return None,
@@ -682,13 +705,12 @@ pub const TEST_VISUAL: u32 = 0x1f00_fffe;
 
 /// Reads every item the tables grant from the DATs and checks it as the loot catalog checks its
 /// items (`loot::Catalog::load_with_rules`): the class defaults give the bag metadata, the visual
-/// exists, and the acquisition notice encodes. Returns the metadata to register.
-pub fn install_items(tables: &Tables, dat: &mut crate::dat::Dat)
-    -> io::Result<Vec<(u32, crate::inventory_request::Metadata)>> {
-    let mut profiles = BTreeMap::new();
-    let mut out = Vec::new();
+/// exists, and the acquisition notice encodes. Returns each item's profile and the metadata to
+/// register (`register_items`); the admin thread reads a live edit's this way on its own DATs.
+pub fn read_items(tables: &Tables, dat: &mut crate::dat::Dat) -> io::Result<Vec<ItemProfile>> {
+    let mut out: Vec<ItemProfile> = Vec::new();
     for (set, entity) in tables.gives() {
-        if crate::shelter::item(entity, crate::inventory::ITEM_NAMESPACE + 1, 0).is_some() || profiles.contains_key(&entity) { continue; }
+        if crate::shelter::item(entity, crate::inventory::ITEM_NAMESPACE + 1, 0).is_some() || out.iter().any(|p| p.entity == entity) { continue; }
         let bad = |why: &str| io::Error::other(format!("emote set {set} names item {entity:08x}: {why}"));
         // As the tradeskills' items (`tradeskills::item`): the class defaults' bag metadata, and
         // the visual its physical record names.
@@ -700,17 +722,33 @@ pub fn install_items(tables: &Tables, dat: &mut crate::dat::Dat)
         let probe = Item { roll: None, id: crate::inventory::ITEM_NAMESPACE + 1, definition: entity, visual, quantity: 1, stack_limit: 1,
             equipment_mask: mask, location: Location::Bag(0) };
         crate::item_services::acquired(7, &probe, info).map_err(|_| bad("its acquisition notice does not encode"))?;
-        profiles.insert(entity, (visual, mask));
-        out.push((entity, info));
+        out.push(ItemProfile { entity, visual, mask, metadata: info });
     }
-    if ITEMS.get().is_some_and(|i| *i != profiles) { return Err(io::Error::other("different quest item profiles are already installed")); }
-    let _ = ITEMS.set(profiles);
     Ok(out)
+}
+
+/// A quest item's profile read from the DATs (`read_items`).
+#[derive(Clone, Copy, Debug)]
+pub struct ItemProfile { pub entity: u32, pub visual: u32, pub mask: u16, pub metadata: crate::inventory_request::Metadata }
+
+/// Makes the profiles grantable (`item`). Profiles are only added: an item a live edit no longer
+/// grants keeps its profile, since players may hold it.
+pub fn register_items(profiles: &[ItemProfile]) {
+    let mut items = ITEMS.write().unwrap_or_else(|e| e.into_inner());
+    for p in profiles { items.insert(p.entity, (p.visual, p.mask)); }
+}
+
+/// `read_items` then `register_items`, at start. Returns the metadata to register.
+pub fn install_items(tables: &Tables, dat: &mut crate::dat::Dat)
+    -> io::Result<Vec<(u32, crate::inventory_request::Metadata)>> {
+    let profiles = read_items(tables, dat)?;
+    register_items(&profiles);
+    Ok(profiles.iter().map(|p| (p.entity, p.metadata)).collect())
 }
 
 /// The shipped tables (`content/`), installed, for unit tests.
 #[cfg(test)]
-pub fn shipped() -> &'static Tables {
+pub fn shipped() -> Arc<Tables> {
     let tables = Tables::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content")).unwrap();
     install(tables).unwrap();
     installed().unwrap()

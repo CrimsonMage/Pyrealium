@@ -323,7 +323,31 @@ how long the server took to apply it.
   capacity. Live creatures use their native movement descriptors and instance scale.
 - Corpses already rolled keep their loot; the next kill uses the new table.
 - Only loopback addresses are accepted. Endpoints: `GET /admin/status`,
-  `POST /admin/sync` with `{base, world, rules}` and `Authorization: Bearer TOKEN`.
+  `GET /admin/quests` (`{revision, quests}`), and `POST /admin/sync` with
+  `{base, world, rules, quests?}`, all with `Authorization: Bearer TOKEN`.
+
+### Quests
+
+The server's quest content (the quest database, `content/quests.sql`; see
+`content/README.md`) goes live the same way, as `my-world.quests.sql` beside the
+content file:
+
+- The first time you connect with no `my-world.quests.sql`, the editor loads the
+  quests the server runs into it. From then on it is pushed with every save, and
+  the server saves it beside its overlay (`my-world.quests.sql`), where it replaces
+  the shipped quest tables at the next start (the start lists any shipped quest it
+  leaves out).
+- **Edit quests** opens `my-world.quests.sqlite` in your SQLite tool (DB Browser
+  for SQLite, or whatever opens `.sqlite` files). Each save there pushes it live:
+  the server checks every row as it does at start, swaps the tables in between
+  ticks, and the next conversation, kill or use runs the new rows. What players
+  have done stays in their quest books. The server's canonical text becomes the
+  new `my-world.quests.sql`.
+- A row that does not check (a stage of a quest that does not exist, an unknown
+  action, an item the DATs do not have) changes nothing; the editor reports the
+  table and key. Items a new row grants are read from the DATs before the swap.
+- To ship the edited quests, copy `my-world.quests.sql` over `content/quests.sql`
+  (`cargo run -p pyrealium --bin pyrealium-content -- check` checks either).
 
 Parsing, DAT checks, native movement resolution and diffing run on the admin
 thread. The game loop stages population changes before committing; edit cost

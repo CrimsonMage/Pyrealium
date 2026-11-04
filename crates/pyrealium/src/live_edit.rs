@@ -5,6 +5,9 @@
 //! own handles, building create messages and diffing against what the game runs.
 //! The game thread receives a finished `Change` and only applies it: map inserts
 //! and removals, creature re-rules and the messages for players who can see it.
+//! The quest database (layer 4, `quest_emotes::db`) travels the same way: the admin
+//! thread checks a new dump and reads the items it grants from its own DATs; the
+//! game thread registers them and swaps the tables in whole.
 use crate::{
     content::{Content, Object},
     world_rules::{Rules, Target},
@@ -23,6 +26,13 @@ pub struct Change {
     pub added: Vec<Object>,
     pub replaced: usize,
     pub rules: Option<RulesChange>,
+    pub quests: Option<QuestChange>,
+}
+
+/// New quest tables, checked, with the profiles of the items they grant.
+pub struct QuestChange {
+    pub tables: Arc<crate::quest_emotes::Tables>,
+    pub items: Vec<crate::quest_emotes::ItemProfile>,
 }
 
 pub struct RulesChange {
@@ -38,6 +48,8 @@ pub struct Summary {
     pub removed: usize,
     pub replaced: usize,
     pub rules: usize,
+    /// The quest count of new quest tables (`None`: the quests did not change).
+    pub quests: Option<usize>,
     pub messages: usize,
     pub apply_us: u64,
 }
@@ -56,15 +68,18 @@ pub struct Planner {
     base: Arc<BTreeMap<u64, Object>>,
     spawns: BTreeMap<u64, (Arc<[u8]>, Option<crate::services::Service>)>,
     rules: Arc<Rules>,
+    quests: String,
     revision: String,
 }
 
-pub fn revision(world: &str, rules: &str) -> String {
+pub fn revision(world: &str, rules: &str, quests: &str) -> String {
     use sha2::{Digest, Sha256};
     let mut hash = Sha256::new();
     hash.update(world.as_bytes());
     hash.update([0]);
     hash.update(rules.as_bytes());
+    hash.update([0]);
+    hash.update(quests.as_bytes());
     hash.finalize().iter().map(|b| format!("{b:02x}")).collect()
 }
 
@@ -101,15 +116,21 @@ fn affected(old: &Rules, new: &Rules) -> BTreeSet<Target> {
 
 impl Planner {
     /// The state the server started with.
-    pub fn new(game_data: PathBuf, world: &str, rules: &str, base: BTreeMap<u64, Object>) -> io::Result<Self> {
+    /// `quests`: the quest database dump the server runs (empty: none).
+    pub fn new(game_data: PathBuf, world: &str, rules: &str, base: BTreeMap<u64, Object>, quests: String) -> io::Result<Self> {
         let spawns = parse_world(world, &game_data)?.into_iter().map(|(id, o)| (id, (o.spawn, o.service))).collect();
-        Ok(Self { game_data, base: Arc::new(base), spawns, rules: Arc::new(parse_rules(rules)?), revision: revision(world, rules) })
+        let quests = if quests.is_empty() { quests } else { crate::quest_emotes::db::canonical(&quests)? };
+        let revision = revision(world, rules, &quests);
+        Ok(Self { game_data, base: Arc::new(base), spawns, rules: Arc::new(parse_rules(rules)?), quests, revision })
     }
     pub fn revision(&self) -> &str { &self.revision }
     pub fn objects(&self) -> usize { self.spawns.len() }
+    /// The quest database dump the server runs.
+    pub fn quests(&self) -> &str { &self.quests }
 
-    /// Parse, check and diff. The game is untouched until the plan is applied.
-    pub fn plan(&self, world: &str, rules: &str) -> io::Result<Plan> {
+    /// Parse, check and diff. The game is untouched until the plan is applied. `quests`: a new
+    /// quest database dump (`None` keeps the running one).
+    pub fn plan(&self, world: &str, rules: &str, quests: Option<&str>) -> io::Result<Plan> {
         let objects = parse_world(world, &self.game_data)?;
         let new_rules = parse_rules(rules)?;
         let mut removed = Vec::new();
@@ -148,9 +169,12 @@ impl Planner {
             rules: Arc::new(new_rules),
         });
         let next = rules_change.as_ref().map_or_else(|| self.rules.clone(), |r| r.rules.clone());
+        // Any dump of the same rows is the same quests (`db::canonical`).
+        let quest_text = match quests { Some(text) => crate::quest_emotes::db::canonical(text)?, None => self.quests.clone() };
+        let quest_change = if quest_text == self.quests { None } else { Some(plan_quests(&quest_text, &self.game_data)?) };
         Ok(Plan {
-            change: Change { motions, removed, added, replaced, rules: rules_change },
-            committed: Committed { spawns, rules: next, revision: revision(world, rules) },
+            change: Change { motions, removed, added, replaced, rules: rules_change, quests: quest_change },
+            committed: Committed { revision: revision(world, rules, &quest_text), spawns, rules: next, quests: quest_text },
         })
     }
 
@@ -158,6 +182,7 @@ impl Planner {
     pub fn commit(&mut self, committed: Committed) {
         self.spawns = committed.spawns;
         self.rules = committed.rules;
+        self.quests = committed.quests;
         self.revision = committed.revision;
     }
 }
@@ -172,10 +197,32 @@ pub struct Plan {
 pub struct Committed {
     spawns: BTreeMap<u64, (Arc<[u8]>, Option<crate::services::Service>)>,
     rules: Arc<Rules>,
+    quests: String,
     revision: String,
 }
 impl Committed {
     pub fn revision(&self) -> &str { &self.revision }
+}
+
+/// Checks a quest database dump as the start does, and reads the items it grants.
+fn plan_quests(text: &str, game_data: &Path) -> io::Result<QuestChange> {
+    let tables = crate::quest_emotes::Tables::from_sql(text)?;
+    crate::quest_emotes::check_runnable(&tables)?;
+    // The Shelter's pinned items need no DAT read.
+    let pinned = |e: u32| crate::shelter::item(e, crate::inventory::ITEM_NAMESPACE + 1, 0).is_some();
+    let items = if tables.gives().all(|(_, e)| pinned(e)) { Vec::new() } else {
+        crate::quest_emotes::read_items(&tables, &mut crate::dat::Dat::open(game_data.join("portal.dat"))?)?
+    };
+    Ok(QuestChange { tables: Arc::new(tables), items })
+}
+
+/// Game thread: install new quest tables (after `apply`, which checks everything fallible): the
+/// items they grant become grantable and known to the inventory, and the next trigger runs them.
+pub fn apply_quests(change: &QuestChange, metadata: &mut BTreeMap<u32, Option<crate::inventory_request::Metadata>>) -> usize {
+    crate::quest_emotes::register_items(&change.items);
+    for item in &change.items { metadata.entry(item.entity).or_insert(Some(item.metadata)); }
+    crate::quest_emotes::replace(change.tables.clone());
+    change.tables.quests().count()
 }
 
 /// Game thread: apply a change. All checks run first, so a refused change leaves
@@ -231,6 +278,7 @@ pub fn apply(
     }
     if let (Some(runtime),Some(next))=(encounters,candidate){*runtime=next;}
     let summary = Summary {
+        quests: None,
         added: change.added.len() - change.replaced,
         removed: change.removed.len() - change.replaced,
         replaced: change.replaced,
@@ -260,7 +308,7 @@ mod tests {
     fn change(removed: Vec<u64>, added: Vec<Object>, rules: Option<Rules>) -> Change {
         let replaced = added.iter().filter(|o| removed.contains(&o.id)).count();
         Change { motions:BTreeMap::new(), removed, added, replaced, rules: rules.map(|rules| RulesChange {
-            affected: affected(&Rules::default(), &rules), loot: false, rules: Arc::new(rules) }) }
+            affected: affected(&Rules::default(), &rules), loot: false, rules: Arc::new(rules) }), quests: None }
     }
     fn world() -> (Scene, crate::encounters::Encounters, crate::loot::Loot) {
         let home = Placement::HUMAN_START;
@@ -360,9 +408,10 @@ mod tests {
             base: Arc::new(BTreeMap::from([(base.id, base.clone())])),
             spawns: BTreeMap::from([(moved.id, (moved.spawn.clone(), moved.service))]),
             rules: Arc::new(Rules::default()),
+            quests: String::new(),
             revision: String::new(),
         };
-        let plan = planner.plan("", "").unwrap();
+        let plan = planner.plan("", "", None).unwrap();
         assert_eq!(plan.change.removed, vec![base.id]);
         assert_eq!(plan.change.replaced, 1);
         assert_eq!(&plan.change.added[0].spawn[..], &base.spawn[..]);

@@ -226,7 +226,8 @@ pub(super) fn quest_action(
     let saved = &store.characters[&character];
     if action.trim().eq_ignore_ascii_case("shelter") {
         let quest=crate::quest_emotes::installed()?.quest("shelter").ok_or_else(||invalid("no shelter quest"))?.journal_id;
-        let text=crate::quest_emotes::installed()?.stage(quest,saved.quests.stage(quest)).map_or("",|(_,t)|t);
+        let tables=crate::quest_emotes::installed()?;
+        let text=tables.stage(quest,saved.quests.stage(quest)).map_or("",|(_,t)|t);
         peer.queue_ordered_batch(vec![script::chat(text,1).map_err(other)?])?;
         return Ok(Vec::new());
     }
