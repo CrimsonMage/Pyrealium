@@ -29,8 +29,11 @@ pub struct Handle {
 pub struct Paths {
     pub world: PathBuf,
     pub rules: PathBuf,
-    /// The overlay's quest database (`NAME.quests.sql`), which replaces the shipped one at start.
+    /// The world builder's quests (`NAME.quests.sql`), saved only while they differ from the
+    /// shipped quests, and the shipped dump they were edited from (`NAME.quests.base.sql`): the
+    /// start merges them over the shipped dump as it is then (`quest_emotes::db::merge`).
     pub quests: PathBuf,
+    pub quests_base: PathBuf,
 }
 
 fn write_private(path: &Path, text: &str) -> io::Result<()> {
@@ -50,6 +53,22 @@ fn atomic_write(path: &Path, text: &str) -> io::Result<()> {
     std::fs::rename(&temporary, path)
 }
 
+/// Saves the world builder's quests as a layer over the shipped ones: with the shipped dump they
+/// were edited from, or nothing once they are the shipped quests again.
+fn save_quests(paths: &Paths, quests: &str, shipped: &str) -> io::Result<()> {
+    if quests == shipped {
+        for path in [&paths.quests, &paths.quests_base] {
+            match std::fs::remove_file(path) {
+                Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
+                _ => {}
+            }
+        }
+        return Ok(());
+    }
+    atomic_write(&paths.quests_base, shipped)?;
+    atomic_write(&paths.quests, quests)
+}
+
 fn read_or_empty(path: &Path) -> io::Result<String> {
     match std::fs::read_to_string(path) {
         Ok(text) => Ok(text),
@@ -59,13 +78,13 @@ fn read_or_empty(path: &Path) -> io::Result<String> {
 }
 
 /// Start the endpoint. `world`/`rules` are the texts the server loaded at startup; `quests` the
-/// quest database dump it runs (`None`: no quest tables).
+/// quest database dump it runs (`None`: no quest tables), `shipped` the shipped one (canonical).
 pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
-             base: std::collections::BTreeMap<u64, crate::content::Object>, quests: Option<String>) -> io::Result<Handle> {
+             base: std::collections::BTreeMap<u64, crate::content::Object>, quests: Option<String>, shipped: String) -> io::Result<Handle> {
     if !bind.ip().is_loopback() {
         return Err(io::Error::other("--admin-bind is local only: use a loopback address such as 127.0.0.1:19373"));
     }
-    if paths.world==paths.rules || paths.quests==paths.world || paths.quests==paths.rules {
+    if paths.world==paths.rules || paths.quests==paths.world || paths.quests==paths.rules || paths.quests_base==paths.quests {
         return Err(io::Error::other("world, rules and quests paths must be different"));
     }
     let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base, quests.unwrap_or_default())?;
@@ -82,7 +101,7 @@ pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
         let mut planner = planner;
         for request in server.incoming_requests() {
             // A browser closing its connection must not shut down the editor.
-            let _ = handle(request, &token, &mut planner, &sender, &published, &paths);
+            let _ = handle(request, &token, &mut planner, &sender, &published, &paths, &shipped);
         }
     })?;
     println!("Live world editing on http://{address} (token in {}).", data.join("admin.token").display());
@@ -104,7 +123,7 @@ fn authorized(request: &Request, token: &str) -> bool {
 }
 
 fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>,
-          players: &AtomicUsize, paths: &Paths) -> io::Result<()> {
+          players: &AtomicUsize, paths: &Paths, shipped: &str) -> io::Result<()> {
     if !authorized(&request, token) {
         return request.respond(json(401, serde_json::json!({"error": "missing or wrong admin token"})));
     }
@@ -119,7 +138,7 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc:
             let mut body = String::new();
             let read = request.as_reader().take(MAX_BODY + 1).read_to_string(&mut body);
             match read {
-                Ok(_) if body.len() as u64 <= MAX_BODY => sync(&body, planner, jobs, paths),
+                Ok(_) if body.len() as u64 <= MAX_BODY => sync(&body, planner, jobs, paths, shipped),
                 _ => json(413, serde_json::json!({"error": "request body over 9 MiB or not UTF-8"})),
             }
         }
@@ -128,7 +147,7 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc:
     request.respond(response)
 }
 
-fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: &Paths) -> Response<io::Cursor<Vec<u8>>> {
+fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: &Paths, shipped: &str) -> Response<io::Cursor<Vec<u8>>> {
     let Ok(request) = serde_json::from_str::<serde_json::Value>(body) else {
         return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules, quests?}"}));
     };
@@ -160,7 +179,7 @@ fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: 
     };
     planner.commit(plan.committed);
     let saved = atomic_write(&paths.world, world).and_then(|()| atomic_write(&paths.rules, rules))
-        .and_then(|()| if quests.is_some() { atomic_write(&paths.quests, planner.quests()) } else { Ok(()) });
+        .and_then(|()| if summary.quests.is_some() { save_quests(paths, planner.quests(), shipped) } else { Ok(()) });
     json(200, serde_json::json!({
         "revision": planner.revision(), "added": summary.added, "removed": summary.removed,
         "replaced": summary.replaced, "rules": summary.rules, "quests": summary.quests, "messages": summary.messages,
@@ -190,8 +209,9 @@ mod tests {
     fn sync_applies_through_the_game_loop_and_saves() {
         let folder = std::env::temp_dir().join(format!("pyrealium-admin-{}", std::process::id()));
         std::fs::create_dir_all(&folder).unwrap();
-        let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv"), quests: folder.join("w.quests.sql") };
-        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default(), None).unwrap();
+        let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv"), quests: folder.join("w.quests.sql"),
+            quests_base: folder.join("w.quests.base.sql") };
+        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default(), None, String::new()).unwrap();
         let token = std::fs::read_to_string(folder.join("admin.token")).unwrap();
         #[cfg(unix)]
         {
@@ -231,6 +251,7 @@ mod tests {
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);
         assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(21), Some(true)), "{pushed}");
         assert_eq!(std::fs::read_to_string(folder.join("w.quests.sql")).unwrap(), dump);
+        assert_eq!(std::fs::read_to_string(folder.join("w.quests.base.sql")).unwrap(), "", "the shipped quests it was edited from");
         assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
         // Unchanged quests, or none sent, change nothing of them.
         let again = serde_json::json!({"base": pushed["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
@@ -243,7 +264,8 @@ mod tests {
         assert_eq!(code, 400, "{why}");
         assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
         assert!(start("0.0.0.0:0".parse().unwrap(), &folder, folder.clone(),
-            Paths { world: folder.join("a"), rules: folder.join("b"), quests: folder.join("c") }, Default::default(), None).is_err(), "local only");
+            Paths { world: folder.join("a"), rules: folder.join("b"), quests: folder.join("c"), quests_base: folder.join("d") },
+            Default::default(), None, String::new()).is_err(), "local only");
         std::fs::remove_dir_all(&folder).unwrap();
     }
 }

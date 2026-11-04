@@ -133,6 +133,11 @@ class LiveLinkTests(unittest.TestCase):
             self.root.update()
             self.root.after(10)
         self.assertEqual(len(Endpoint.bodies), 2)
+        # A placement save pushes the world alone: the server's quests stay unpinned.
+        self.world.write_text("pyrealium-world-v2\n# moved\n")
+        self.link.changed()
+        self.wait()
+        self.assertNotIn("quests", Endpoint.bodies[2])
 
     def test_disabled_link_sends_nothing(self):
         self.link.changed()

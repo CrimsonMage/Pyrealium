@@ -7,8 +7,10 @@ pushes again. Requests run on their own thread; one sync is in flight at a time
 and later saves coalesce into one follow-up with the newest texts.
 
 The quest database (`editor_quests`) travels with them: with no NAME.quests.sql
-yet, connecting loads the server's; after that every push carries it, and a save
-of NAME.quests.sql or NAME.quests.sqlite (in any SQLite tool) pushes on its own.
+yet, connecting loads the server's. A push carries the quests only when one of
+the quest files changed since the last sync (a save in any SQLite tool pushes on
+its own), so placement edits never pin the server's quests: it keeps only quest
+edits, as a layer over its shipped quests.
 """
 from concurrent.futures import ThreadPoolExecutor
 import json
@@ -124,12 +126,15 @@ class LiveLink:
             return
         self.dirty = False
         self.state.set("Live server: syncing…")
-        self.quest_signature = editor_quests.signature(self.editor.loaded_path)
-        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, world, rules, quests)
+        if editor_quests.signature(self.editor.loaded_path) == self.quest_signature:
+            quests = None  # unchanged since the last sync
+        # The server's quests come back when pushed (their canonical text) or when none are here.
+        fetch = quests is not None or not editor_quests.quests_path(self.editor.loaded_path).exists()
+        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, world, rules, quests, fetch)
         self.editor.root.after(20, self.finish)
 
     @staticmethod
-    def push(address, token, base, world, rules, quests):
+    def push(address, token, base, world, rules, quests, fetch=True):
         """Worker thread. Refuse stale edits without overwriting another editor. Returns the
         reply and the server's quest dump when the editor should keep it: the first load (no
         quest file here yet) or the canonical text of quests it pushed."""
@@ -142,7 +147,7 @@ class LiveLink:
         if quests is not None:
             body["quests"] = quests
         code, reply = request(address, token, "POST", "/admin/sync", body)
-        if code != 200:
+        if code != 200 or not fetch:
             return code, reply, None
         fetched_code, fetched = request(address, token, "GET", "/admin/quests", timeout=30)
         if fetched_code != 200 or fetched.get("revision") != reply["revision"]:

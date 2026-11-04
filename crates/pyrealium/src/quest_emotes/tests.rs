@@ -601,3 +601,27 @@ fn any_dump_of_the_same_rows_is_the_same_quests() {
     // Another database's tables are not quest tables.
     assert!(db::canonical("CREATE TABLE quest (name TEXT);").is_err());
 }
+
+#[test]
+fn world_builder_quests_merge_over_the_shipped_quests_row_by_row() {
+    let text = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content").join(db::DUMP)).unwrap();
+    let edit = |sql: &str| { let d = db::open_dump(&text).unwrap(); d.execute_batch(sql).unwrap(); db::export(&d).unwrap() };
+    let line = |stage: u8| format!("UPDATE quest_stage SET journal_text = 'x{stage}' WHERE quest = 'shelter' AND stage = {stage};");
+    // The world builder changed stage 0 and added a set; the shipped dump since changed stage 1,
+    // and both changed stage 2.
+    let overlay = edit(&format!("{}{}INSERT INTO emote_set (name, priority, owner_entity, trigger, source) VALUES ('wb', 1, '0x47000001', 'Use', 't');\
+        INSERT INTO emote_action (emote_set, ord, action, p1, source) VALUES ('wb', 1, 'Message', 'hi', 't');", line(0), line(2)));
+    let shipped = edit(&format!("{}UPDATE quest_stage SET journal_text = 'shipped' WHERE quest = 'shelter' AND stage = 2;", line(1)));
+    let merged = db::merge(&text, &shipped, &overlay).unwrap();
+    assert_eq!(merged.conflicts, ["quest_stage shelter/2"]);
+    let t = Tables::from_sql(&merged.text).unwrap();
+    assert_eq!([0, 1, 2].map(|s| t.stage(0x4000ff05, s).unwrap().1.to_owned()), ["x0", "x1", "x2"]);
+    assert!(t.reacts(0x47000001, 0, Trigger::Use));
+    // A row the world builder deleted stays deleted; one the shipped dump deleted is gone too.
+    let without = edit("DELETE FROM emote_action WHERE emote_set = 'guard_after';DELETE FROM emote_set WHERE name = 'guard_after';");
+    let merged = db::merge(&text, &text, &without).unwrap();
+    assert!(!merged.text.contains("'guard_after'"));
+    assert!(!db::merge(&text, &without, &text).unwrap().text.contains("'guard_after'"));
+    // Nothing edited: the merge is the shipped dump.
+    assert_eq!(db::merge(&text, &shipped, &text).unwrap().text, shipped);
+}

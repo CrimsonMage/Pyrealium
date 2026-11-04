@@ -66,19 +66,45 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     } else {
         None
     };
+    // The world builder's quest edits (`NAME.quests.sql`, saved by live edits) are a layer: with
+    // the shipped dump they were edited from (`NAME.quests.base.sql`), they are merged row by row
+    // over the shipped dump as it is now (`quest_emotes::db::merge`), so shipped changes to rows
+    // the edits left alone still arrive.
     let quests_sidecar = config.content_overlay.as_deref().map(|path| path.with_extension("quests.sql"));
-    let overlay_quests = match quests_sidecar.as_deref().filter(|p| p.is_file()) {
-        Some(path) => Some((std::fs::read_to_string(path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?, path.display().to_string())),
-        None => None,
+    let quests_base = config.content_overlay.as_deref().map(|path| path.with_extension("quests.base.sql"));
+    let shipped_canonical = match &shipped_quests {
+        Some((text, origin)) => crate::quest_emotes::db::canonical(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?,
+        None => String::new(),
     };
-    if let (Some((overlay, origin)), Some((shipped, _))) = (&overlay_quests, &shipped_quests) {
-        let (overlay, shipped) = (crate::quest_emotes::Tables::from_sql(overlay)?, crate::quest_emotes::Tables::from_sql(shipped)?);
-        let missing: Vec<&str> = shipped.quest_names().filter(|q| overlay.quest(q).is_none()).collect();
-        if !missing.is_empty() {
-            println!("World-builder quests {origin} replace the shipped quest tables and leave out {} of their quests: {}.",
-                missing.len(), missing.join(", "));
+    let read = |path: &std::path::Path| std::fs::read_to_string(path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())));
+    let overlay_quests = match quests_sidecar.as_deref().filter(|p| p.is_file()) {
+        None => None,
+        Some(path) => {
+            let overlay = read(path)?;
+            let origin = path.display().to_string();
+            match quests_base.as_deref().filter(|p| p.is_file()) {
+                Some(base) => {
+                    let merged = crate::quest_emotes::db::merge(&read(base)?, &shipped_canonical, &overlay)
+                        .map_err(|e| io::Error::other(format!("{origin} over the shipped quests: {e}")))?;
+                    if !merged.conflicts.is_empty() {
+                        println!("World-builder quests {origin} and the shipped quests both changed {} rows; the world builder's are kept: {}.",
+                            merged.conflicts.len(), merged.conflicts.join(", "));
+                    }
+                    Some((merged.text, format!("{origin} over the shipped quests")))
+                }
+                None => {
+                    // Saved before edits were layers: it replaces the shipped quests whole.
+                    let (overlay_tables, shipped_tables) = (crate::quest_emotes::Tables::from_sql(&overlay)?, crate::quest_emotes::Tables::from_sql(&shipped_canonical)?);
+                    let missing: Vec<&str> = shipped_tables.quest_names().filter(|q| overlay_tables.quest(q).is_none()).collect();
+                    if !missing.is_empty() {
+                        println!("World-builder quests {origin} have no base file and replace the shipped quest tables whole, leaving out {} of their quests: {}.",
+                            missing.len(), missing.join(", "));
+                    }
+                    Some((overlay, origin))
+                }
+            }
         }
-    }
+    };
     let quest_text = overlay_quests.or(shipped_quests);
     if let Some((text, origin)) = &quest_text {
         let tables = crate::quest_emotes::Tables::from_sql(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?;
@@ -476,8 +502,10 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     let admin = match (config.admin_bind, config.content_overlay.clone(), sidecar) {
         (Some(bind), Some(world), Some(rules)) => Some(crate::admin::start(bind, &config.data,
             config.game_data.clone().ok_or_else(|| invalid("--admin-bind requires --game-data"))?,
-            crate::admin::Paths { world, rules, quests: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
-            base_objects, quest_text.map(|(text, _)| text))?),
+            crate::admin::Paths { world, rules,
+                quests: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))?,
+                quests_base: quests_base.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
+            base_objects, quest_text.map(|(text, _)| text), shipped_canonical.clone())?),
         _ => None,
     };
     let next_resource_cleanup=0;

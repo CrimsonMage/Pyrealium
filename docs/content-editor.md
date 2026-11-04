@@ -333,10 +333,15 @@ The server's quest content (the quest database, `content/quests.sql`; see
 content file:
 
 - The first time you connect with no `my-world.quests.sql`, the editor loads the
-  quests the server runs into it. From then on it is pushed with every save, and
-  the server saves it beside its overlay (`my-world.quests.sql`), where it replaces
-  the shipped quest tables at the next start (the start lists any shipped quest it
-  leaves out).
+  quests the server runs into it. A save pushes the quests only when you changed
+  them, so placement edits never touch the server's quests.
+- The server keeps only your quest edits, as a layer: while they differ from its
+  shipped quests (`content/quests.sql`) it saves them as `my-world.quests.sql` with
+  the shipped dump they were made against (`my-world.quests.base.sql`), and removes
+  both once they match again. At the next start it merges them row by row over
+  the shipped quests as they are then: rows you changed, added or deleted are
+  yours, rows only the shipped quests changed (a pull, a Vault re-import) come
+  through, and a row both changed keeps your version (the start lists them).
 - **Edit quests** opens `my-world.quests.sqlite` in your SQLite tool (DB Browser
   for SQLite, or whatever opens `.sqlite` files). Each save there pushes it live:
   the server checks every row as it does at start, swaps the tables in between

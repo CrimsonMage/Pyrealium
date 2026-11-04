@@ -312,3 +312,62 @@ pub fn tsv_files(directory: &Path, family: Option<&str>) -> io::Result<[Vec<(Str
     }
     Ok(files)
 }
+
+/// What a three-way merge (`merge`) kept: the merged dump and the rows both sides changed
+/// (the overlay's version won), each named by table and key.
+pub struct Merged { pub text: String, pub conflicts: Vec<String> }
+
+/// Every row of a table by its key, with every column (`family` and `priority` included).
+fn keyed(db: &Connection, shape: &Shape) -> io::Result<std::collections::BTreeMap<String, Vec<Value>>> {
+    let mut columns: Vec<&str> = shape.columns.to_vec();
+    if shape.table == "emote_set" { columns.push("priority"); }
+    columns.push("family");
+    let mut statement = db.prepare(&format!("SELECT {} FROM {}", columns.join(", "), shape.table)).map_err(sql)?;
+    let mut found = statement.query([]).map_err(sql)?;
+    let mut out = std::collections::BTreeMap::new();
+    while let Some(row) = found.next().map_err(sql)? {
+        let values: Vec<Value> = (0..columns.len()).map(|i| row.get::<_, Value>(i)).collect::<Result<_, _>>().map_err(sql)?;
+        let key = match shape.table {
+            "quest_stage" | "emote_action" => format!("{}/{}", text_of(&values[0]), text_of(&values[1])),
+            _ => text_of(&values[0]),
+        };
+        out.insert(key, values);
+    }
+    Ok(out)
+}
+fn text_of(v: &Value) -> String {
+    match v { Value::Text(t) => t.clone(), Value::Integer(n) => n.to_string(), Value::Real(x) => x.to_string(), _ => String::new() }
+}
+
+/// The world builder's quests (`overlay`, edited from the shipped dump `base`) laid over the
+/// shipped dump as it is now (`shipped`), row by row on each table's key: a row only the
+/// overlay changed (added, edited or deleted) is the overlay's, a row only the shipped dump
+/// changed is the shipped one's, and a row both changed differently is the overlay's (listed in
+/// `conflicts`). The result is checked as the server checks any dump.
+pub fn merge(base: &str, shipped: &str, overlay: &str) -> io::Result<Merged> {
+    let (base, shipped, overlay) = (open_dump(base)?, open_dump(shipped)?, open_dump(overlay)?);
+    let out = Connection::open_in_memory().map_err(sql)?;
+    out.execute_batch(&format!("PRAGMA foreign_keys = OFF;\nPRAGMA user_version = {SCHEMA_VERSION};\n{SCHEMA}")).map_err(sql)?;
+    let mut conflicts = Vec::new();
+    for shape in &SHAPES {
+        let (b, s, o) = (keyed(&base, shape)?, keyed(&shipped, shape)?, keyed(&overlay, shape)?);
+        let keys: std::collections::BTreeSet<&String> = b.keys().chain(s.keys()).chain(o.keys()).collect();
+        let mut columns: Vec<&str> = shape.columns.to_vec();
+        if shape.table == "emote_set" { columns.push("priority"); }
+        columns.push("family");
+        let marks: Vec<String> = (1..=columns.len()).map(|i| format!("?{i}")).collect();
+        let mut insert = out.prepare(&format!("INSERT INTO {} ({}) VALUES ({})", shape.table, columns.join(", "), marks.join(", "))).map_err(sql)?;
+        for key in keys {
+            let (was, now, mine) = (b.get(key), s.get(key), o.get(key));
+            let pick = if mine == was { now } else if now == was || now == mine { mine } else {
+                conflicts.push(format!("{} {key}", shape.table));
+                mine
+            };
+            if let Some(values) = pick { insert.execute(rusqlite::params_from_iter(values)).map_err(sql)?; }
+        }
+    }
+    let text = export(&out)?;
+    // Checked whole: a shipped quest deleted under an overlay row that names it is refused here.
+    let text = canonical(&text)?;
+    Ok(Merged { text, conflicts })
+}
