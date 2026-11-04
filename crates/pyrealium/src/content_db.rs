@@ -21,10 +21,11 @@ use rusqlite::types::{Value, ValueRef};
 
 use crate::quest_emotes::Tables;
 
+pub mod overlay;
 pub mod world;
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 12;
+pub const SCHEMA_VERSION: i32 = 14;
 
 /// The tables, in dump order (`content_db/schema.sql`).
 pub const SCHEMA: &str = include_str!("content_db/schema.sql");
@@ -48,7 +49,8 @@ pub fn dump_in(directory: &Path) -> PathBuf {
 /// leading columns are its key.
 pub struct Shape { pub table: &'static str, pub columns: &'static [&'static str], pub order: &'static str, pub key: usize }
 /// Optional columns added after a table's first schema, which an older dump lacks.
-const OPTIONAL_SINCE: [(&str, &str); 4] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots"), ("emote_set", "phrase")];
+const OPTIONAL_SINCE: [(&str, &str); 5] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots"), ("emote_set", "phrase"),
+    ("quest_item", "physical")];
 /// `emote_set`'s columns beyond the TSV's (the database's own), in dump order after its name.
 const SET_EXTRA: [&str; 3] = ["priority", "owner_slots", "phrase"];
 /// A table's columns as the database holds them: `emote_set`'s extras after its name, then
@@ -81,9 +83,9 @@ pub const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 18] = [
+const SHAPES_TAIL: [Shape; 19] = [
     Shape { table: "quest_recipe", order: "recipe", key: 1, columns: &["recipe", "ingredient", "quantity", "output", "source"] },
-    Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "source"] },
+    Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "physical", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
     Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
@@ -99,6 +101,8 @@ const SHAPES_TAIL: [Shape; 18] = [
     Shape { table: "world_evidence", order: "name", key: 1, columns: &["name", "body", "source"] },
     Shape { table: "world_object", order: "pack, ord", key: 2,
         columns: &["pack", "iid", "ord", "entity", "visual", "cell", "x", "y", "z", "qw", "qx", "qy", "qz", "scale", "name", "source"] },
+    // Base placements a world builder's world removes.
+    Shape { table: "world_tombstone", order: "iid", key: 1, columns: &["iid", "source"] },
     Shape { table: "creature_stats", order: "target", key: 1,
         columns: &["target", "health", "damage", "armor", "level", "xp", "gold", "interval_ms", "range", "leash", "respawn_ms", "source"] },
     Shape { table: "creature_ai", order: "target", key: 1,
@@ -175,14 +179,16 @@ const RESHAPED_EMPTY: [&str; 1] = ["world_pack"];
 /// The world's tables (`world::*`), which the quest-editing paths leave out of their dumps.
 pub const WORLD_TABLES: [&str; 3] = ["world_pack", "world_evidence", "world_object"];
 
-/// The dump `text` without the world's rows (`WORLD_TABLES`), in export form: what the world
+/// The dump `text` without the shipped world's rows (`WORLD_TABLES`, but a world builder's
+/// `builder` pack), in export form: what the world
 /// builder's quest editing exchanges (the shipped world is tens of megabytes and is not edited
 /// there; a merge over the shipped dump keeps it).
 pub fn without_world(text: &str) -> io::Result<String> {
     let db = open_dump(text)?;
-    for table in WORLD_TABLES.iter().rev() {
-        db.execute(&format!("DELETE FROM {table}"), []).map_err(sql)?;
-    }
+    // The world builder's own placements (a `builder` pack) stay: they are its edits.
+    db.execute_batch("DELETE FROM world_evidence;
+        DELETE FROM world_object WHERE pack IN (SELECT name FROM world_pack WHERE kind <> 'builder');
+        DELETE FROM world_pack WHERE kind <> 'builder';").map_err(sql)?;
     export(&db)
 }
 

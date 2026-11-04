@@ -1,4 +1,4 @@
-"""Live server link against a stand-in admin endpoint."""
+"""Live server link against a stand-in admin endpoint (the content-database protocol)."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import sqlite3
@@ -9,17 +9,17 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
-import editor_quests
+import editor_content
 from editor_live import LiveLink
 
-SERVER_QUESTS = ("PRAGMA user_version = 1;\nCREATE TABLE IF NOT EXISTS quest (name TEXT PRIMARY KEY, title TEXT);\n"
-                 "INSERT INTO quest (name, title) VALUES ('shelter', 'Rescue the Shelter Hold');\n")
+# What the server hands a world builder: the shipped content without the shipped world's rows.
+SERVER_CONTENT = editor_content.without_world(editor_content.read_dump(editor_content.SHIPPED, limit=None))
 
 
 class Endpoint(BaseHTTPRequestHandler):
     revision = "r0"
     bodies = []
-    quests = SERVER_QUESTS
+    content = SERVER_CONTENT
 
     def log_message(self, *args):
         pass
@@ -32,23 +32,24 @@ class Endpoint(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_GET(self):
-        if self.path == "/admin/quests":
-            return self.reply(200, dict(revision=Endpoint.revision, quests=Endpoint.quests))
+        if self.path in ("/admin/content", "/admin/quests"):
+            return self.reply(200, dict(revision=Endpoint.revision, content=Endpoint.content))
         self.reply(200, dict(revision=Endpoint.revision, objects=0, players=0))
 
     def do_POST(self):
         assert self.headers["Authorization"] == "Bearer secret"
         body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+        assert set(body) == {"base", "content"}, body.keys()
         if body["base"] != Endpoint.revision:
             return self.reply(409, dict(error="stale", revision=Endpoint.revision))
         Endpoint.bodies.append(body)
         Endpoint.revision = f"r{len(Endpoint.bodies)}"
         changed = None
-        if "quests" in body and body["quests"] != Endpoint.quests:
+        if body["content"] != Endpoint.content:
             # The real server answers with the canonical text of what it took.
-            Endpoint.quests, changed = "-- canonical\n" + body["quests"], 2
+            Endpoint.content, changed = "-- canonical\n" + body["content"], 2
         self.reply(200, dict(revision=Endpoint.revision, added=1, removed=0, replaced=0, rules=0, quests=changed,
-                             messages=1, apply_us=12, saved=True))
+                             messages=1, apply_us=12, saved=True, content=Endpoint.content))
 
 
 class LiveLinkTests(unittest.TestCase):
@@ -58,12 +59,11 @@ class LiveLinkTests(unittest.TestCase):
         folder = Path(self.temp.name)
         (folder / "admin.token").write_text("secret\n")
         self.world = folder / "w.tsv"
-        self.world.write_text("pyrealium-world-v2\n")
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Endpoint)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.addCleanup(self.server.server_close)
         self.addCleanup(self.server.shutdown)
-        Endpoint.revision, Endpoint.bodies, Endpoint.quests = "r0", [], SERVER_QUESTS
+        Endpoint.revision, Endpoint.bodies, Endpoint.content = "r0", [], SERVER_CONTENT
         self.root = tk.Tk()
         self.root.withdraw()
         self.addCleanup(self.root.destroy)
@@ -74,70 +74,63 @@ class LiveLinkTests(unittest.TestCase):
         self.addCleanup(self.link.close)
 
     def wait(self):
-        for _ in range(500):
+        for _ in range(1000):
             self.root.update()
             if self.link.future is None and not self.link.dirty:
                 return
             self.root.after(5)
         self.fail("sync did not finish")
 
-    def test_stale_revision_preserves_other_edits_and_stops_queued_pushes(self):
+    def connect(self):
         self.link.enabled.set(True)
         self.link.toggle()
         self.wait()
-        self.assertEqual(len(Endpoint.bodies), 1)
-        self.assertIn("applied in 12 µs", self.link.state.get())
-        Endpoint.revision = "changed elsewhere"
-        self.world.write_text("pyrealium-world-v2\n# a\n")
+
+    def place(self, x):
+        """A placement saved in the editor (its world's builder rows)."""
+        editor_content.write_world(self.world, "pyrealium-world-v3\n8140000000020000\t47000001\t1f000001\t02990109\t"
+                                   f"{x}\t2\t3\t1\t0\t0\t0\t-\n")
+
+    def test_connecting_loads_the_servers_content_and_saves_push_it(self):
+        self.connect()
+        # Nothing of its own here yet: the server's content is fetched, nothing is pushed.
+        self.assertEqual(Endpoint.bodies, [])
+        self.assertEqual(editor_content.content_path(self.world).read_text(), SERVER_CONTENT)
+        self.assertTrue(editor_content.content_db_path(self.world).exists())
+        # Edited as a database in another tool: the watch pushes its dump, and the server's
+        # canonical text becomes the dump here.
+        db = sqlite3.connect(editor_content.content_db_path(self.world))
+        db.execute("UPDATE quest SET title = 'Edited' WHERE name = (SELECT MIN(name) FROM quest)")
+        db.commit()
+        db.close()
+        editor_content.os.utime(editor_content.content_db_path(self.world))
+        for _ in range(400):
+            self.root.update()
+            if len(Endpoint.bodies) == 1 and self.link.future is None:
+                break
+            self.root.after(10)
+        self.assertIn("'Edited'", Endpoint.bodies[0]["content"])
+        self.assertEqual(editor_content.content_path(self.world).read_text(), Endpoint.content)
+        self.assertTrue(Endpoint.content.startswith("-- canonical\n"))
+        # A placement save pushes the dump with its builder row.
+        self.place(5)
         self.link.changed()
-        self.world.write_text("pyrealium-world-v2\n# b\n")
+        self.wait()
+        self.assertIn("'0x8140000000020000'", Endpoint.bodies[-1]["content"])
+
+    def test_stale_revision_preserves_other_edits_and_stops_queued_pushes(self):
+        self.connect()
+        Endpoint.revision = "changed elsewhere"
+        self.place(5)
+        self.link.changed()
+        self.place(6)
         self.link.changed()  # in flight: queued, sent once with the newest text
         self.link.changed()
         self.wait()
-        self.assertEqual(len(Endpoint.bodies), 1)
+        self.assertEqual(Endpoint.bodies, [])
         self.assertEqual(Endpoint.revision, "changed elsewhere")
         self.assertFalse(self.link.enabled.get())
         self.assertFalse(self.link.dirty)
-
-    def test_connecting_loads_the_servers_quests_and_a_database_save_pushes_them(self):
-        quests = editor_quests.quests_path(self.world)
-        self.link.enabled.set(True)
-        self.link.toggle()
-        self.wait()
-        # No quest file here yet: the first push leaves the server's quests, and keeps them.
-        self.assertNotIn("quests", Endpoint.bodies[0])
-        self.assertEqual(quests.read_text(), SERVER_QUESTS)
-        # Edited as a database in another tool: the watch pushes its dump, and the server's
-        # canonical text becomes the dump here.
-        database = editor_quests.build_database(self.world)
-        db = sqlite3.connect(database)
-        db.execute("UPDATE quest SET title = 'Edited' WHERE name = 'shelter'")
-        db.commit()
-        db.close()
-        for _ in range(400):
-            self.root.update()
-            if len(Endpoint.bodies) == 2 and self.link.future is None:
-                break
-            self.root.after(10)
-        self.assertIn("'Edited'", Endpoint.bodies[1]["quests"])
-        self.assertEqual(quests.read_text(), Endpoint.quests)
-        self.assertTrue(quests.read_text().startswith("-- canonical\n"))
-        self.assertIn("quest tables replaced (2 quests)", self.link.state.get())
-        # The database keeps its edits (a tool may have it open): Edit quests does not rebuild
-        # it, and nothing more is pushed until the next save.
-        stamp = editor_quests.mtime(database)
-        self.assertEqual(editor_quests.build_database(self.world), database)
-        self.assertEqual(editor_quests.mtime(database), stamp)
-        self.root.after(1100)
-        for _ in range(150):
-            self.root.update()
-            self.root.after(10)
-        self.assertEqual(len(Endpoint.bodies), 2)
-        # A placement save pushes the world alone: the server's quests stay unpinned.
-        self.world.write_text("pyrealium-world-v2\n# moved\n")
-        self.link.changed()
-        self.wait()
-        self.assertNotIn("quests", Endpoint.bodies[2])
 
     def test_disabled_link_sends_nothing(self):
         self.link.changed()

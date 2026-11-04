@@ -178,6 +178,7 @@ CREATE TABLE IF NOT EXISTS quest_item (
   visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
   stack_limit INTEGER CHECK (stack_limit BETWEEN 1 AND 65535),
   equipment_mask INTEGER CHECK (equipment_mask BETWEEN 0 AND 2047),
+  physical TEXT CHECK (physical GLOB '0x47[0-9a-fA-F]*'),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
@@ -269,6 +270,11 @@ CREATE TABLE IF NOT EXISTS portal_route (
   dest_x REAL NOT NULL, dest_y REAL NOT NULL, dest_z REAL NOT NULL,
   heading INTEGER NOT NULL CHECK (heading BETWEEN 0 AND 255),
   level INTEGER NOT NULL CHECK (level >= 0),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS world_tombstone (
+  iid TEXT PRIMARY KEY CHECK (iid GLOB '0x8140[0-9a-fA-F]*' AND length(iid) = 18),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );

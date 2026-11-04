@@ -43,7 +43,8 @@ class PopulationWorkflowTests(unittest.TestCase):
         self.root.destroy()
 
     def rules(self):
-        return Rules.parse(read_document(rules_path(self.path)))
+        from editor_rules import load_rules
+        return load_rules(self.path)[0]
 
     def inspect(self):
         self.editor.show_creatures()

@@ -624,7 +624,27 @@ impl Content {
     /// or rescaling a prepared placement); the per-cell limit is checked against
     /// the combined world.
     pub fn extend(&mut self, path: &Path, game_data: &Path) -> io::Result<usize> {
-        let overlay = Self::load(path, game_data)?;
+        self.extend_with(Self::load(path, game_data)?)
+    }
+    /// `extend` with the overlay's world text (a world builder's placements, from its rows).
+    pub fn extend_text(&mut self, text: &str, game_data: &Path) -> io::Result<usize> {
+        self.extend_with(Self::parse(text, game_data)?)
+    }
+    /// Removes base placements (a world builder's removals); returns how many were placed.
+    pub fn hide(&mut self, ids: &std::collections::BTreeSet<u64>) -> usize {
+        let mut count = 0;
+        for id in ids {
+            if let Some(object) = self.objects.remove(id) {
+                if let Some(cell) = self.cells.get_mut(&object.placement.cell) {
+                    cell.retain(|entry| entry != id);
+                    if cell.is_empty() { self.cells.remove(&object.placement.cell); }
+                }
+                count += 1;
+            }
+        }
+        count
+    }
+    fn extend_with(&mut self, overlay: Self) -> io::Result<usize> {
         let count = overlay.objects.len();
         for (id, object) in overlay.objects {
             if let Some(base) = self.objects.remove(&id) {

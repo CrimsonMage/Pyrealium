@@ -25,9 +25,14 @@ pub fn item(definition: u32, id: u64, slot: u16) -> Option<Item> {
 
 /// A quest item's profile where the DAT's defaults do not fit (`quest_item`).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct Override { pub visual: Option<u32>, pub stack_limit: Option<u32>, pub equipment_mask: Option<u16> }
+pub struct Override {
+    pub visual: Option<u32>, pub stack_limit: Option<u32>, pub equipment_mask: Option<u16>,
+    /// The physical record of an item whose class defaults do not read (the Arwic glyph's names
+    /// use substitutions): its bare profile's.
+    pub physical: Option<u32>,
+}
 
-/// The `quest_item` rows (entity, visual, stack_limit, equipment_mask, source).
+/// The `quest_item` rows (entity, visual, stack_limit, equipment_mask, physical, source).
 pub(super) fn overrides(rows: &[Row]) -> io::Result<BTreeMap<u32, Override>> {
     let hex = |v: &str| u32::from_str_radix(v.trim_start_matches("0x"), 16).ok();
     let mut out = BTreeMap::new();
@@ -37,7 +42,11 @@ pub(super) fn overrides(rows: &[Row]) -> io::Result<BTreeMap<u32, Override>> {
         let visual = if f[1].is_empty() { None } else { Some(hex(&f[1]).ok_or_else(|| bad("visual must be hex"))?) };
         let stack_limit = if f[2].is_empty() { None } else { Some(f[2].parse().map_err(|_| bad("stack_limit must be 1 to 65535"))?) };
         let equipment_mask = if f[3].is_empty() { None } else { Some(f[3].parse().map_err(|_| bad("equipment_mask must be 0 to 2047"))?) };
-        out.insert(entity, Override { visual, stack_limit, equipment_mask });
+        let physical = match f.get(4).filter(|v| !v.is_empty()) {
+            Some(v) => Some(hex(v).filter(|p| p >> 24 == 0x47).ok_or_else(|| bad("physical must be an EntityDesc DID"))?),
+            None => None,
+        };
+        out.insert(entity, Override { visual, stack_limit, equipment_mask, physical });
     }
     Ok(out)
 }
@@ -61,7 +70,8 @@ pub fn read_items(tables: &Tables, dat: &mut crate::dat::Dat) -> io::Result<Vec<
         // takes a quest_item visual and a bare profile.
         let info = match crate::inventory_request::Metadata::load(dat, entity) {
             Ok(info) => info,
-            Err(_) if over.visual.is_some() => crate::inventory_request::Metadata { implement: None, icon: 0, physical: 0, equipment: None },
+            Err(_) if over.visual.is_some() => crate::inventory_request::Metadata { implement: None, icon: 0,
+                physical: over.physical.unwrap_or(0), equipment: None },
             Err(e) => return Err(bad(&e.to_string())),
         };
         let visual = match over.visual { Some(v) => v, None => crate::tradeskills::visual_of(dat, info.physical).map_err(|e| bad(&e.to_string()))? };
@@ -94,3 +104,16 @@ pub fn install_items(tables: &Tables, dat: &mut crate::dat::Dat)
     Ok(profiles.iter().map(|p| (p.entity, p.metadata)).collect())
 }
 
+
+#[cfg(test)]
+mod dat_tests {
+    /// Every item the shipped quests grant reads from the DATs and its acquisition notice encodes
+    /// (needs the 7230 DATs: AC2_TEST_GAME_DATA). The start refuses otherwise.
+    #[test]
+    fn every_item_the_shipped_quests_grant_reads() {
+        let Ok(data) = std::env::var("AC2_TEST_GAME_DATA") else { return };
+        let tables = crate::quest_emotes::shipped();
+        let mut dat = crate::dat::Dat::open(std::path::Path::new(&data).join("portal.dat")).unwrap();
+        super::read_items(&tables, &mut dat).unwrap();
+    }
+}

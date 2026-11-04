@@ -21,6 +21,7 @@ from tkinter import ttk
 import urllib.error
 import urllib.request
 
+import editor_content
 import editor_quests
 from editor_rules import rules_path
 from place_content import bounded_text
@@ -96,12 +97,11 @@ class LiveLink:
             self.editor.show_unsaved()
 
     def texts(self):
+        """The world's content dump (its placements, removals, rules and quests)."""
         path = self.editor.loaded_path
         if path is None:
             raise ValueError("Load a content file first")
-        world = bounded_text(path) if path.exists() else ""
-        rules = rules_path(path)
-        return world, bounded_text(rules) if rules.exists() else "", editor_quests.quest_text(path)
+        return editor_quests.quest_text(path)
 
     def watch(self):
         """While live, a save of the quest files (in another tool) pushes them."""
@@ -120,39 +120,34 @@ class LiveLink:
             self.dirty = True
             return
         try:
-            token, (world, rules, quests) = self.token(), self.texts()
+            token, content = self.token(), self.texts()
         except (OSError, ValueError, sqlite3.Error) as error:
             self.state.set(f"Live server: {error}")
             return
         self.dirty = False
         self.state.set("Live server: syncing…")
-        if editor_quests.signature(self.editor.loaded_path) == self.quest_signature:
-            quests = None  # unchanged since the last sync
-        # The server's quests come back when pushed (their canonical text) or when none are here.
-        fetch = quests is not None or not editor_quests.quests_path(self.editor.loaded_path).exists()
-        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, world, rules, quests, fetch)
+        self.future = self.executor.submit(self.push, self.address.get().strip(), token, self.revision, content)
         self.editor.root.after(20, self.finish)
 
     @staticmethod
-    def push(address, token, base, world, rules, quests, fetch=True):
-        """Worker thread. Refuse stale edits without overwriting another editor. Returns the
-        reply and the server's quest dump when the editor should keep it: the first load (no
-        quest file here yet) or the canonical text of quests it pushed."""
+    def push(address, token, base, content):
+        """Worker thread. Refuse stale edits without overwriting another editor. With no content
+        here yet (the first connection), the server's is fetched; else the dump is pushed and
+        the server's canonical text of it comes back. Returns the reply and the dump to keep."""
         if base is None:
             code, status = request(address, token, "GET", "/admin/status")
             if code != 200:
                 return code, status, None
             base = status["revision"]
-        body = dict(base=base, world=world, rules=rules)
-        if quests is not None:
-            body["quests"] = quests
-        code, reply = request(address, token, "POST", "/admin/sync", body)
-        if code != 200 or not fetch:
-            return code, reply, None
-        fetched_code, fetched = request(address, token, "GET", "/admin/quests", timeout=30)
-        if fetched_code != 200 or fetched.get("revision") != reply["revision"]:
-            return code, reply, None
-        return code, reply, fetched["quests"]
+        if content is None:
+            code, fetched = request(address, token, "GET", "/admin/content", timeout=60)
+            if code != 200:
+                return code, fetched, None
+            reply = dict(revision=fetched["revision"], added=0, removed=0, replaced=0, rules=0, quests=None, apply_us=0,
+                         fetched=True)
+            return code, reply, fetched["content"]
+        code, reply = request(address, token, "POST", "/admin/sync", dict(base=base, content=content), timeout=60)
+        return code, reply, reply.get("content") if code == 200 else None
 
     def finish(self):
         if self.future is None or self.editor.closing:
@@ -169,18 +164,29 @@ class LiveLink:
             self.revision = reply["revision"]
             moved = reply["added"] + reply["removed"] + reply["replaced"]
             changed_quests = reply.get("quests")
-            quest_note = f", quest tables replaced ({changed_quests} quests)" if changed_quests is not None else ""
+            quest_note = f", content reloaded ({changed_quests} quests)" if changed_quests is not None else ""
             self.state.set(f"Live: +{reply['added']} −{reply['removed']} ~{reply['replaced']} objects, "
                            f"{reply['rules']} rule changes{quest_note}, applied in {reply['apply_us']} µs")
             if moved or reply["rules"] or changed_quests is not None:
                 self.editor.status.set("Live server updated: players nearby see the change now.")
             if quests and self.editor.loaded_path is not None:
                 try:
+                    if reply.get("fetched"):
+                        # The server's world replaces the one started here (nothing of its own yet).
+                        editor_content.content_db_path(self.editor.loaded_path).unlink(missing_ok=True)
+                        editor_content.content_path(self.editor.loaded_path).unlink(missing_ok=True)
                     if editor_quests.save_dump(self.editor.loaded_path, quests) and changed_quests is None:
-                        self.editor.status.set(f"Loaded the server's quests into "
+                        self.editor.status.set(f"Loaded the server's content into "
                                                f"{editor_quests.quests_path(self.editor.loaded_path).name}.")
-                except OSError as error:
-                    self.editor.status.set(f"Could not save the server's quests: {error}")
+                    if reply.get("fetched"):
+                        editor_content.ensure_database(self.editor.loaded_path)
+                        # Received from the server: from now on this world's edits push (the server's own
+                        # NAME.content.base.sql is the shipped content its merge needs; it is not touched).
+                        editor_content.received_path(self.editor.loaded_path).write_text(reply["revision"] + "\n", encoding="utf-8")
+                        if hasattr(self.editor, "reload"):
+                            self.editor.reload(force=True)
+                except (OSError, ValueError, sqlite3.Error) as error:
+                    self.editor.status.set(f"Could not save the server's content: {error}")
                 self.quest_signature = editor_quests.signature(self.editor.loaded_path)
             if not reply.get("saved", True):
                 self.editor.status.set(f"Live server applied the edit but could not save it: {reply.get('save_error')}")

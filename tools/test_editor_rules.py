@@ -45,18 +45,19 @@ class RulesTests(unittest.TestCase):
         self.assertEqual(rules.groups[0]["members"], ["8140000000020002", "8140000000020003"])
 
     def test_save_is_conflict_checked_and_keeps_backup(self):
+        import editor_content
         with tempfile.TemporaryDirectory() as folder:
             world = Path(folder) / "my-world.tsv"
-            self.assertEqual(rules_path(world).name, "my-world.rules.tsv")
             rules, text = load_rules(world)
-            self.assertIsNone(text)
+            self.assertEqual(text, "pyrealium-world-rules-v1\n", "a new world has no rules")
             rules.set_stats("470007d1", {"health": "77"})
-            text = save_rules(world, None, rules)
+            text = save_rules(world, text, rules)
             with self.assertRaises(ValueError):
-                save_rules(world, None, rules)
+                save_rules(world, "pyrealium-world-rules-v1\n", rules)  # changed since it was loaded
             rules.set_stats("470007d1", {"health": "78"})
             save_rules(world, text, rules)
-            self.assertIn("\t77\t", rules_path(world).with_name("my-world.rules.tsv.bak").read_text())
+            # The rules are rows of the world's content database.
+            self.assertIn("'0x470007d1',78", editor_content.content_path(world).read_text().replace(", ", ","))
 
     def test_bestiary_layers_native_type_and_placement_values(self):
         bestiary = Bestiary(CONTENT)

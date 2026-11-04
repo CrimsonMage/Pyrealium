@@ -417,6 +417,7 @@ class Editor:
             ttk.Button(nudge, text="+", width=4, command=lambda a=axis: self.nudge(a, 1)).grid(row=row, column=2, padx=3, pady=2)
         ttk.Button(tools_tab, text="Focus selected  ·  F", command=self.view3d.focus_placement).pack(fill="x", padx=10, pady=5)
         ttk.Button(tools_tab, text="Reload 3D assets", command=self.retry_scene).pack(fill="x", padx=10, pady=3)
+        ttk.Button(tools_tab, text="Restore removed prepared objects…", command=self.restore_removed).pack(fill="x", padx=10, pady=3)
         ttk.Checkbutton(tools_tab, text="Keep adding copies", variable=self.keep_adding).pack(anchor="w", padx=10, pady=(15, 4))
         ttk.Label(tools_tab, text="Move the draft, then Ctrl+S to stamp another object. Each saved copy gets a new ID.", style="Muted.TLabel", wraplength=220).pack(anchor="w", padx=10, pady=4)
         ttk.Button(tools_tab, text="Revert unsaved transform", command=self.revert_draft).pack(fill="x", padx=10, pady=10)
@@ -1030,7 +1031,10 @@ class Editor:
         try:
             self.require_loaded_path()
             commit_document(self.loaded_path, self.disk_text, self.original)
-            self.disk_text = self.original
+            # The working copy is now what the world's database holds, as it reads back (world-v3
+            # text: comments are not rows, sizes are written out).
+            self.disk_text = self.original = read_document(self.loaded_path)
+            self.placements = rows_from_text(self.original)
             self.show_unsaved()
             self.live.changed()
             self.status.set(f"Saved {self.loaded_path.name}." + (" Pushing to the live server…" if self.live.enabled.get() else
@@ -1938,10 +1942,25 @@ class Editor:
         if not identities or self.closing:
             return
         label = f"{len(identities)} selected objects" if len(identities) > 1 else f"object {identities[0]:016x}"
-        if not messagebox.askyesno("Delete placements", f"Delete {label} from this file? You can undo this change.", parent=self.root):
+        mine = {int(row[0], 16) for row in self.placements}
+        prepared = [i for i in identities if i not in mine and f"{i:016x}" in self.prepared_rows()]
+        own = [i for i in identities if i in mine]
+        note = (" Prepared objects are removed from this world; Tools > Restore removed prepared objects brings them back."
+                if prepared else " You can undo this change.")
+        if not messagebox.askyesno("Delete placements", f"Delete {label}?{note}", parent=self.root):
             return
         try:
             self.require_loaded_path()
+            if prepared:
+                import editor_content
+                editor_content.set_tombstones(self.loaded_path, add=[f"{i:016x}" for i in prepared])
+                self.population.load_reference()
+                self.population.refresh()
+                self.live.changed()
+            if not own:
+                self.status.set(f"Removed {len(prepared)} prepared object(s) from this world.")
+                return
+            identities = tuple(own)
             from editor_arrange import remove_selection
             result = remove_selection(self.original, identities)
             self.commit_change(result)
@@ -1954,6 +1973,35 @@ class Editor:
             self.status.set(f"Deleted {label}. Undo restores the complete selection.")
         except (OSError, ValueError) as error:
             messagebox.showerror("Placements were not deleted", str(error), parent=self.root)
+
+    def restore_removed(self):
+        """Lists the prepared objects this world removes; the chosen ones come back."""
+        if self.loaded_path is None:
+            self.status.set("Load a content file first.")
+            return
+        import editor_content
+        removed = sorted(editor_content.tombstones(self.loaded_path))
+        if not removed:
+            self.status.set("This world removes no prepared objects.")
+            return
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Restore removed prepared objects")
+        dialog.transient(self.root)
+        listbox = tk.Listbox(dialog, selectmode="extended", width=40, height=min(20, len(removed)))
+        for iid in removed:
+            listbox.insert("end", iid)
+        listbox.pack(fill="both", expand=True, padx=8, pady=8)
+
+        def restore():
+            chosen = [removed[i] for i in listbox.curselection()]
+            if chosen:
+                editor_content.set_tombstones(self.loaded_path, remove=chosen)
+                self.population.load_reference()
+                self.population.refresh()
+                self.live.changed()
+                self.status.set(f"Restored {len(chosen)} prepared object(s).")
+            dialog.destroy()
+        ttk.Button(dialog, text="Restore selected", command=restore).pack(pady=(0, 8))
 
     def select_many(self, identities):
         self.placement_search.set("")

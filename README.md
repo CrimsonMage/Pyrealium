@@ -135,7 +135,8 @@ NPC scripts are still unresolved. See [content recovery](docs/ADMIN_CONTENT_RECO
 [content manifest guide](content/README.md).
 
 The world builder now supports creature stats, AI, weighted loot, patrol routes
-and population groups in an overlay plus a `NAME.rules.tsv` sidecar. Its optional
+and population groups as rows of the world's content database (`NAME.content.sql`, laid over
+the shipped content). Its optional
 loopback admin endpoint applies edits to a running server and saves them for
 restart. Rejected edits preserve the current world; stale revisions stop sync
 until the operator reconciles the files. Group overrides preserve the original

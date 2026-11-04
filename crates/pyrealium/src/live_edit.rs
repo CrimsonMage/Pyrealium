@@ -67,6 +67,8 @@ pub struct Planner {
     game_data: PathBuf,
     base: Arc<BTreeMap<u64, Object>>,
     spawns: BTreeMap<u64, (Arc<[u8]>, Option<crate::services::Service>)>,
+    /// Base placements the world builder removed (`world_tombstone`).
+    hidden: BTreeSet<u64>,
     rules: Arc<Rules>,
     quests: String,
     revision: String,
@@ -84,14 +86,15 @@ pub fn revision(world: &str, rules: &str, quests: &str) -> String {
 }
 
 fn parse_world(text: &str, game_data: &Path) -> io::Result<BTreeMap<u64, Object>> {
-    if text.trim().is_empty() {
+    // No text, or a header with no placements: nothing to read from the DATs.
+    if text.lines().filter(|l| !l.trim().is_empty() && !l.starts_with('#')).count() <= 1 {
         return Ok(BTreeMap::new());
     }
     Ok(Content::parse_text(text, game_data)?.into_objects())
 }
 
 fn parse_rules(text: &str) -> io::Result<Rules> {
-    if text.trim().is_empty() { Ok(Rules::default()) } else { Rules::parse(text) }
+    if text.lines().filter(|l| !l.trim().is_empty()).count() <= 1 { Ok(Rules::default()) } else { Rules::parse(text) }
 }
 
 /// Every target whose rules differ, including members of changed groups.
@@ -117,11 +120,11 @@ fn affected(old: &Rules, new: &Rules) -> BTreeSet<Target> {
 impl Planner {
     /// The state the server started with.
     /// `quests`: the quest database dump the server runs (empty: none).
-    pub fn new(game_data: PathBuf, world: &str, rules: &str, base: BTreeMap<u64, Object>, quests: String) -> io::Result<Self> {
+    pub fn new(game_data: PathBuf, world: &str, rules: &str, hidden: BTreeSet<u64>, base: BTreeMap<u64, Object>, quests: String) -> io::Result<Self> {
         let spawns = parse_world(world, &game_data)?.into_iter().map(|(id, o)| (id, (o.spawn, o.service))).collect();
         let quests = if quests.is_empty() { quests } else { crate::quest_emotes::db::canonical(&quests)? };
         let revision = revision(world, rules, &quests);
-        Ok(Self { game_data, base: Arc::new(base), spawns, rules: Arc::new(parse_rules(rules)?), quests, revision })
+        Ok(Self { game_data, base: Arc::new(base), spawns, hidden, rules: Arc::new(parse_rules(rules)?), quests, revision })
     }
     pub fn revision(&self) -> &str { &self.revision }
     pub fn objects(&self) -> usize { self.spawns.len() }
@@ -130,7 +133,7 @@ impl Planner {
 
     /// Parse, check and diff. The game is untouched until the plan is applied. `quests`: a new
     /// quest database dump (`None` keeps the running one).
-    pub fn plan(&self, world: &str, rules: &str, quests: Option<&str>) -> io::Result<Plan> {
+    pub fn plan(&self, world: &str, rules: &str, hidden: &BTreeSet<u64>, quests: Option<&str>) -> io::Result<Plan> {
         let objects = parse_world(world, &self.game_data)?;
         let new_rules = parse_rules(rules)?;
         let mut removed = Vec::new();
@@ -141,9 +144,19 @@ impl Planner {
         for id in self.spawns.keys() {
             if objects.contains_key(id) { continue; }
             match self.base.get(id) {
-                // A dropped override: the base object comes back.
-                Some(base) => { removed.push(*id); replaced += 1; added.push(base.clone()); }
-                None => removed.push(*id),
+                // A dropped override: the base object comes back (unless the world removes it).
+                Some(base) if !hidden.contains(id) => { removed.push(*id); replaced += 1; added.push(base.clone()); }
+                _ => removed.push(*id),
+            }
+        }
+        // Base placements newly removed go; ones no longer removed come back. An overlay object
+        // of the same identity wins over a removal.
+        for id in hidden.difference(&self.hidden) {
+            if self.base.contains_key(id) && !self.spawns.contains_key(id) && !objects.contains_key(id) { removed.push(*id); }
+        }
+        for id in self.hidden.difference(hidden) {
+            if let Some(base) = self.base.get(id).filter(|_| !self.spawns.contains_key(id) && !objects.contains_key(id)) {
+                added.push(base.clone());
             }
         }
         let mut spawns = BTreeMap::new();
@@ -174,13 +187,14 @@ impl Planner {
         let quest_change = if quest_text == self.quests { None } else { Some(plan_quests(&quest_text, &self.game_data)?) };
         Ok(Plan {
             change: Change { motions, removed, added, replaced, rules: rules_change, quests: quest_change },
-            committed: Committed { revision: revision(world, rules, &quest_text), spawns, rules: next, quests: quest_text },
+            committed: Committed { revision: revision(world, rules, &quest_text), spawns, hidden: hidden.clone(), rules: next, quests: quest_text },
         })
     }
 
     /// The game applied the change: it is now what runs.
     pub fn commit(&mut self, committed: Committed) {
         self.spawns = committed.spawns;
+        self.hidden = committed.hidden;
         self.rules = committed.rules;
         self.quests = committed.quests;
         self.revision = committed.revision;
@@ -196,6 +210,7 @@ pub struct Plan {
 /// What the planner records once the game has applied a change.
 pub struct Committed {
     spawns: BTreeMap<u64, (Arc<[u8]>, Option<crate::services::Service>)>,
+    hidden: BTreeSet<u64>,
     rules: Arc<Rules>,
     quests: String,
     revision: String,
@@ -406,12 +421,12 @@ mod tests {
         let planner = Planner {
             game_data: PathBuf::from(directory),
             base: Arc::new(BTreeMap::from([(base.id, base.clone())])),
-            spawns: BTreeMap::from([(moved.id, (moved.spawn.clone(), moved.service))]),
+            hidden: BTreeSet::new(), spawns: BTreeMap::from([(moved.id, (moved.spawn.clone(), moved.service))]),
             rules: Arc::new(Rules::default()),
             quests: String::new(),
             revision: String::new(),
         };
-        let plan = planner.plan("", "", None).unwrap();
+        let plan = planner.plan("", "", &BTreeSet::new(), None).unwrap();
         assert_eq!(plan.change.removed, vec![base.id]);
         assert_eq!(plan.change.replaced, 1);
         assert_eq!(&plan.change.added[0].spawn[..], &base.spawn[..]);
@@ -452,5 +467,32 @@ mod tests {
         let elapsed = started.elapsed();
         eprintln!("1000-object live apply: {elapsed:?}");
         assert!(elapsed < std::time::Duration::from_millis(if cfg!(debug_assertions) { 100 } else { 10 }));
+    }
+}
+
+#[cfg(test)]
+mod tombstone_tests {
+    use super::*;
+    use crate::{content::NAMESPACE, movement::Placement};
+
+    /// A world builder's removal of a base placement goes live, and undoing it brings the base
+    /// object back; an override of the same identity wins over a removal.
+    #[test]
+    fn removing_and_restoring_a_base_placement() {
+        let id = NAMESPACE + 0x20001;
+        let base_object = Content::fixture(id, Placement::HUMAN_START, None).into_objects().remove(&id).unwrap();
+        // Restoring adds an object, whose movement is read from the DATs.
+        let game_data = std::env::var("AC2_TEST_GAME_DATA").ok();
+        let mut planner = Planner::new(PathBuf::from(game_data.clone().unwrap_or_default()), "", "", BTreeSet::new(),
+            BTreeMap::from([(id, base_object)]), String::new()).unwrap();
+        let hidden = BTreeSet::from([id]);
+        let plan = planner.plan("", "", &hidden, None).unwrap();
+        assert_eq!((plan.change.removed.clone(), plan.change.added.len()), (vec![id], 0));
+        planner.commit(plan.committed);
+        // Removed again: nothing more to do. Restored: the base object comes back.
+        assert!(planner.plan("", "", &hidden, None).unwrap().change.removed.is_empty());
+        if game_data.is_none() { return; }
+        let back = planner.plan("", "", &BTreeSet::new(), None).unwrap();
+        assert_eq!((back.change.removed.len(), back.change.added.iter().map(|o| o.id).collect::<Vec<_>>()), (0, vec![id]));
     }
 }

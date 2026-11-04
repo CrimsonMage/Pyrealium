@@ -270,15 +270,15 @@ rule or placement rule).
   pausing at each. It patrols while a player is within 80 m, chases as usual and
   resumes the route afterwards.
 
-**Apply** writes `NAME.rules.tsv` beside the content file (with a rolling `.bak`).
-Deleting a placement removes its rules. Rule edits are not part of Undo/Redo.
+**Apply** writes the rules into the world's content database (`NAME.content.sqlite`, see
+below). Deleting a placement removes its rules. Rule edits are not part of Undo/Redo.
 
 These are custom server rules, not recovered retail data. Run the server with the
 overlay and its rules load automatically:
 
 ```sh
-# pyrealium.toml: [world] content_overlay = "my-world.tsv" (world_rules = PATH names another
-# rules file), then start the server as usual:
+# pyrealium.toml: [world] content_overlay = "my-world.tsv" (the world's name: its content is
+# my-world.content.sql; world_rules = PATH names a rules file instead), then start as usual:
 pyrealium
 ```
 
@@ -288,6 +288,23 @@ Loot tables apply to corpse loot, which runs whenever the world UI is served
 On Linux, start the editor with `OpenContentEditor.sh`. The 3D view uses
 OpenGL through GLX (X11 or XWayland). Set `PYREALIUM_EDITOR_SOFTWARE=1` to force the
 slower software view. Settings live in `~/.config/pyrealium/content-editor/`.
+
+## Your world is a content database
+
+A world is named by its file, `my-world.tsv`, but its content lives in a database beside it:
+
+- `my-world.content.sqlite` is the database the editor edits. It holds this world's
+  placements: new objects, and prepared objects you moved or changed, by placement id. It also
+  holds the prepared objects you removed, your creature rules, patrols and spawn groups, and your
+  quests.
+- `my-world.content.sql` is its dump, the file to keep, share or check in.
+- Deleting a **prepared** object removes it from this world: the database records the removal.
+  Tools > **Restore removed prepared objects…** brings any back.
+- Deleting one of **your** placements, or an override of a prepared object, removes the row as
+  before (an override's prepared object comes back).
+- A world saved by an older editor (`my-world.tsv` rows, `my-world.rules.tsv`,
+  `my-world.quests.sql`) becomes its content database the first time the editor or the server
+  opens it. The older files are left as they were.
 
 ## Live editing a running server (local)
 
@@ -307,9 +324,9 @@ creature stats, behaviour, loot, patrols and spawn groups. Players near a change
 see it at once; nobody is disconnected. The status line shows what changed and
 how long the server took to apply it.
 
-- The editor's files are the source of truth: connecting pushes them, and the
-  server saves each applied edit to its own overlay and rules paths, so a restart
-  keeps them.
+- The world's content database is the source of truth. A world with nothing of its own yet
+  loads the server's content on connecting; after that every save pushes it. The server saves
+  each applied edit as `my-world.content.sql`, so a restart keeps it.
 - A refused edit (an unknown asset, a full cell, an unsupported loot item) changes
   nothing on the server; the editor reports why.
 - Moving, rotating or re-typing a placement re-creates it in its new place. A new
@@ -322,11 +339,14 @@ how long the server took to apply it.
 - Removing a custom group restores the original captured or regional roster and
   capacity. Live creatures use their native movement descriptors and instance scale.
 - Corpses already rolled keep their loot; the next kill uses the new table.
-- Only loopback addresses are accepted. Endpoints: `GET /admin/status`,
-  `GET /admin/quests` (`{revision, quests}`), `GET /admin/strings?entity=0x47...`
-  or `?table=0x25...` (a DAT string table's lines, for the Quests tab's line
-  picker), and `POST /admin/sync` with
-  `{base, world, rules, quests?}`, all with `Authorization: Bearer TOKEN`.
+- Only loopback addresses are accepted. Every request carries `Authorization: Bearer TOKEN`.
+  The endpoints:
+  - `GET /admin/status`;
+  - `GET /admin/content` (`{revision, content}`: the world's content dump without the shipped
+    world's rows; `/admin/quests` answers the same);
+  - `GET /admin/strings?entity=0x47...` or `?table=0x25...` (a DAT string table's lines, for the
+    Quests tab's line picker);
+  - `POST /admin/sync` with `{base, content}`.
 
 ### Quests
 
@@ -343,34 +363,31 @@ The **Quests** tab (beside the World map) edits the quests in the editor itself:
 
 The guide to writing quests and speech is [`quest-authoring.md`](quest-authoring.md).
 
-The server's quest content (the quest database, `content/content.sql`; see
-`content/README.md`) goes live the same way, as `my-world.quests.sql` beside the
-content file:
+Quests are part of the world's content database, and they go live with it:
 
-- The first time you connect with no `my-world.quests.sql`, the editor loads the
-  quests the server runs into it. A save pushes the quests only when you changed
-  them, so placement edits never touch the server's quests.
-- The server keeps only your quest edits, as a layer: while they differ from its
-  shipped quests (`content/content.sql`) it saves them as `my-world.quests.sql` with
-  the shipped dump they were made against (`my-world.quests.base.sql`), and removes
-  both once they match again. At the next start it merges them row by row over
-  the shipped quests as they are then: rows you changed, added or deleted are
-  yours, rows only the shipped quests changed (a pull, a Vault re-import) come
-  through, and a row both changed keeps your version (the start lists them).
-- **Edit quests** opens `my-world.quests.sqlite` in your SQLite tool (DB Browser
+- The server keeps only your edits, as a layer.
+  - While they differ from its shipped content (`content/content.sql`), it saves them as
+    `my-world.content.sql` with the shipped dump they were made against
+    (`my-world.content.base.sql`). It removes both once they match again.
+  - At the next start it merges them row by row over the shipped content as it is then:
+    - rows you changed, added or deleted are yours;
+    - rows only the shipped content changed (a pull, a Vault re-import) come through;
+    - a row both sides changed keeps your version, and the start lists those rows.
+- **Edit quests** opens `my-world.content.sqlite` in your SQLite tool (DB Browser
   for SQLite, or whatever opens `.sqlite` files). Each save there pushes it live:
   the server checks every row as it does at start, swaps the tables in between
   ticks, and the next conversation, kill or use runs the new rows. What players
   have done stays in their quest books. The server's canonical text becomes the
-  new `my-world.quests.sql`.
+  new `my-world.content.sql`.
 - A row that does not check (a stage of a quest that does not exist, an unknown
   action, an item the DATs do not have) changes nothing; the editor reports the
   table and key. Items a new row grants are read from the DATs before the swap.
-- To ship the edited quests, copy `my-world.quests.sql` over `content/content.sql`
-  (`cargo run -p pyrealium --bin pyrealium-content -- check` checks either).
+- To ship edited quests, move their rows into `content/content.sql` (with `pyrealium-content
+  build`, then `export`). `cargo run -p pyrealium --bin pyrealium-content -- check` checks
+  either dump.
 
 Parsing, DAT checks, native movement resolution and diffing run on the admin
 thread. The game loop stages population changes before committing; edit cost
 depends on both the current population and the number of changed objects.
-World and rules files are saved separately after an applied edit; a save failure
-is reported explicitly and requires saving both files before restarting.
+The content dump is saved after an applied edit; a save failure is reported explicitly and needs a
+save from the editor before restarting.

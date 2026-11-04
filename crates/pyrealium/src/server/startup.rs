@@ -66,17 +66,37 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     } else {
         None
     };
-    // The world builder's quest edits (`NAME.quests.sql`, saved by live edits) are a layer: with
-    // the shipped dump they were edited from (`NAME.quests.base.sql`), they are merged row by row
-    // over the shipped dump as it is now (`quest_emotes::db::merge`), so shipped changes to rows
+    // The world builder's world is a content database (`NAME.content.sql`, saved by live edits):
+    // its placements, the base placements it removes, its creature rules and its quests. It is a
+    // layer: with the shipped dump it was edited from (`NAME.content.base.sql`), it is merged row
+    // by row over the shipped dump as it is now (`content_db::merge`), so shipped changes to rows
     // the edits left alone still arrive.
-    let quests_sidecar = config.content_overlay.as_deref().map(|path| path.with_extension("quests.sql"));
-    let quests_base = config.content_overlay.as_deref().map(|path| path.with_extension("quests.base.sql"));
+    let quests_sidecar = config.content_overlay.as_deref().map(|path| path.with_extension("content.sql"));
+    let quests_base = config.content_overlay.as_deref().map(|path| path.with_extension("content.base.sql"));
     let shipped_canonical = match &shipped_quests {
         Some((text, origin)) => crate::quest_emotes::db::canonical(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?,
         None => String::new(),
     };
     let read = |path: &std::path::Path| std::fs::read_to_string(path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())));
+    // An older world builder's world (`NAME.tsv`, `NAME.rules.tsv`, `NAME.quests.sql`) becomes its
+    // content database once.
+    if let (Some(world), Some(content_path), Some(base_path)) = (config.content_overlay.as_deref(), quests_sidecar.as_deref(), quests_base.as_deref())
+        && !content_path.exists() && !shipped_canonical.is_empty() {
+        let (old_rules, old_quests, old_base) = (world.with_extension("rules.tsv"), world.with_extension("quests.sql"), world.with_extension("quests.base.sql"));
+        let world_text = if world.is_file() { read(world)? } else { String::new() };
+        if !world_text.trim().is_empty() || old_rules.is_file() || old_quests.is_file() {
+            let shipped_view = crate::content_db::without_world(&shipped_canonical)?;
+            let start = if old_quests.is_file() { read(&old_quests)? } else { shipped_view.clone() };
+            let mut db = crate::content_db::open_dump(&start)?;
+            let rules_text = if old_rules.is_file() { read(&old_rules)? } else { String::new() };
+            let (placed, ruled) = crate::content_db::overlay::import(&mut db,
+                if world_text.trim().is_empty() { "pyrealium-world-v4\n" } else { &world_text }, &rules_text, config.game_data.as_deref())?;
+            std::fs::write(content_path, crate::content_db::export(&db)?)?;
+            std::fs::write(base_path, if old_base.is_file() { read(&old_base)? } else { shipped_view })?;
+            println!("World-builder world {} is now the content database {}: {placed} placements, {ruled} rules{}.", world.display(),
+                content_path.display(), if old_quests.is_file() { ", and its quests" } else { "" });
+        }
+    }
     let overlay_quests = match quests_sidecar.as_deref().filter(|p| p.is_file()) {
         None => None,
         Some(path) => {
@@ -85,12 +105,12 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             match quests_base.as_deref().filter(|p| p.is_file()) {
                 Some(base) => {
                     let merged = crate::quest_emotes::db::merge(&read(base)?, &shipped_canonical, &overlay)
-                        .map_err(|e| io::Error::other(format!("{origin} over the shipped quests: {e}")))?;
+                        .map_err(|e| io::Error::other(format!("{origin} over the shipped content: {e}")))?;
                     if !merged.conflicts.is_empty() {
-                        println!("World-builder quests {origin} and the shipped quests both changed {} rows; the world builder's are kept: {}.",
+                        println!("World-builder content {origin} and the shipped content both changed {} rows; the world builder's are kept: {}.",
                             merged.conflicts.len(), merged.conflicts.join(", "));
                     }
-                    Some((merged.text, format!("{origin} over the shipped quests")))
+                    Some((merged.text, format!("{origin} over the shipped content")))
                 }
                 None => {
                     // Saved before edits were layers: it replaces the shipped quests whole.
@@ -105,6 +125,8 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             }
         }
     };
+    // The world builder's world (its placements, removals and rules), read from the merged rows.
+    let overlay_world = match &overlay_quests { Some((text, _)) => Some(crate::admin::world_of(text)?), None => None };
     let quest_text = overlay_quests.or(shipped_quests);
     if let Some((text, origin)) = &quest_text {
         let tables = crate::quest_emotes::Tables::from_sql(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?;
@@ -307,25 +329,25 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     }
     // The prepared world under the overlay: live edits override and restore its objects.
     let base_objects = if config.admin_bind.is_some() { content.object_map() } else { BTreeMap::new() };
-    // An empty overlay (live edits saved before any placement) adds nothing, as the editor reads it.
-    let empty = |path: &std::path::Path| std::fs::read_to_string(path).is_ok_and(|text| text.trim().is_empty());
-    if let Some(path) = config.content_overlay.as_deref().filter(|path| path.exists() && !empty(path)) {
+    // The world builder's placements (by identity: new objects, and base objects moved or
+    // changed) and the base placements it removes.
+    if let Some((world, _, hidden)) = &overlay_world {
         let directory = config.game_data.as_deref().ok_or_else(|| invalid("--content-overlay requires --game-data"))?;
-        let added = content.extend(path, directory)?;
-        println!("Loaded {added} world-builder overlay objects from {}.", path.display());
+        let added = if world.lines().count() > 1 { content.extend_text(world, directory)? } else { 0 };
+        let removed = content.hide(hidden);
+        println!("Loaded {added} world-builder placements and removed {removed} base placements.");
     }
-    // An overlay's rules sit beside it as NAME.rules.tsv unless named explicitly.
-    let sidecar = config.world_rules.clone().or_else(|| config.content_overlay.as_deref().map(|path| path.with_extension("rules.tsv")));
-    let rules_path = sidecar.clone().filter(|path| path.is_file());
-    let world_rules = match rules_path.as_deref() {
-        Some(path) => {
-            let rules = crate::world_rules::Rules::load(path)?;
-            println!("Loaded world rules from {}: {} stats, {} behaviour, {} loot tables, {} patrols, {} spawn groups.",
-                path.display(), rules.stats.len(), rules.behaviour.len(), rules.loot.len(), rules.patrols.len(), rules.groups.len());
-            rules
-        }
-        None => crate::world_rules::Rules::default(),
+    // The world rules: --world-rules names a rules file; else the world builder's rule rows.
+    let sidecar = config.content_overlay.as_deref().map(|path| path.with_extension("content.sql"));
+    let world_rules = match (config.world_rules.as_deref(), &overlay_world) {
+        (Some(path), _) => crate::world_rules::Rules::load(path)?,
+        (None, Some((_, rules, _))) if rules.lines().count() > 1 => crate::world_rules::Rules::parse(rules)?,
+        _ => crate::world_rules::Rules::default(),
     };
+    if world_rules != crate::world_rules::Rules::default() {
+        println!("World rules: {} stats, {} behaviour, {} loot tables, {} patrols, {} spawn groups.",
+            world_rules.stats.len(), world_rules.behaviour.len(), world_rules.loot.len(), world_rules.patrols.len(), world_rules.groups.len());
+    }
     let projectiles = crate::projectiles::Projectiles::default();
     let mut corpse_loot=crate::loot::Loot::default();
     if let Ok(value)=std::env::var("AC2_TEST_LOOT_SEED") {
@@ -496,11 +518,11 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     let diagnosed_packet_errors = BTreeSet::new();
     let diagnosed_queues = BTreeSet::new();
     let admin = match (config.admin_bind, config.content_overlay.clone(), sidecar) {
-        (Some(bind), Some(world), Some(rules)) => Some(crate::admin::start(bind, &config.data,
+        (Some(bind), Some(_), Some(_)) => Some(crate::admin::start(bind, &config.data,
             config.game_data.clone().ok_or_else(|| invalid("--admin-bind requires --game-data"))?,
-            crate::admin::Paths { world, rules,
-                quests: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))?,
-                quests_base: quests_base.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
+            crate::admin::Paths {
+                content: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))?,
+                content_base: quests_base.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
             // The world builder edits the quests: it is handed the dumps without the world's rows
             // (the merge at the start keeps those from the shipped dump).
             base_objects, quest_text.map(|(text, _)| crate::content_db::without_world(&text)).transpose()?,

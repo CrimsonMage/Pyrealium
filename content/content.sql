@@ -1,6 +1,6 @@
--- Pyrealium content (schema 12). Written by `pyrealium-content export`;
+-- Pyrealium content (schema 14). Written by `pyrealium-content export`;
 -- edit content.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 12;
+PRAGMA user_version = 14;
 -- The content database's tables, in dump order (crates/pyrealium/src/content_db.rs). Hex identifiers
 -- are text (`0x4700157d`), as they are written everywhere else; blank optional fields are NULL.
 CREATE TABLE IF NOT EXISTS quest (
@@ -181,6 +181,7 @@ CREATE TABLE IF NOT EXISTS quest_item (
   visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
   stack_limit INTEGER CHECK (stack_limit BETWEEN 1 AND 65535),
   equipment_mask INTEGER CHECK (equipment_mask BETWEEN 0 AND 2047),
+  physical TEXT CHECK (physical GLOB '0x47[0-9a-fA-F]*'),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
@@ -272,6 +273,11 @@ CREATE TABLE IF NOT EXISTS portal_route (
   dest_x REAL NOT NULL, dest_y REAL NOT NULL, dest_z REAL NOT NULL,
   heading INTEGER NOT NULL CHECK (heading BETWEEN 0 AND 255),
   level INTEGER NOT NULL CHECK (level >= 0),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS world_tombstone (
+  iid TEXT PRIMARY KEY CHECK (iid GLOB '0x8140[0-9a-fA-F]*' AND length(iid) = 18),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
@@ -7294,13 +7300,13 @@ INSERT INTO quest_counter (quest, name, idx, source, family) VALUES ('gauntlet',
 
 INSERT INTO quest_recipe (recipe, ingredient, quantity, output, source, family) VALUES ('0x6f001f0e', '0x470010f3', 20, '0x470015aa', 'the Arwic Mines Short Sword recipe: 20 Iron (content/arwic-mines-v1.json)', 'hand');
 
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x4700109f', '0x1f0001cf', 1, NULL, 'Arwic Outlands Glyph: content/arwic-mines-v1.json items (quality hash 1b88f9fcdd175fb1)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x470010f3', '0x1f000234', 65535, NULL, 'Iron: content/arwic-mines-v1.json items (quality hash de67da3f9d6c205d)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x470015a9', '0x1f000d97', 1, 64, 'Crude Flat Hammer: content/arwic-mines-v1.json items (quality hash 2c23e007d63bb95e)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x470015aa', '0x1f0004f8', 1, 64, 'Arwic Mines Short Sword: content/arwic-mines-v1.json items (quality hash d6f2e4fdf1ebc161)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x47001745', '0x1f000e3f', 1, NULL, 'the training health potion: visual 0x1f000e3f (item_services POTION_VISUAL)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x47001c1e', '0x1f00103f', 1, NULL, 'Kanten''s Bag: visual 0x1f00103f (the delivery''s own profile)', 'hand');
-INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, source, family) VALUES ('0x47002917', '0x1f000dd8', 1, NULL, 'The Shaper''s Guide: content/arwic-mines-v1.json items (quality hash 188c16e7e767b00a)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x4700109f', '0x1f0001cf', 1, NULL, '0x4700026a', 'Arwic Outlands Glyph: content/arwic-mines-v1.json items (quality hash 1b88f9fcdd175fb1); physical 0x4700026a (content/arwic-mines-v1.json: the glyph''s class defaults do not read)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x470010f3', '0x1f000234', 65535, NULL, NULL, 'Iron: content/arwic-mines-v1.json items (quality hash de67da3f9d6c205d)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x470015a9', '0x1f000d97', 1, 64, NULL, 'Crude Flat Hammer: content/arwic-mines-v1.json items (quality hash 2c23e007d63bb95e)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x470015aa', '0x1f0004f8', 1, 64, NULL, 'Arwic Mines Short Sword: content/arwic-mines-v1.json items (quality hash d6f2e4fdf1ebc161)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x47001745', '0x1f000e3f', 1, NULL, NULL, 'the training health potion: visual 0x1f000e3f (item_services POTION_VISUAL)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x47001c1e', '0x1f00103f', 1, NULL, NULL, 'Kanten''s Bag: visual 0x1f00103f (the delivery''s own profile)', 'hand');
+INSERT INTO quest_item (entity, visual, stack_limit, equipment_mask, physical, source, family) VALUES ('0x47002917', '0x1f000dd8', 1, NULL, NULL, 'The Shaper''s Guide: content/arwic-mines-v1.json items (quality hash 188c16e7e767b00a)', 'hand');
 
 INSERT INTO instance_group (name, doc, source, family) VALUES ('gauntlet_arenas', 'The Gauntlet''s eight arenas (lanes a-h), one run each; a room per fight.', 'admin 7148 destinations dng_gauntlet_<level><a-h> (content/gauntlet-content-v1.json rooms)', 'hand');
 

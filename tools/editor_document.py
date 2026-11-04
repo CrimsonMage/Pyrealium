@@ -6,11 +6,14 @@ import math
 import os
 import tempfile
 
+import editor_content
 from place_content import bounded_text, place
 
 
 def read_document(path):
-    return bounded_text(Path(path)) if Path(path).exists() else None
+    """The world's placements as world text: its content database's builder rows (NAME.tsv names
+    the world; NAME.content.sqlite holds it)."""
+    return editor_content.world_text(path)
 
 
 def rows_from_text(text):
@@ -67,7 +70,8 @@ def atomic_write(path, text):
 
 
 def commit_document(path, expected, result):
-    """Same lock as the CLI writer; keep a persistent pre-save backup."""
+    """Writes the placements into the world's content database (its builder rows), under the CLI
+    writer's lock; the dump before the save is kept as NAME.content.sql.bak."""
     path = Path(path)
     rows_from_text(result)
     if len(result.encode("utf-8")) > 4*1024*1024:
@@ -79,10 +83,11 @@ def commit_document(path, expected, result):
             guard.write(str(os.getpid()))
             guard.flush()
             if read_document(path) != expected:
-                raise ValueError("This file changed outside the editor. Reload it before saving.")
-            if expected is not None:
-                atomic_write(path.with_name(path.name + ".bak"), expected)
-            atomic_write(path, result)
+                raise ValueError("This world changed outside the editor. Reload it before saving.")
+            dump = editor_content.content_path(path)
+            if dump.exists():
+                atomic_write(dump.with_name(dump.name + ".bak"), dump.read_text(encoding="utf-8"))
+            editor_content.write_world(path, result)
         finally:
             guard.close()
             lock.unlink()

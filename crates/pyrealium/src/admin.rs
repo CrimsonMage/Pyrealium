@@ -1,12 +1,13 @@
 //! Local live-edit endpoint for the world builder (loopback only).
 //!
-//! `GET /admin/status`, `GET /admin/quests` (`{revision, quests}`: the quest database dump
-//! the server runs, for the editor to start from) and `POST /admin/sync` (JSON
-//! `{base, world, rules, quests?}`: the overlay world and rules texts, optionally a whole
-//! quest database dump, and the revision they were edited from). The
-//! request thread parses, checks and diffs (`live_edit::Planner`); the game loop
-//! applies the result between packets and replies; then the texts are saved to the
-//! overlay paths so a restart gives the same world. `GET /admin/strings?entity=0x47...` (or
+//! `GET /admin/status`, `GET /admin/content` (`{revision, content}`: the world builder's content
+//! database dump the server runs, without the shipped world's rows, for the editor to start from;
+//! `/admin/quests` answers the same) and `POST /admin/sync` (JSON `{base, content}`: the edited
+//! dump, with its placements, removed base placements, rules and quests, and the revision it was
+//! edited from). The request thread parses, checks and diffs (`live_edit::Planner`); the game
+//! loop applies the result between packets and replies; then the dump is saved as a layer over
+//! the shipped content (`NAME.content.sql` with `NAME.content.base.sql`), so a restart gives the
+//! same world. `GET /admin/strings?entity=0x47...` (or
 //! `?table=0x25...`) lists a DAT string table's lines for the quest editor (`dat_lines`). Every request carries
 //! `Authorization: Bearer TOKEN`; the token is in `DATA/admin.token` (owner-only).
 use crate::live_edit::{Job, Planner};
@@ -28,13 +29,20 @@ pub struct Handle {
 }
 
 pub struct Paths {
-    pub world: PathBuf,
-    pub rules: PathBuf,
-    /// The world builder's quests (`NAME.quests.sql`), saved only while they differ from the
-    /// shipped quests, and the shipped dump they were edited from (`NAME.quests.base.sql`): the
-    /// start merges them over the shipped dump as it is then (`quest_emotes::db::merge`).
-    pub quests: PathBuf,
-    pub quests_base: PathBuf,
+    /// The world builder's content (`NAME.content.sql`), saved only while it differs from the
+    /// shipped content, and the shipped dump it was edited from (`NAME.content.base.sql`): the
+    /// start merges it over the shipped dump as it is then (`content_db::merge`).
+    pub content: PathBuf,
+    pub content_base: PathBuf,
+}
+
+/// What the server runs of a world builder's content dump: its placements and rules as the
+/// readers' text, and the base placements it removes.
+pub fn world_of(content: &str) -> io::Result<(String, String, std::collections::BTreeSet<u64>)> {
+    if content.trim().is_empty() { return Ok((String::new(), String::new(), Default::default())); }
+    let db = crate::content_db::open_dump(content)?;
+    Ok((crate::content_db::overlay::builder_text(&db)?, crate::content_db::overlay::rules_text(&db)?,
+        crate::content_db::overlay::tombstones(&db)?))
 }
 
 fn write_private(path: &Path, text: &str) -> io::Result<()> {
@@ -56,9 +64,9 @@ fn atomic_write(path: &Path, text: &str) -> io::Result<()> {
 
 /// Saves the world builder's quests as a layer over the shipped ones: with the shipped dump they
 /// were edited from, or nothing once they are the shipped quests again.
-fn save_quests(paths: &Paths, quests: &str, shipped: &str) -> io::Result<()> {
-    if quests == shipped {
-        for path in [&paths.quests, &paths.quests_base] {
+fn save_content(paths: &Paths, content: &str, shipped: &str) -> io::Result<()> {
+    if content == shipped {
+        for path in [&paths.content, &paths.content_base] {
             match std::fs::remove_file(path) {
                 Err(e) if e.kind() != io::ErrorKind::NotFound => return Err(e),
                 _ => {}
@@ -66,31 +74,25 @@ fn save_quests(paths: &Paths, quests: &str, shipped: &str) -> io::Result<()> {
         }
         return Ok(());
     }
-    atomic_write(&paths.quests_base, shipped)?;
-    atomic_write(&paths.quests, quests)
+    atomic_write(&paths.content_base, shipped)?;
+    atomic_write(&paths.content, content)
 }
 
-fn read_or_empty(path: &Path) -> io::Result<String> {
-    match std::fs::read_to_string(path) {
-        Ok(text) => Ok(text),
-        Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(String::new()),
-        Err(error) => Err(error),
-    }
-}
-
-/// Start the endpoint. `world`/`rules` are the texts the server loaded at startup; `quests` the
-/// quest database dump it runs (`None`: no quest tables), `shipped` the shipped one (canonical).
+/// Start the endpoint. `content` is the world builder's content dump the server runs (without the
+/// shipped world's rows; `None`: no content database), `shipped` the shipped one in the same form.
 pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
-             base: std::collections::BTreeMap<u64, crate::content::Object>, quests: Option<String>, shipped: String) -> io::Result<Handle> {
+             base: std::collections::BTreeMap<u64, crate::content::Object>, content: Option<String>, shipped: String) -> io::Result<Handle> {
     if !bind.ip().is_loopback() {
         return Err(io::Error::other("--admin-bind is local only: use a loopback address such as 127.0.0.1:19373"));
     }
-    if paths.world==paths.rules || paths.quests==paths.world || paths.quests==paths.rules || paths.quests_base==paths.quests {
-        return Err(io::Error::other("world, rules and quests paths must be different"));
+    if paths.content == paths.content_base {
+        return Err(io::Error::other("the content and its base must be different files"));
     }
     // The DAT's string tables for the quest editor's line picker (none if the DAT will not open).
     let lines = crate::dat_lines::Lines::open(&game_data).ok();
-    let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base, quests.unwrap_or_default())?;
+    let content = content.unwrap_or_default();
+    let (world, rules, hidden) = world_of(&content)?;
+    let planner = Planner::new(game_data, &world, &rules, hidden, base, content)?;
     let mut secret = [0u8; 32];
     getrandom::getrandom(&mut secret).map_err(|error| io::Error::other(error.to_string()))?;
     let token: String = secret.iter().map(|b| format!("{b:02x}")).collect();
@@ -136,8 +138,8 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, lines: &mut 
             "revision": planner.revision(), "objects": planner.objects(),
             "quests": crate::quest_emotes::tables().map_or(0, |t| t.quests().count()),
             "players": players.load(Ordering::Relaxed)})),
-        (Method::Get, "/admin/quests") => json(200, serde_json::json!({
-            "revision": planner.revision(), "quests": planner.quests()})),
+        (Method::Get, "/admin/content" | "/admin/quests") => json(200, serde_json::json!({
+            "revision": planner.revision(), "content": planner.quests(), "quests": planner.quests()})),
         (Method::Post, "/admin/sync") => {
             let mut body = String::new();
             let read = request.as_reader().take(MAX_BODY + 1).read_to_string(&mut body);
@@ -173,22 +175,18 @@ fn strings(query: &str, lines: Option<&mut crate::dat_lines::Lines>) -> Response
 }
 
 fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: &Paths, shipped: &str) -> Response<io::Cursor<Vec<u8>>> {
-    let Ok(request) = serde_json::from_str::<serde_json::Value>(body) else {
-        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules, quests?}"}));
-    };
-    let (Some(base), Some(world), Some(rules)) =
-        (request["base"].as_str(), request["world"].as_str(), request["rules"].as_str()) else {
-        return json(400, serde_json::json!({"error": "body must be JSON {base, world, rules, quests?}"}));
-    };
-    let quests = request["quests"].as_str();
-    if !request["quests"].is_null() && quests.is_none() {
-        return json(400, serde_json::json!({"error": "quests must be the quest database dump (text)"}));
-    }
+    let usage = || json(400, serde_json::json!({"error": "body must be JSON {base, content}: the revision and the content dump"}));
+    let Ok(request) = serde_json::from_str::<serde_json::Value>(body) else { return usage() };
+    let (Some(base), Some(content)) = (request["base"].as_str(), request["content"].as_str()) else { return usage() };
     if base != planner.revision() {
         return json(409, serde_json::json!({"error": "the server runs a different revision; resync from it",
             "revision": planner.revision()}));
     }
-    let plan = match planner.plan(world, rules, quests) {
+    let (world, rules, hidden) = match world_of(content) {
+        Ok(parts) => parts,
+        Err(error) => return json(400, serde_json::json!({"error": error.to_string()})),
+    };
+    let plan = match planner.plan(&world, &rules, &hidden, Some(content)) {
         Ok(plan) => plan,
         Err(error) => return json(400, serde_json::json!({"error": error.to_string()})),
     };
@@ -203,12 +201,11 @@ fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: 
         Err(_) => return json(503, serde_json::json!({"error": "the game loop has stopped"})),
     };
     planner.commit(plan.committed);
-    let saved = atomic_write(&paths.world, world).and_then(|()| atomic_write(&paths.rules, rules))
-        .and_then(|()| if summary.quests.is_some() { save_quests(paths, planner.quests(), shipped) } else { Ok(()) });
+    let saved = save_content(paths, planner.quests(), shipped);
     json(200, serde_json::json!({
         "revision": planner.revision(), "added": summary.added, "removed": summary.removed,
         "replaced": summary.replaced, "rules": summary.rules, "quests": summary.quests, "messages": summary.messages,
-        "apply_us": summary.apply_us,
+        "apply_us": summary.apply_us, "content": planner.quests(),
         "saved": saved.as_ref().map(|()| true).unwrap_or(false),
         "save_error": saved.err().map(|e| e.to_string()),
     }))
@@ -234,9 +231,16 @@ mod tests {
     fn sync_applies_through_the_game_loop_and_saves() {
         let folder = std::env::temp_dir().join(format!("pyrealium-admin-{}", std::process::id()));
         std::fs::create_dir_all(&folder).unwrap();
-        let paths = Paths { world: folder.join("w.tsv"), rules: folder.join("w.rules.tsv"), quests: folder.join("w.quests.sql"),
-            quests_base: folder.join("w.quests.base.sql") };
-        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default(), None, String::new()).unwrap();
+        let paths = Paths { content: folder.join("w.content.sql"), content_base: folder.join("w.content.base.sql") };
+        // What the world builder is handed: the shipped content without the world's rows.
+        // (No item needing the DATs either: this folder has none, so the quests' item rewards go.)
+        let shipped = {
+            let full = crate::content_db::without_world(&std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/content.sql")).unwrap()).unwrap();
+            let d = crate::content_db::open_dump(&full).unwrap();
+            d.execute_batch("DELETE FROM emote_action WHERE action IN ('GiveItem', 'GiveStack', 'RandomGive'); DELETE FROM quest_recipe;").unwrap();
+            crate::content_db::export(&d).unwrap()
+        };
+        let handle = start("127.0.0.1:0".parse().unwrap(), &folder, folder.clone(), paths, Default::default(), Some(shipped.clone()), shipped.clone()).unwrap();
         let token = std::fs::read_to_string(folder.join("admin.token")).unwrap();
         #[cfg(unix)]
         {
@@ -249,51 +253,43 @@ mod tests {
             while let Ok(job) = jobs.recv() {
                 let rules = job.change.rules.as_ref().map_or(0, |r| r.affected.len());
                 let quests = job.change.quests.as_ref().map(|q| q.tables.quests().count());
-                let _ = job.reply.send(Ok(crate::live_edit::Summary { rules, quests, ..Default::default() }));
+                let _ = job.reply.send(Ok(crate::live_edit::Summary { rules, quests, removed: job.change.removed.len(), ..Default::default() }));
             }
         });
         assert_eq!(call(handle.address, "wrong", "GET", "/admin/status", "").0, 401);
         let (code, status) = call(handle.address, &token, "GET", "/admin/status", "");
         assert_eq!(code, 200);
         let base = status["revision"].as_str().unwrap().to_owned();
-        let rules = format!("{}\nstats\t470007d1\t5\t-\t-\t-\t-\t-\t-\t-\t-\t-\n", crate::world_rules::HEADER);
-        let body = serde_json::json!({"base": base, "world": "", "rules": rules}).to_string();
-        let (code, done) = call(handle.address, &token, "POST", "/admin/sync", &body);
-        assert_eq!((code, done["rules"].as_u64(), done["saved"].as_bool()), (200, Some(1), Some(true)));
-        assert_eq!(std::fs::read_to_string(folder.join("w.rules.tsv")).unwrap(), rules);
-        assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &body).0, 409, "stale base revision");
-        let bad = serde_json::json!({"base": done["revision"], "world": "", "rules": "nonsense"}).to_string();
-        assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &bad).0, 400);
-        // The quest database: the editor starts from what the server runs, then pushes a new dump
-        // with the world and rules; the server checks it, swaps it in and saves it beside them.
-        let (code, running) = call(handle.address, &token, "GET", "/admin/quests", "");
-        assert_eq!((code, running["quests"].as_str(), running["revision"].as_str()), (200, Some(""), done["revision"].as_str()));
-        // What the world builder is handed: the shipped quests without the world's rows.
-        let shipped = crate::content_db::without_world(&std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/content.sql")).unwrap()).unwrap();
-        let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
+        let (code, running) = call(handle.address, &token, "GET", "/admin/content", "");
+        assert_eq!((code, running["content"].as_str().map(str::len), running["revision"].as_str()), (200, Some(shipped.len()), Some(base.as_str())));
+        // The world builder's edits: a creature rule and a quest, as rows of its content dump.
+        let d = crate::content_db::open_dump(&shipped).unwrap();
+        d.execute("INSERT INTO creature_stats (target, health, source) VALUES ('0x470007d1', 5, 't')", []).unwrap();
         d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
-        // No item needing the DATs (this folder has none): the quests' item rewards go.
-        d.execute_batch("DELETE FROM emote_action WHERE action IN ('GiveItem', 'GiveStack', 'RandomGive'); DELETE FROM quest_recipe;").unwrap();
-        let dump = crate::quest_emotes::db::export(&d).unwrap();
-        let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
+        let dump = crate::content_db::export(&d).unwrap();
+        let push = serde_json::json!({"base": base, "content": dump}).to_string();
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);
-        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(crate::quest_emotes::Tables::from_sql(&shipped).unwrap().quests().count() as u64 + 1), Some(true)), "{pushed}");
-        assert_eq!(std::fs::read_to_string(folder.join("w.quests.sql")).unwrap(), dump);
-        assert_eq!(std::fs::read_to_string(folder.join("w.quests.base.sql")).unwrap(), "", "the shipped quests it was edited from");
-        assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
-        // Unchanged quests, or none sent, change nothing of them.
-        let again = serde_json::json!({"base": pushed["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
+        assert_eq!((code, pushed["rules"].as_u64(), pushed["saved"].as_bool()), (200, Some(1), Some(true)), "{pushed}");
+        assert_eq!(pushed["quests"].as_u64(), Some(crate::quest_emotes::Tables::from_sql(&shipped).unwrap().quests().count() as u64 + 1));
+        assert_eq!(std::fs::read_to_string(folder.join("w.content.sql")).unwrap(), dump);
+        assert_eq!(std::fs::read_to_string(folder.join("w.content.base.sql")).unwrap(), shipped, "the shipped content it was edited from");
+        assert_eq!(call(handle.address, &token, "GET", "/admin/content", "").1["content"].as_str(), Some(dump.as_str()));
+        assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &push).0, 409, "stale base revision");
+        // The same dump again changes nothing; a dump that does not check is refused whole.
+        let again = serde_json::json!({"base": pushed["revision"], "content": dump}).to_string();
         let (code, same) = call(handle.address, &token, "POST", "/admin/sync", &again);
-        assert_eq!((code, same["quests"].is_null(), same["revision"].clone()), (200, true, pushed["revision"].clone()));
-        // A dump that does not check is refused whole, naming the row.
-        let broken = dump.replace("'0x40fff001'", "'nonsense'");
-        let refused = serde_json::json!({"base": pushed["revision"], "world": "", "rules": rules, "quests": broken}).to_string();
-        let (code, why) = call(handle.address, &token, "POST", "/admin/sync", &refused);
-        assert_eq!(code, 400, "{why}");
-        assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));
+        assert_eq!((code, same["quests"].is_null(), same["rules"].as_u64(), same["revision"].clone()), (200, true, Some(0), pushed["revision"].clone()));
+        let broken = serde_json::json!({"base": pushed["revision"], "content": dump.replace("'0x40fff001'", "'nonsense'")}).to_string();
+        assert_eq!(call(handle.address, &token, "POST", "/admin/sync", &broken).0, 400);
+        assert_eq!(call(handle.address, &token, "POST", "/admin/sync", "{\"base\": \"x\"}").0, 400, "no content");
+        // Back to the shipped content: the layer files go.
+        let back = serde_json::json!({"base": pushed["revision"], "content": shipped}).to_string();
+        let (code, reverted) = call(handle.address, &token, "POST", "/admin/sync", &back);
+        assert_eq!((code, reverted["saved"].as_bool()), (200, Some(true)));
+        assert!(!folder.join("w.content.sql").exists() && !folder.join("w.content.base.sql").exists());
         assert!(start("0.0.0.0:0".parse().unwrap(), &folder, folder.clone(),
-            Paths { world: folder.join("a"), rules: folder.join("b"), quests: folder.join("c"), quests_base: folder.join("d") },
-            Default::default(), None, String::new()).is_err(), "local only");
+            Paths { content: folder.join("c"), content_base: folder.join("d") }, Default::default(), None, String::new()).is_err(), "local only");
         std::fs::remove_dir_all(&folder).unwrap();
     }
+
 }

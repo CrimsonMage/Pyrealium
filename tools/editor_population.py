@@ -8,6 +8,7 @@ rules too: the server keys rules by placement id, whichever file placed it.
 from pathlib import Path
 from types import SimpleNamespace
 import math
+import sqlite3
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -88,6 +89,15 @@ class Population:
             except (OSError, ValueError) as error:
                 self.reference_error = str(error)
                 self.editor.status.set(f"Base world not loaded: {error}")
+        # Prepared objects this world removes (its content database's tombstones) are not shown.
+        path = getattr(self.editor, "loaded_path", None)
+        if path is not None and self.reference:
+            try:
+                import editor_content
+                removed = editor_content.tombstones(path)
+            except (OSError, ValueError, sqlite3.Error):
+                removed = set()
+            self.reference = [row for row in self.reference if row["id"] not in removed]
 
     def pick_base(self):
         path = filedialog.askopenfilename(title="Base world (read-only), e.g. the prepared legions-world.tsv",

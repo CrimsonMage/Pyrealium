@@ -247,7 +247,6 @@ class EditorWorkflowTests(unittest.TestCase):
         editor.save_file()
         saved = [row for row in rows_from_text(read_document(self.path)) if row[0] == "8140000000000009"]
         self.assertEqual(saved[0][4], "9")
-        self.assertIn("# Prepared-world override: Guard", read_document(self.path))
         # Deleting the override reverts the object to the prepared world.
         with patch("content_editor.messagebox.askyesno", return_value=True):
             editor.delete_selected()
@@ -313,7 +312,8 @@ class EditorWorkflowTests(unittest.TestCase):
     def seed_group(self):
         second = self.row.split("\t")
         second[0], second[4] = "8140000000020001", "3"
-        self.path.write_bytes((self.original + "\t".join(second) + "\n").encode("utf-8"))
+        import editor_content
+        editor_content.write_world(self.path, self.original + "\t".join(second) + "\n")
         self.editor.reload(force=True)
         self.editor.select_many({0x8140000000020000, 0x8140000000020001})
 

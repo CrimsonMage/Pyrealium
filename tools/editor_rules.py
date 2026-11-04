@@ -197,26 +197,24 @@ class Rules:
 
 
 def load_rules(world_path):
-    path = rules_path(world_path)
-    text = bounded_text(path) if path.exists() else None
+    """The world's creature rules: its content database's rule rows, as rules text."""
+    import editor_content
+    text = editor_content.rules_text(world_path)
     return Rules.parse(text), text
 
 
 def save_rules(world_path, expected, rules):
-    """Atomic write with a rolling .bak; refuses if the file changed elsewhere."""
-    path = rules_path(world_path)
-    current = bounded_text(path) if path.exists() else None
+    """Writes the rules into the world's content database; refuses if they changed elsewhere."""
+    import editor_content
+    current = editor_content.rules_text(world_path)
     if current != expected:
-        raise ValueError("The rules file changed outside the editor. Reload before saving.")
+        raise ValueError("The world's rules changed outside the editor. Reload before saving.")
     text = rules.dumps()
     Rules.parse(text)
     if len(text.encode("utf-8")) > 4 * 1024 * 1024:
         raise ValueError("Rules exceed 4 MiB")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if current is not None:
-        atomic_write(path.with_name(path.name + ".bak"), current)
-    atomic_write(path, text)
-    return text
+    editor_content.write_rules(world_path, text)
+    return editor_content.rules_text(world_path)
 
 
 class Bestiary:

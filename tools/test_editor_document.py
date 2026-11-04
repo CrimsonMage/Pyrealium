@@ -35,8 +35,14 @@ class DocumentTests(unittest.TestCase):
         self.assertEqual(row[0], self.row[:16])
         self.assertEqual(row[4:7], ["4", "5", "6"])
         self.assertEqual(row[7:11], self.row.split("\t")[7:11])
-        self.assertIn("# Keep this comment", result)
         self.assertEqual(read_document(self.path), self.original)
+
+    def test_an_older_world_file_becomes_its_content_database(self):
+        # The world's placements are rows now (comments are not rows): the older file's object,
+        # read back as world text with the native size.
+        self.assertEqual(rows_from_text(self.original), [self.row.split("\t") + ["-"]])
+        self.assertTrue(self.path.with_name("world.content.sqlite").exists())
+        self.assertTrue(self.path.with_name("world.content.sql").exists())
 
     def test_add_allocates_new_identity(self):
         result, identity = prepare_change(self.args, self.original)
@@ -87,15 +93,18 @@ class DocumentTests(unittest.TestCase):
         result, _ = prepare_change(None, self.original, int(self.row[:16], 16), delete=True)
         commit_document(self.path, self.original, result)
         self.assertEqual(rows_from_text(read_document(self.path)), [])
-        self.assertEqual(read_document(self.path.with_suffix(".tsv.bak")), self.original)
+        # The dump before the save is kept beside it.
+        self.assertIn("0x" + self.row[:16], self.path.with_name("world.content.sql.bak").read_text(encoding="utf-8"))
         commit_document(self.path, result, self.original)
         self.assertEqual(read_document(self.path), self.original)
 
     def test_external_change_is_not_overwritten(self):
-        self.path.write_text(self.original + "# External change\n", encoding="utf-8")
+        import editor_content
+        changed = self.original.replace("\t1\t2\t3\t", "\t1.5\t2\t3\t")
+        editor_content.write_world(self.path, changed)  # another editor saved first
         with self.assertRaisesRegex(ValueError, "outside the editor"):
             commit_document(self.path, self.original, self.original)
-        self.assertTrue(read_document(self.path).splitlines()[-1] == "# External change")
+        self.assertEqual(read_document(self.path), changed)
         self.assertFalse(self.path.with_suffix(".tsv.edit.lock").exists())
 
     def test_lock_prevents_concurrent_save(self):

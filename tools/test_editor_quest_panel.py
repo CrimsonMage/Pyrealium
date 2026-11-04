@@ -46,7 +46,7 @@ class QuestPanelTests(unittest.TestCase):
         db.executescript(SHIPPED.read_text(encoding="utf-8"))
         for table in ("world_object", "world_evidence", "world_pack"):
             db.execute(f"DELETE FROM {table}")
-        (folder / "w.quests.sql").write_text("\n".join(db.iterdump()) + "\n", encoding="utf-8")
+        (folder / "w.content.sql").write_text("\n".join(db.iterdump()) + "\n", encoding="utf-8")
         db.close()
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Strings)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -88,7 +88,7 @@ class QuestPanelTests(unittest.TestCase):
         panel.actions.selection_set("2")
         panel.move_action(-1)
         panel.save()
-        db = sqlite3.connect(self.world.with_name("w.quests.sqlite"))
+        db = sqlite3.connect(self.world.with_name("w.content.sqlite"))
         rows = db.execute("SELECT ord, action, p1 FROM emote_action WHERE emote_set = 'hunt_npc_47003fae_none' ORDER BY ord").fetchall()
         self.assertEqual(rows, [(1, "Say", "Hello there."), (2, "Tell", "0x2500895c")])
 
