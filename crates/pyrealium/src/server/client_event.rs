@@ -756,7 +756,8 @@ pub(super) fn client_event(
                     }
                     let packets = match &srv.trade_assets {
                         Some(assets) => trade_actions::registry(peer, assets)?,
-                        None => crate::crafting::initialization_with_quests(srv.config.training_kit || srv.quest_gameplay, &srv.store.characters[&character].professions, &srv.store.characters[&character].quests.arwic)
+                        None => crate::crafting::initialization_with_quests(srv.config.training_kit || srv.quest_gameplay, &srv.store.characters[&character].professions,
+                            &|recipe| crate::quest_emotes::tables().is_none_or(|t| t.recipe_allowed(&srv.store.characters[&character].quests, recipe)))
                             .map_err(other)?,
                     };
                     for packet in packets {

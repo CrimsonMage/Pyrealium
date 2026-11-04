@@ -22,8 +22,8 @@ pub fn item_lines(item:&crate::inventory::Item,location:&str)->Vec<String> {
         lines.push(format!("Required level: {}",p.minimum_level));
         if item.roll.is_none(){lines.push("Weapon damage rating unavailable.".into());}
     }
-    if item.definition==crate::arwic_mines::SWORD {lines.push("Weapon damage: 10".into());lines.push("Return this quest sword to the Arwic Mines Overseer in your backpack.".into());}
-    if item.definition==crate::arwic_mines::GUIDE {lines.push("Double-click to read the next of 15 pages. Text appears in chat.".into());}
+    if item.definition==crate::arwic_items::SWORD {lines.push("Weapon damage: 10".into());lines.push("Return this quest sword to the Arwic Mines Overseer in your backpack.".into());}
+    if item.definition==crate::arwic_items::GUIDE {lines.push("Double-click to read the next of 15 pages. Text appears in chat.".into());}
     // An item a quest's UseItem set starts (`quest_emotes`).
     if let Some(q)=crate::quest_emotes::tables().and_then(|t|t.started_by_item(item.definition).map(|q|(q.title_text.clone(),q.min_level,q.goal))) {
         lines.push(if q.2>0 {format!("Begins {}. Level {}+. Defeat {} targets.",q.0,q.1,q.2)} else {format!("Begins {}. Level {}+.",q.0,q.1)});
@@ -152,7 +152,7 @@ impl Names {
         Ok(names)
     }
     pub fn get(&self, definition: u32, fallback: &str) -> Name {
-        if definition==crate::arwic_mines::GLYPH {return Name::Literal(crate::arwic_mines::name(definition).unwrap().into());}
+        if definition==crate::arwic_items::GLYPH {return Name::Literal(crate::arwic_items::name(definition).unwrap().into());}
         self.0
             .get(&definition)
             .and_then(|name| name.clone())

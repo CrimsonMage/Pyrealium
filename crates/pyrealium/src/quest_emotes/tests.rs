@@ -25,9 +25,8 @@ fn the_shipped_tables_load() {
     let t = &shipped();
     assert_eq!(t.quest("shelter").map(|q| q.journal_id), Some(SHELTER));
     assert_eq!(t.stage(SHELTER, 6).map(|(done, _)| done), Some(true));
-    // The Shelter's pinned items, and the items read from the DATs at start (the Gauntlet's Frenzy
-    // Potion, Kanten's Bag).
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || [0x4700_326f, 0x4700_1c1e].contains(&e)));
+    // Every item a set grants is an entity (its profile is read from the DATs at start).
+    assert!(t.gives().all(|(_, e)| e >> 24 == 0x47));
 }
 
 #[test]
@@ -38,9 +37,8 @@ fn the_shipped_dump_is_its_own_export() {
     assert_eq!(db::export(&db::open_dump(&text).unwrap()).unwrap(), text);
     let t = Tables::from_sql(&text).unwrap();
     assert_eq!(t, *shipped());
-    // The Shelter's pinned items, and the items read from the DATs at start (the Gauntlet's Frenzy
-    // Potion, Kanten's Bag).
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || [0x4700_326f, 0x4700_1c1e].contains(&e)));
+    // Every item a set grants is an entity (its profile is read from the DATs at start).
+    assert!(t.gives().all(|(_, e)| e >> 24 == 0x47));
 }
 
 fn family_tables(family: &str, quest: &str, journal: &str, set: &str) -> [Vec<(String, String)>; 4] {

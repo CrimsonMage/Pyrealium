@@ -48,10 +48,12 @@ pub struct Progress {
 pub struct Book {
     /// A legacy inferred quest's saved run, until the start moves it (`legacy_quests`).
     pub recovered: crate::legacy_quests::Runs,
-    pub exploration: crate::exploration_quests::Book,
+    /// A legacy obelisk search's saved run, until the start moves it (`legacy_quests`).
+    pub exploration: crate::legacy_quests::Searches,
     /// A legacy hunt's saved run, until the start moves it onto its data quest (`legacy_quests`).
     pub hunting: crate::legacy_quests::Hunts,
-    pub arwic: crate::arwic_mines::State,
+    /// The legacy Arwic lesson's saved state, until the start moves it (`legacy_quests`).
+    pub arwic: crate::legacy_quests::Lesson,
     training: Option<Progress>,
     supplies: Option<bool>,
     potion: u8, // 0 absent, 1 accepted, 2 crafted, 3 rewarded
@@ -133,6 +135,10 @@ pub enum Command {
     RetireHunt { quest: u32 },
     /// A legacy inferred quest's state leaves its book (`Store::migrate_legacy_quests`).
     RetireRun { quest: u32 },
+    /// A legacy obelisk search's state leaves its book.
+    RetireSearch { quest: u32 },
+    /// The legacy Arwic lesson's state leaves the book.
+    RetireLesson,
     /// A quest effect (an `Effect` state) put on at `at` until `until` (Unix seconds).
     EffectOn { effect: u32, at: u64, until: u64 },
     /// A quest effect taken off.
@@ -191,6 +197,8 @@ impl Command {
             Self::LaneOff { group } => format!("laneoff,{group:08x}"),
             Self::RetireHunt { quest } => format!("retire,{quest:08x}"),
             Self::RetireRun { quest } => format!("retirerun,{quest:08x}"),
+            Self::RetireSearch { quest } => format!("retiresearch,{quest:08x}"),
+            Self::RetireLesson => "retirelesson".into(),
             Self::EffectOn { effect, at, until } => format!("effect,{effect:08x},{at},{until}"),
             Self::EffectOff { effect } => format!("effectoff,{effect:08x}"),
             Self::SubCount { quest, counter, count } => format!("subcount,{quest:08x},{counter},{count}"),
@@ -265,6 +273,12 @@ impl Command {
                 let hex = &text["erase,".len()..];
                 if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
                 Ok(Self::Erase { quest: u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)? })
+            }
+            "retirelesson" => Ok(Self::RetireLesson),
+            _ if text.starts_with("retiresearch,") => {
+                let hex = &text["retiresearch,".len()..];
+                if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
+                Ok(Self::RetireSearch { quest: u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)? })
             }
             _ if text.starts_with("retirerun,") => {
                 let hex = &text["retirerun,".len()..];
@@ -398,6 +412,8 @@ impl Book {
             }
             Command::RetireHunt { quest } => { next.hunting.0.remove(quest); }
             Command::RetireRun { quest } => { next.recovered.0.remove(quest); }
+            Command::RetireSearch { quest } => { next.exploration.0.remove(quest); }
+            Command::RetireLesson => { next.arwic = crate::legacy_quests::Lesson::default(); }
             Command::Lane { group, lane } => { next.lanes.insert(*group, *lane); }
             Command::Recipe(r) => { next.recipes.insert(*r); }
             Command::LaneOff { group } => { next.lanes.remove(group); }
@@ -511,7 +527,7 @@ impl Book {
     /// The gmQuestInfoList argument used by UI_Load for saved journal restoration.
     pub fn list_graph(&self) -> Result<Vec<u8>, WorldError> {
         let mut payload = Vec::new();
-        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32 + self.exploration.0.len() as u32 + u32::from(self.arwic.phase>0));
+        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32);
         if let Some(state) = self.training {
             payload.extend(info_payload(state, false)?);
         }
@@ -519,8 +535,6 @@ impl Book {
         if self.potion != 0 { payload.extend(self.lesson_payload(false, false)?); }
         if self.journey != 0 { payload.extend(self.lesson_payload(true, false)?); }
         for (quest, stage) in self.journal_stages() { payload.extend(stage_payload(quest, stage, self.timer(quest), self.count(quest), false)?); }
-        for (id,state) in &self.exploration.0 { payload.extend(exploration_payload(*id,state,false)?); }
-        if self.arwic.phase>0 {payload.extend(arwic_payload(&self.arwic,false)?);}
         Ok(native_graph(0xa1, &payload))
     }
 }
@@ -592,17 +606,6 @@ impl Book {
     /// reliable queue. Login still sends the complete list_graph snapshot.
     pub fn updates_since(&self, previous:&Self) -> Result<Vec<Vec<u8>>, WorldError> {
         let mut events = Vec::new();
-        if self.arwic.phase>0 && self.arwic!=previous.arwic {
-            let mut args=script::integer(0);args.extend(native_graph(0xa0,&arwic_payload(&self.arwic,true)?));
-            args.extend(script::integer(if self.arwic.phase==5{COMPLETED}else{UNDERWAY}));
-            events.push(script::private_call(UPDATE,&args)?);
-        }
-        for (id,state) in &self.exploration.0 {
-            if previous.exploration.0.get(id)==Some(state) {continue;}
-            let mut args=script::integer(0);args.extend(native_graph(0xa0,&exploration_payload(*id,state,true)?));
-            args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
-            events.push(script::private_call(UPDATE,&args)?);
-        }
         // A stage change, or a kill counted on a stage whose line shows the count.
         for (quest, stage) in self.journal_stages().filter(|(q, s)| previous.stage(*q) != *s || previous.count(*q) != self.count(*q)) {
             let mut args=script::integer(0);
@@ -727,24 +730,6 @@ pub fn validate_practice_craft(book: &Book, bag: &crate::inventory::Inventory, i
     book.apply(&Command::CraftedPotion).map_err(io::Error::other)
 }
 
-fn arwic_payload(s:&crate::arwic_mines::State,fx:bool)->Result<Vec<u8>,WorldError> {
-    let c=crate::arwic_mines::content();let mut b=Vec::new();word(&mut b,crate::arwic_mines::QUEST);
-    b.extend(world::literal_name(&c.title)?);b.extend(world::literal_name(&c.summary)?);word(&mut b,ICON);
-    word(&mut b,if s.phase==5{COMPLETED}else{UNDERWAY});word(&mut b,if s.phase==5{0}else{s.phase});
-    b.extend(world::literal_name(&s.guidance())?);word(&mut b,1);b.extend((s.started as f64).to_le_bytes());
-    b.extend((if s.phase==5{s.completed as f64}else{-1.}).to_le_bytes());
-    word(&mut b,0);b.extend(0f64.to_le_bytes());b.extend(0f64.to_le_bytes());word(&mut b,u32::from(fx));Ok(b)
-}
-fn exploration_payload(id:u32,state:&crate::exploration_quests::State,fx:bool)->Result<Vec<u8>,WorldError> {
-    let q=crate::exploration_quests::profile(id).ok_or(WorldError::InvalidValue)?;
-    let mut b=Vec::new();word(&mut b,id);b.extend(world::literal_name(&q.title)?);
-    b.extend(world::literal_name(&q.text)?);word(&mut b,ICON);
-    word(&mut b,if state.completed>0 {COMPLETED}else{UNDERWAY});
-    word(&mut b,if state.completed>0 {0}else{state.phase as u32});
-    b.extend(world::literal_name(&crate::exploration_quests::Book::guidance(q,state))?);word(&mut b,u32::from(q.level));
-    b.extend((state.started as f64).to_le_bytes());b.extend((if state.completed>0{state.completed as f64}else{-1.}).to_le_bytes());
-    word(&mut b,0);b.extend(0f64.to_le_bytes());b.extend(0f64.to_le_bytes());word(&mut b,u32::from(fx));Ok(b)
-}
 
 
 

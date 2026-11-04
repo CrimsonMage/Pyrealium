@@ -2,38 +2,7 @@
 use super::*;
 
 
-pub(super) fn arwic_exchange(peer:&mut Peer,character:u64,action:crate::arwic_mines::Action,events:Vec<Vec<u8>>,store:&mut Store,scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>)->io::Result<Vec<crate::scene::Delivery>> {
-    let saved=&store.characters[&character];let time=crate::clock::now();
-    let plan=crate::arwic_mines::plan(&saved.quests,&saved.inventory,action,store.next_item_id()?,time)?;
-    item_service_transaction_profile(peer,character,&plan.items,&plan.rewards,events,store,scene,metadata,false,false,None,None,Some((action,time)))
-}
 
-pub(super) fn use_exploration_npc(peer:&mut Peer,character:u64,target:u64,store:&mut Store,scene:&mut crate::scene::Scene,now:u64)
-    ->io::Result<Vec<crate::scene::Delivery>> {
-    if peer.combat || !store.characters[&character].progression.alive() {
-        return Err(invalid("Speak to the quest NPC while alive and out of combat."));
-    }
-    let completion=npc_use_completion(character,target,scene)?;
-    let entity=scene.examination_content(character,target).ok_or_else(||invalid("Quest object is not visible."))?.entity;
-    peer.admit_npc_dialogue(now)?;
-    let saved=&store.characters[&character];let account=saved.account.clone();
-    let time=crate::clock::now();
-    let conversation=saved.quests.exploration.converse(entity,saved.progression.level().number,time)?;
-    let mut quests=saved.quests.clone();quests.exploration=conversation.book;
-    let state=if conversation.xp>0 {saved.progression.apply(&crate::progression::Command::AwardXp(conversation.xp)).map_err(other)?}
-        else {saved.progression.clone()};
-    let speaker=crate::exploration_quests::speaker(entity);
-    let mut events=vec![completion,crate::interaction::speech(target,speaker,&conversation.text).map_err(other)?,
-        crate::interaction::dialogue(speaker,&conversation.text).map_err(other)?];
-    events.extend(quests.updates_since(&saved.quests).map_err(other)?);
-    events.extend(state.private_changes(&saved.progression));
-    if saved.skills.available_credits(&state)!=saved.skills.available_credits(&saved.progression) {
-        events.push(crate::ui::skills_state(&saved.skills,&state,&saved.skill_used).map_err(other)?);
-    }
-    peer.validate_scene_batch(&events)?;
-    store.exploration_conversation(&account,character,entity,time)?;
-    let updates=scene.player_stats(character,&state);peer.queue_ordered_batch(events)?;Ok(updates)
-}
 
 
 

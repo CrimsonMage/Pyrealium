@@ -14,7 +14,7 @@ pub mod projectiles;
 pub mod content;
 pub mod content_prep;
 pub mod crafting;
-pub mod arwic_mines;
+pub mod arwic_items;
 pub mod professions;
 pub mod harvesting;
 pub mod config;
@@ -82,7 +82,6 @@ pub mod live_edit;
 pub mod admin;
 mod native_trophies;
 
-pub mod exploration_quests;
 
 pub mod legacy_quests;
 pub mod npc_dialogue;

@@ -64,7 +64,7 @@ pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_em
         events.push(prepared.wire.clone());
         events.push(script::private_call(script::COMBAT_STATE,&script::integer(0)).map_err(other)?);
     }
-    let mut updates=item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(outcome),None,None)?;
+    let mut updates=item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(outcome),None)?;
     crate::quest_emotes::instances::committed(character,outcome);
     // The quest's effects (ApplyEffect / RemoveEffect) reach the client's strip (`WM_Effect`);
     // an escort starts or ends.
@@ -111,7 +111,7 @@ pub(super) fn trigger_emotes(peer:&mut Peer,character:u64,trigger:crate::quest_e
         let before=saved.quests.clone();
         let after=outcome.quests.iter().try_fold(before.clone(),|b,c|b.apply(c)).map_err(other)?;
         events.extend(outcome_lines(&outcome,None,&before,&after)?);
-        updates.extend(item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(&outcome),None,None)?);
+        updates.extend(item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(&outcome),None)?);
         crate::quest_emotes::instances::committed(character,&outcome);
         if let Some(runtime)=encounters.as_mut() {
             runtime.sync_quest_effects(character,&store.characters[&character].quests.quest_effects(unix),unix,now,true);

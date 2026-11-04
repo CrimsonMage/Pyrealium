@@ -76,18 +76,6 @@ pub(super) fn on_use_object(
         }
         return Ok(replies);
     }
-    let arwic_target=if request.target!=0 && srv.store.characters[&character].inventory.items().any(|i|
-        i.id==request.item && matches!(i.definition,crate::arwic_mines::HAMMER|crate::arwic_mines::SWORD) && matches!(i.location,crate::inventory::Location::Bag(_))) {request.target}else{request.item};
-    if srv.quest_gameplay && srv.scene.examination_content(character,arwic_target).is_some_and(|o|o.entity==crate::arwic_mines::NPC) {
-        if request.owner!=character || (request.target!=0 && arwic_target!=request.target) {return Err(invalid("Quest use owner or target mismatch."));}
-        let result=(|| {
-            let event=npc_use_completion(character,arwic_target,&srv.scene)?;
-            peer.admit_npc_dialogue(srv.now_ms)?;
-            arwic_exchange(peer,character,crate::arwic_mines::Action::Talk,vec![event],&mut srv.store,&mut srv.scene,&srv.inventory_metadata)
-        })();
-        match result {Ok(updates)=>outbox.deliveries.extend(updates),Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,}
-        return Ok(replies);
-    }
     // A bag item used on a world object with quest emotes for it (`ItemUsedOn`).
     let used_on=(request.target!=0).then(||srv.store.characters[&character].inventory.items().find(|i|i.id==request.item && matches!(i.location,crate::inventory::Location::Bag(_))).map(|i|i.definition)).flatten()
         .filter(|_|srv.scene.examination_content(character,request.target).is_some_and(|o|crate::quest_emotes::tables().is_some_and(|t|t.reacts(o.entity,request.target,crate::quest_emotes::Trigger::ItemUsedOn))));
@@ -97,19 +85,11 @@ pub(super) fn on_use_object(
     let service_entity = srv.scene.examination_content(character, request.item)
         .map(|object| object.entity);
     if srv.quest_gameplay && srv.store.characters[&character].inventory.items().any(|i|
-        i.id==request.item && i.definition==crate::arwic_mines::GUIDE && matches!(i.location,crate::inventory::Location::Bag(_))) {
+        i.id==request.item && i.definition==crate::arwic_items::GUIDE && matches!(i.location,crate::inventory::Location::Bag(_))) {
         if request.owner!=character || !srv.store.characters[&character].progression.alive() {return Err(invalid("Read a book from your living character's backpack."));}
         peer.admit_npc_dialogue(srv.now_ms)?;
-        peer.queue_ordered_batch(vec![crate::arwic_mines::read_page(peer.guide_page).map_err(other)?])?;
-        peer.guide_page=(peer.guide_page+1)%crate::arwic_mines::content().guide_pages.len();
-        return Ok(replies);
-    }
-    if srv.quest_gameplay && service_entity.is_some_and(crate::exploration_quests::supported) {
-        if request.owner!=character || request.target!=0 {return Err(invalid("Quest use owner or target mismatch."));}
-        match use_exploration_npc(peer,character,request.item,&mut srv.store,&mut srv.scene,srv.now_ms) {
-            Ok(updates)=>outbox.deliveries.extend(updates),
-            Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,
-        }
+        peer.queue_ordered_batch(vec![crate::arwic_items::read_page(peer.guide_page).map_err(other)?])?;
+        peer.guide_page=(peer.guide_page+1)%crate::arwic_items::content().guide_pages.len();
         return Ok(replies);
     }
     if srv.scene.examination_content(character,request.item).is_some_and(|o|o.service==Some(crate::services::Service::Sign)) {

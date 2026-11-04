@@ -136,16 +136,6 @@ impl Store {
         Ok(true)
     }
     /// Version-one NPC/obelisk progression and its XP are one durable event.
-    pub fn exploration_conversation(&mut self,account:&str,id:u64,entity:u32,time:u64)->io::Result<()> {
-        let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive())
-            .ok_or_else(||invalid("Quest owner unavailable"))?;
-        let result=c.quests.exploration.converse(entity,c.progression.level().number,time)?;
-        if result.book==c.quests.exploration {return Ok(());}
-        let state=if result.xp>0 {c.progression.apply(&crate::progression::Command::AwardXp(result.xp)).map_err(io::Error::other)?}
-            else {c.progression.clone()};
-        self.touch(id);
-        let c=self.characters.get_mut(&id).unwrap();c.quests.exploration=result.book;c.progression=state;Ok(())
-    }
     /// Version-two NPC hunt progression and its XP are one durable event.
     /// Commit the canonical inferred delivery exchange and its quest journal together.
     /// Consume a supported hunt elixir and bestow its quest journal in one step.
@@ -340,15 +330,6 @@ impl Store {
         Ok(())
     }
     /// Inventory, lesson entitlement, quest journal and XP change together.
-    pub fn arwic_transaction(&mut self,account:&str,id:u64,action:crate::arwic_mines::Action,time:u64)->io::Result<()> {
-        let first=self.next_item_id()?;
-        let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive()).ok_or_else(||invalid("Lesson owner unavailable"))?;
-        let plan=crate::arwic_mines::plan(&c.quests,&c.inventory,action,first,time)?;
-        if plan.quests==c.quests && plan.items.is_empty() && plan.rewards.is_empty() {return Ok(());}
-        let (bag,state)=if plan.items.is_empty()&&plan.rewards.is_empty(){(c.inventory.clone(),c.progression.clone())}else{crate::player_transaction::candidate(&c.inventory,&c.progression,&plan.items,&plan.rewards,Some(first))?};
-        self.touch(id);
-        let c=self.characters.get_mut(&id).unwrap();c.inventory=bag;c.progression=state;c.quests=plan.quests;Ok(())
-    }
     /// Inventory/cost and profession XP change together.
     pub fn profession_transaction(&mut self,account:&str,id:u64,items:&[crate::inventory::Command],changes:&[crate::progression::Command],change:&crate::professions::Change)->io::Result<()> {
         let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive()).ok_or_else(||invalid("Crafting owner unavailable"))?;

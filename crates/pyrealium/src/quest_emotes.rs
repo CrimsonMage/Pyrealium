@@ -229,6 +229,10 @@ pub struct Tables {
     slots: BTreeMap<String, instances::Slot>,
     /// Item profiles the quests grant where the DAT's defaults do not fit (`quest_item`).
     items: BTreeMap<u32, items::Override>,
+    /// Recipes crafted by the quest rows (`quest_recipe`): recipe -> (ingredient, quantity, output).
+    recipes: BTreeMap<u32, (u32, u32, u32)>,
+    /// Recipes some quest teaches (LearnRecipe): crafted only once learned.
+    taught: std::collections::BTreeSet<u32>,
 }
 
 /// What one trigger did for one player, to be committed as one record.

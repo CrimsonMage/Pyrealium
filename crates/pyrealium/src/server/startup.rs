@@ -187,7 +187,7 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
                 for (definition,metadata) in crate::quest_emotes::install_items(&tables,&mut portal)? {inventory_metadata.entry(definition).or_insert(Some(metadata));}
             }
             if quest_gameplay {
-                for (definition,metadata) in crate::apparel::validate(&mut portal)?.into_iter().chain(crate::arwic_mines::validate(&mut portal)?) {inventory_metadata.insert(definition,Some(metadata));}
+                for (definition,metadata) in crate::apparel::validate(&mut portal)?.into_iter().chain(crate::arwic_items::validate(&mut portal)?) {inventory_metadata.insert(definition,Some(metadata));}
             }
             if starter_equipment {
                 for (definition, metadata) in crate::starter_gear::validate(&mut portal)? {

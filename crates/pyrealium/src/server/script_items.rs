@@ -38,7 +38,12 @@ pub(super) fn on_craft_validate(
         && srv.scene.can_observe(character, character)
         && saved.progression.alive()
         && !peer.combat
-        && saved.quests.arwic.allowed(request.recipe)
+        && crate::quest_emotes::tables().is_none_or(|t| t.recipe_allowed(&saved.quests, request.recipe))
+        // A quest recipe needs its ingredient in the bag (`quest_recipe`).
+        && match crate::quest_emotes::tables().and_then(|t| t.quest_recipe(request.recipe)) {
+            Some((ingredient, _, _)) => saved.inventory.items().any(|i| i.definition == ingredient && matches!(i.location, crate::inventory::Location::Bag(_))),
+            None => true,
+        }
         && match (&srv.trade_assets, crate::crafting::recipe(request.recipe)) {
             (Some(assets), None) => trade_actions::validates(assets, &saved.inventory, &request),
             _ => crate::professions::allowed(&request,&saved.inventory),

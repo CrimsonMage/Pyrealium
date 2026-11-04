@@ -184,6 +184,11 @@ Names instead of numbers, and shapes written once:
   takes a DID (an action's item, creature, effect, table or key; a set's `owner_entity` or
   `item`), an alias's name may stand for it: `frenzy_potion` for `0x4700326F`. A `placement`
   alias (`cell x y z heading`) fills MoveTo from p1 alone.
+- `quest_item`: entity, visual, stack_limit, equipment_mask, source: an item a quest grants whose
+  DAT defaults do not fit (Iron stacks to 65535, the Arwic hammer and sword take the hand slot).
+- `quest_recipe`: recipe, ingredient, quantity, output, source: a recipe the quest rows craft
+  (the ingredient's quantity taken, the output made; a Crafted set then answers). A recipe any
+  quest teaches (LearnRecipe) is listed and crafted only once learned.
 - `quest_counter`: quest, name, idx (0-255), source. A counter parameter (IncrementCounter,
   SetCounter, InqCounter, ...) may name the quest's counter instead of its number.
 - `template` (name, doc), `template_param` (template, name, ord, doc), `template_set` and

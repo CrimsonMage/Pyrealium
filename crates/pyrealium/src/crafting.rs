@@ -144,11 +144,12 @@ pub fn learned_recipe(id:u32)->Result<Vec<u8>,WorldError>{crate::script::private
 /// this update of the same recipe; sent after every learn here, so the recipe lists at once.
 pub fn shown_recipe(id:u32)->Result<Vec<u8>,WorldError>{crate::script::private_call(0x8206001a,&panel_graph(&[panel_recipe(id)]))}
 pub fn initialization_book(authorized:bool,book:&crate::professions::Book)->Result<Vec<Vec<u8>>,WorldError>{
-    initialization_with_quests(authorized,book,&crate::arwic_mines::State::default())
+    initialization_with_quests(authorized,book,&|_|true)
 }
-pub fn initialization_with_quests(authorized:bool,book:&crate::professions::Book,quest:&crate::arwic_mines::State)->Result<Vec<Vec<u8>>,WorldError>{
+/// The craft panel, listing a recipe a quest teaches only once `allowed` (`quest_emotes`).
+pub fn initialization_with_quests(authorized:bool,book:&crate::professions::Book,allowed:&dyn Fn(u32)->bool)->Result<Vec<Vec<u8>>,WorldError>{
     let skills:Vec<_>=crate::professions::catalog().skills.iter().filter(|_|authorized).collect();
-    let recipes:Vec<_>=crate::professions::catalog().recipes.iter().filter(|r|authorized&&quest.allowed(r.id)).collect();
+    let recipes:Vec<_>=crate::professions::catalog().recipes.iter().filter(|r|authorized&&allowed(r.id)).collect();
     let mut objects=vec![PanelObject::interpreted(0x1d2,&[(u32::MAX,1),(0,3),(0,4),(0,0x83),(0,0xcd),(2,1),(3,1)])];
     let mut sh=vec![hash_header(skills.len())];for(i,s)in skills.iter().enumerate(){sh.extend([s.id,4+i as u32]);}
     let mut rh=vec![hash_header(recipes.len())];for(i,r)in recipes.iter().enumerate(){rh.extend([r.id,4+skills.len()as u32+i as u32]);}

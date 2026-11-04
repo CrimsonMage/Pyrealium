@@ -17,13 +17,13 @@ pub(super) fn item_service_transaction(
     item_service_transaction_quest(peer, character, items, changes, completion, store, scene, metadata, false, false)
 }
 pub(super) fn item_service_transaction_quest(peer:&mut Peer,character:u64,items:&[crate::inventory::Command],changes:&[crate::progression::Command],completion:Vec<Vec<u8>>,store:&mut Store,scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,supplies:bool,practice:bool)->io::Result<Vec<crate::scene::Delivery>> {
-    item_service_transaction_profile(peer,character,items,changes,completion,store,scene,metadata,supplies,practice,None,None,None)
+    item_service_transaction_profile(peer,character,items,changes,completion,store,scene,metadata,supplies,practice,None,None)
 }
 pub(super) fn item_service_transaction_profile(
     peer: &mut Peer, character: u64,
     items: &[crate::inventory::Command], changes: &[crate::progression::Command],
     mut completion: Vec<Vec<u8>>, store: &mut Store, scene: &mut crate::scene::Scene,
-    metadata: &BTreeMap<u32, Option<crate::inventory_request::Metadata>>, supplies: bool, practice: bool, emote:Option<&crate::quest_emotes::Outcome>, profession:Option<&crate::professions::Change>, arwic:Option<(crate::arwic_mines::Action,u64)>,
+    metadata: &BTreeMap<u32, Option<crate::inventory_request::Metadata>>, supplies: bool, practice: bool, emote:Option<&crate::quest_emotes::Outcome>, profession:Option<&crate::professions::Change>,
 ) -> io::Result<Vec<crate::scene::Delivery>> {
     let saved = &store.characters[&character];
     if !scene.can_observe(character, character) || !saved.progression.alive() || peer.combat {
@@ -36,7 +36,7 @@ pub(super) fn item_service_transaction_profile(
         .filter(|item| matches!(item, crate::inventory::Command::Grant(_) | crate::inventory::Command::GrantFront(_)))
         .count()
         // A butchered corpse gives up to two traits.
-        > if profession.is_some() || emote.is_some() {17} else if arwic.is_some() {3} else {2}
+        > if profession.is_some() || emote.is_some() {17} else {2}
     {
         return Err(invalid("Item service output limit exceeded."));
     }
@@ -127,17 +127,8 @@ pub(super) fn item_service_transaction_profile(
         events.extend(next.updates_since(&saved.quests).map_err(other)?);
         for line in &outcome.lines {events.push(script::chat(line,1).map_err(other)?);}
     }
-    if let Some((action,time))=arwic {
-        let plan=crate::arwic_mines::plan(&saved.quests,&saved.inventory,action,store.next_item_id()?,time)?;
-        if crate::player_transaction::encode_items(items)!=crate::player_transaction::encode_items(&plan.items) || crate::player_transaction::encode_changes(changes)!=crate::player_transaction::encode_changes(&plan.rewards) {return Err(invalid("Lesson exchange differs from canonical plan"));}
-        events.extend(plan.quests.updates_since(&saved.quests).map_err(other)?);
-        if plan.quests.arwic.learned && !saved.quests.arwic.learned {events.push(crate::crafting::learned_recipe(crate::arwic_mines::RECIPE).map_err(other)?);events.push(crate::crafting::shown_recipe(crate::arwic_mines::RECIPE).map_err(other)?);}
-        let guidance=plan.quests.arwic.guidance().split_whitespace().collect::<Vec<_>>().join(" ");
-        events.push(crate::interaction::dialogue("Arwic Mines and Crafting Quest",&guidance).map_err(other)?);
-    }
     peer.validate_scene_batch(&events)?;
-    if let Some((action,time))=arwic {store.arwic_transaction(&peer.session.account,character,action,time)?;}
-    else if let Some(outcome)=emote {store.emote_transaction(&peer.session.account,character,outcome)?;}
+    if let Some(outcome)=emote {store.emote_transaction(&peer.session.account,character,outcome)?;}
     else if let Some(change)=profession {store.profession_transaction(&peer.session.account,character,items,changes,change)?;}
     else {store.player_transaction_quest(&peer.session.account, character, items, changes, supplies, practice)?;}
     for item in removed {

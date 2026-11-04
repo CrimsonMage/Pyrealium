@@ -128,12 +128,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     }
                 }
                 crate::encounters::Event::Loot {actor,player,entity,ai}=>{
-                    let saved=&srv.store.characters[&player];
-                    let hammer=entity==crate::arwic_mines::OUTCAST && !ai.loot_proof
-                        && srv.scene.examination_content(player,actor).is_some_and(|o|o.placement.cell>>16==0x7cb9 && o.placement.cell&65535>=256)
-                        && saved.quests.arwic.can_loot(&saved.inventory);
-                    let quest_item=if hammer {Some(crate::arwic_mines::item(crate::arwic_mines::HAMMER,1,0,1)?)}else{None};
-                    let mut count=srv.corpse_loot.add_with_quest(actor,player,srv.now_ms,entity,ai,quest_item);
+                    let mut count=srv.corpse_loot.add_with_quest(actor,player,srv.now_ms,entity,ai,None);
                     if count==0 && std::env::var("PYREALIUM_TEST_CORPSE_LOOT").as_deref()==Ok("1") {count=srv.corpse_loot.add_test_potions(actor,player,srv.now_ms,2);}
                     if count>0 {updates.push(crate::scene::Delivery{recipient:player,data:script::chat("Loot remains on the defeated creature. Double-click its body to open it.",1).map_err(other)?.into()});}
                 }

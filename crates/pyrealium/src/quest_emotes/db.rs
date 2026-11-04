@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 8;
+pub const SCHEMA_VERSION: i32 = 9;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -176,6 +176,14 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
   PRIMARY KEY (name, lane),
   FOREIGN KEY (instance_group, lane) REFERENCES instance_lane(instance_group, lane) ON UPDATE CASCADE ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS quest_recipe (
+  recipe TEXT PRIMARY KEY CHECK (recipe GLOB '0x[0-9a-fA-F]*'),
+  ingredient TEXT NOT NULL,
+  quantity INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 65535),
+  output TEXT NOT NULL,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
 CREATE TABLE IF NOT EXISTS quest_item (
   entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
   visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
@@ -224,7 +232,8 @@ pub(super) const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 6] = [
+const SHAPES_TAIL: [Shape; 7] = [
+    Shape { table: "quest_recipe", order: "recipe", key: 1, columns: &["recipe", "ingredient", "quantity", "output", "source"] },
     Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
@@ -333,7 +342,7 @@ fn named(db: &Connection, shape: &Shape) -> io::Result<Vec<Row>> {
 #[derive(Default)]
 pub struct QuestRows {
     pub tables: [Vec<Row>; 4], pub aliases: Vec<Row>, pub counters: Vec<Row>,
-    pub groups: Vec<Row>, pub lanes: Vec<Row>, pub slots: Vec<Row>, pub items: Vec<Row>,
+    pub groups: Vec<Row>, pub lanes: Vec<Row>, pub slots: Vec<Row>, pub items: Vec<Row>, pub recipes: Vec<Row>,
 }
 
 pub fn rows(db: &Connection) -> io::Result<QuestRows> {
@@ -355,6 +364,7 @@ pub fn rows(db: &Connection) -> io::Result<QuestRows> {
         lanes: named(db, shape("instance_lane"))?,
         slots: named(db, shape("spawn_slot"))?,
         items: named(db, shape("quest_item"))?,
+        recipes: named(db, shape("quest_recipe"))?,
     })
 }
 

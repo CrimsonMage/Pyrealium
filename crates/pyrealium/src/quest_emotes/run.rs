@@ -17,6 +17,18 @@ impl Tables {
     }
     pub fn quest(&self, key: &str) -> Option<&Quest> { self.keys.get(key).and_then(|id| self.quests.get(id)) }
     pub fn quests(&self) -> impl Iterator<Item = &Quest> { self.quests.values() }
+    /// A quest recipe (`quest_recipe`): its ingredient, quantity and output.
+    pub fn quest_recipe(&self, recipe: u32) -> Option<(u32, u32, u32)> { self.recipes.get(&recipe).copied() }
+    /// Whether the player may craft `recipe`: one a quest teaches only once learned.
+    pub fn recipe_allowed(&self, book: &Book, recipe: u32) -> bool { !self.taught.contains(&recipe) || book.knows(recipe) }
+    /// Crafts a quest recipe: takes its ingredient, gives its output (the craft's record).
+    #[allow(clippy::too_many_arguments)]
+    pub fn craft(&self, recipe: u32, book: &Book, inventory: &Inventory, progression: &crate::progression::Progression,
+        first: u64, now: u64, make: &dyn Fn(u32, u64, u16) -> Option<Item>) -> io::Result<Outcome> {
+        if !self.recipes.contains_key(&recipe) { return Err(io::Error::other("Not a quest recipe.")); }
+        if !self.recipe_allowed(book, recipe) { return Err(io::Error::other("You have not learned this recipe yet.")); }
+        self.perform_named(&super::load::craft_set(recipe), 4.0, book, inventory, progression, first, now, make)
+    }
     /// The quest a UseItem set of the item starts (an elixir), for the item's examination.
     pub fn started_by_item(&self, entity: u32) -> Option<&Quest> {
         let quest = self.sets.iter().find(|s| s.trigger == Trigger::UseItem && s.owner_entities.contains(&entity) && s.stages.0 == 0)?.quest?;

@@ -18,6 +18,20 @@ pub struct RunState { pub count: u16, pub started: u64, pub completed: u64 }
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Runs(pub BTreeMap<u32, RunState>);
 
+/// An obelisk search's (or its referral's) saved run.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct SearchState { pub phase: usize, pub started: u64, pub completed: u64 }
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Searches(pub BTreeMap<u32, SearchState>);
+
+/// The Arwic Mines lesson's saved state (phase 0 absent, 1 find the hammer, 2 return it, 3 craft,
+/// 4 return the sword, 5 done).
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Lesson { pub phase: u32, pub started: u64, pub completed: u64, pub learned: bool }
+/// The lesson's journal id and the recipe it teaches (its quest rows: `arwic_mines_and_crafting`).
+const LESSON: u32 = 0x4000_00c1;
+const LESSON_RECIPE: u32 = 0x6f00_1f0e;
+
 /// The quest's completed stage (the highest one marked completed).
 fn done_stage(tables: &crate::quest_emotes::Tables, quest: u32) -> Option<u8> {
     (0..=255u8).rev().find(|s| tables.stage(quest, *s).is_some_and(|(done, _)| done))
@@ -57,6 +71,24 @@ pub fn commands(book: &Book, tables: &crate::quest_emotes::Tables) -> Vec<Q> {
         let Some(moved) = run(tables, *quest, state.count, state.started, state.completed) else { continue };
         out.extend(moved);
         out.push(Q::RetireRun { quest: *quest });
+    }
+    // An obelisk search's phase is its stage (1-4, each objective touched moves it on); done is
+    // its completed stage.
+    for (quest, state) in &book.exploration.0 {
+        let Some(done) = tables.quests().any(|q| q.journal_id == *quest).then(|| done_stage(tables, *quest)).flatten() else { continue };
+        out.push(Q::Started { quest: *quest, at: state.started });
+        if state.completed > 0 { out.extend([Q::Stage { quest: *quest, stage: done }, Q::Solved { quest: *quest, at: state.completed }]); }
+        else { out.push(Q::Stage { quest: *quest, stage: u8::try_from(state.phase).unwrap_or(1).clamp(1, done.saturating_sub(1).max(1)) }); }
+        out.push(Q::RetireSearch { quest: *quest });
+    }
+    // The lesson's phase is its stage; what it taught stays learned.
+    let lesson = &book.arwic;
+    if lesson.phase > 0 && tables.quests().any(|q| q.journal_id == LESSON) {
+        out.push(Q::Started { quest: LESSON, at: lesson.started });
+        out.push(Q::Stage { quest: LESSON, stage: u8::try_from(lesson.phase).unwrap_or(1).min(5) });
+        if lesson.phase >= 5 && lesson.completed > 0 { out.push(Q::Solved { quest: LESSON, at: lesson.completed }); }
+        if lesson.learned { out.push(Q::Recipe(LESSON_RECIPE)); }
+        out.push(Q::RetireLesson);
     }
     out
 }

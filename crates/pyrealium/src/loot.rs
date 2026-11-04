@@ -350,7 +350,7 @@ mod tests {
     fn quest_bonus_is_owned_once_and_never_replaces_normal_loot() {
         let mut loot=Loot::default();let ai=crate::creature_ai::Profile::default();
         loot.catalog.tables.insert(17,vec![(1,vec![crate::item_services::potion(1,0)])]);
-        let hammer=crate::arwic_mines::item(crate::arwic_mines::HAMMER,1,0,1).unwrap();
+        let hammer=crate::arwic_items::item(crate::arwic_items::HAMMER,1,0,1).unwrap();
         assert!(crate::merchants::sale_value(&hammer).is_none());
         assert_eq!(loot.add_with_quest(21,7,100,17,ai,Some(hammer.clone())),2);
         let reward=loot.get(21,7,100).unwrap();

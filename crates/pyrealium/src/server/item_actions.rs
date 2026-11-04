@@ -132,7 +132,7 @@ pub(super) fn use_gathering(peer:&mut Peer,character:u64,item:u64,target:u64,sto
         scene.prepare_cell(point.cell)?;scene.check_content_live(&[],std::slice::from_ref(&object))?;
         let change=p::Change{skill:h::SURVEY,xp:0,time,raise:false,activity:Some(h::Activity::Locate{item,point:[point.cell,point.coordinates[0].to_bits(),point.coordinates[1].to_bits(),point.coordinates[2].to_bits()]})};
         let events=vec![script::chat("Deposit found. Select it and use the appropriate gathering tool. It can be harvested three times.",1).map_err(other)?];
-        let mut updates=item_service_transaction_profile(peer,character,&[Command::ConsumeDense{item}],&[],events,store,scene,metadata,false,false,None,Some(&change),None)?;
+        let mut updates=item_service_transaction_profile(peer,character,&[Command::ConsumeDense{item}],&[],events,store,scene,metadata,false,false,None,Some(&change))?;
         updates.extend(scene.insert_content_live(object,true)?);peer.last_inventory_ms=Some(now_ms);return Ok(updates);
     }
     let node=if item>>48==0x8190{item}else{target};
@@ -158,7 +158,7 @@ pub(super) fn use_gathering(peer:&mut Peer,character:u64,item:u64,target:u64,sto
     let remaining=h::tool(tool_def).unwrap().durability-next.1.tool_uses.get(&tid).copied().unwrap_or(h::tool(tool_def).unwrap().durability);
     let events=vec![crate::crafting::skill_update(plan.change.skill,&next).map_err(other)?,script::chat(&format!("Gathered {}. Tool durability remaining: {remaining}.",plan.name),1).map_err(other)?];
     let depleted=node>>48==0x8190&&!next.1.jobs.contains_key(&h::map_id(node));
-    let mut updates=item_service_transaction_profile(peer,character,&plan.items,&[],events,store,scene,metadata,false,false,None,Some(&plan.change),None)?;
+    let mut updates=item_service_transaction_profile(peer,character,&plan.items,&[],events,store,scene,metadata,false,false,None,Some(&plan.change))?;
     if depleted{updates.extend(scene.remove_content_live(node)?);}peer.last_inventory_ms=Some(now_ms);Ok(updates)
 }
 
@@ -180,10 +180,12 @@ pub(super) fn craft_item(
     }
     let saved = &store.characters[&character];
     if !scene.can_observe(character,character)||!saved.progression.alive()||peer.combat{return Err(invalid("Crafting requires a ready living player in peace mode."))}
-    if request.recipe==crate::arwic_mines::RECIPE {
-        if request.spinner!=0 || request.ingredients.len()!=1 || request.ingredients.get(&1)!=Some(&request.primary) {return Err(invalid("The Arwic Mines recipe needs one Iron ingredient slot and no quality override."));}
+    // A quest recipe (`quest_recipe`): its ingredient taken, its output made, as one record.
+    if let Some(tables)=crate::quest_emotes::tables().filter(|t|t.quest_recipe(request.recipe).is_some()) {
+        if request.spinner!=0 || request.ingredients.len()!=1 || request.ingredients.get(&1)!=Some(&request.primary) {return Err(invalid("A quest recipe needs one ingredient slot and no quality override."));}
+        let outcome=tables.craft(request.recipe,&saved.quests,&saved.inventory,&saved.progression,store.next_item_id()?,crate::clock::now(),&crate::quest_emotes::item)?;
         let events=vec![crate::crafting::completed(request.recipe,true).map_err(other)?];
-        let updates=arwic_exchange(peer,character,crate::arwic_mines::Action::Craft(request.primary),events,store,scene,metadata)?;
+        let updates=item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(&outcome),None)?;
         peer.last_inventory_ms=Some(now);return Ok(updates);
     }
     if crate::crafting::recipe(request.recipe).is_none() {
@@ -199,7 +201,7 @@ pub(super) fn craft_item(
         let mut events=vec![crate::crafting::completed(request.recipe,plan.success).map_err(other)?,crate::crafting::skill_update(plan.change.skill,&next).map_err(other)?,script::chat(&format!("{} {}. Gained {gained} crafting XP.",if plan.success{"Crafted"}else{"Failed to craft"},plan.name),1).map_err(other)?];
         if let Some(crate::harvesting::Activity::Survey{item,..})=&plan.change.activity {events.push(script::chat(&next.1.jobs[item].guidance(),1).map_err(other)?);}
         let costs=if plan.gold==0{vec![]}else{vec![crate::progression::Command::SpendGold(plan.gold)]};
-        let updates=item_service_transaction_profile(peer,character,&plan.items,&costs,events,store,scene,metadata,false,false,None,Some(&plan.change),None)?;
+        let updates=item_service_transaction_profile(peer,character,&plan.items,&costs,events,store,scene,metadata,false,false,None,Some(&plan.change))?;
         peer.last_inventory_ms=Some(now);return Ok(updates);
     }
     let ingredients = request.require_inputs(&saved.inventory, true)
@@ -304,9 +306,7 @@ pub(super) fn corpse_action(peer:&mut Peer,character:u64,request:crate::loot::Re
         let completion=vec![world::destroy_inventory_item(pending.id,1),state,script::chat("Loot collected.",1).map_err(other)?];
         // Each item is journaled before it leaves the corpse. A full bag or a
         // failed transaction retains every item that was not granted.
-        if pending.definition==crate::arwic_mines::HAMMER {
-            updates.extend(arwic_exchange(peer,character,crate::arwic_mines::Action::Hammer,completion,store,scene,metadata)?);
-        } else {updates.extend(item_service_transaction(peer,character,&[crate::inventory::Command::Grant(owned)],&[],completion,store,scene,metadata)?);}
+        updates.extend(item_service_transaction(peer,character,&[crate::inventory::Command::Grant(owned)],&[],completion,store,scene,metadata)?);
         loot.claimed(container,pending.id);loot.looted(container,character);collected+=1;
     }
     if collected==0 && store.characters[&character].inventory.free_slot().is_some(){return Err(invalid("No loot was collected."));}

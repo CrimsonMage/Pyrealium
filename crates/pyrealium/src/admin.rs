@@ -247,7 +247,7 @@ mod tests {
         let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
         d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
         // No item needing the DATs (this folder has none): the quests' item rewards go.
-        d.execute("DELETE FROM emote_action WHERE action IN ('GiveItem', 'GiveStack', 'RandomGive')", []).unwrap();
+        d.execute_batch("DELETE FROM emote_action WHERE action IN ('GiveItem', 'GiveStack', 'RandomGive'); DELETE FROM quest_recipe;").unwrap();
         let dump = crate::quest_emotes::db::export(&d).unwrap();
         let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);

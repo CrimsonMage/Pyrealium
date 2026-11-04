@@ -103,6 +103,9 @@
             // An inferred quest underway and one finished.
             s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x40000097,crate::legacy_quests::RunState{count:2,started:700,completed:0});
             s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x4000000a,crate::legacy_quests::RunState{count:10,started:100,completed:900});
+            // An obelisk search two obelisks in, and the Arwic lesson at its craft with the recipe.
+            s.characters.get_mut(&c.id).unwrap().quests.exploration.0.insert(0x40000016,crate::legacy_quests::SearchState{phase:3,started:800,completed:0});
+            s.characters.get_mut(&c.id).unwrap().quests.arwic=crate::legacy_quests::Lesson{phase:3,started:850,completed:0,learned:true};
             assert_eq!(s.migrate_legacy_quests(&t).unwrap(),1);
             assert_eq!(s.migrate_legacy_quests(&t).unwrap(),0,"once");
             saved=s.characters[&c.id].clone();
@@ -111,6 +114,8 @@
             assert!(saved.quests.hunting.0.is_empty() && saved.quests.recovered.0.is_empty());
             assert_eq!((saved.quests.stage(0x40000097),saved.quests.count(0x40000097)),(1,2));
             assert!(t.solved(&saved.quests,0x4000000a) && saved.quests.timer(0x4000000a).completed==900);
+            assert_eq!((saved.quests.stage(0x40000016),saved.quests.stage(0x400000c1)),(3,3));
+            assert!(saved.quests.knows(0x6f001f0e) && saved.quests.exploration.0.is_empty() && saved.quests.arwic.phase==0);
         }
         // The migration marked the character changed, so its whole state was saved.
         let mut s=Store::open(&dir).unwrap();
@@ -222,76 +227,6 @@
         let s=Store::open(&dir).unwrap();
         assert_eq!(s.characters[&1],saved);
         assert_eq!(crate::apparel::armor(&s.characters[&1].inventory,1),17);
-    }
-    #[test]
-    fn exploration_conversations_replay_partial_and_completed_quests_exactly_once() {
-        let dir=crate::db::testdb::fresh();
-        let q=&crate::exploration_quests::catalog().quests[0];
-        let referral=&crate::exploration_quests::catalog().referral;
-        {
-            let mut s=Store::open(&dir).unwrap();s.create("local","Ringway Hero").unwrap();
-            assert!(s.exploration_conversation("other",1,q.npc,100).is_err());
-            assert!(s.exploration_conversation("local",1,q.objectives[0],100).is_err());
-            s.exploration_conversation("local",1,q.npc,100).unwrap();
-            s.exploration_conversation("local",1,q.objectives[0],101).unwrap();
-            s.save_now().unwrap();
-            s.exploration_conversation("local",1,q.objectives[0],102).unwrap();
-            assert!(!s.dirty(),"duplicate touch must not change the character");
-        }
-        {
-            let mut s=Store::open(&dir).unwrap();
-            assert_eq!(s.characters[&1].quests.exploration.0[&q.id].phase,2);
-            for (i,entity) in q.objectives[1..].iter().enumerate() {
-                s.exploration_conversation("local",1,*entity,103+i as u64).unwrap();
-            }
-            s.exploration_conversation("local",1,q.npc,105).unwrap();
-            assert_eq!(s.characters[&1].progression.xp,80);
-            s.exploration_conversation("local",1,q.npc,106).unwrap();
-            s.exploration_conversation("local",1,referral.npc,107).unwrap();
-            let book=&s.characters[&1].quests;
-            assert!(book.list_graph().unwrap().len()<48000);
-            assert_eq!(book.updates().unwrap().len(),2);
-        }
-        {
-            let mut s=Store::open(&dir).unwrap();
-            assert_eq!(s.characters[&1].progression.xp,80);
-            assert_eq!(s.characters[&1].quests.exploration.0[&referral.id].completed,107);
-            s.exploration_conversation("local",1,q.npc,108).unwrap();
-            assert_eq!(s.characters[&1].progression.xp,80);
-        }
-    }
-    #[test]
-    fn arwic_lesson_replays_inventory_entitlement_and_reward_atomically() {
-        use crate::arwic_mines::{Action,IRON,SWORD,GLYPH,GUIDE};
-        let dir=crate::db::testdb::fresh();
-        {
-            let mut s=Store::open(&dir).unwrap();s.create("local","Mine Apprentice").unwrap();
-            assert!(s.arwic_transaction("other",1,Action::Talk,100).is_err());
-            s.arwic_transaction("local",1,Action::Talk,100).unwrap();
-            s.arwic_transaction("local",1,Action::Hammer,101).unwrap();
-        }
-        {
-            let mut s=Store::open(&dir).unwrap();assert_eq!(s.characters[&1].quests.arwic.phase,2);
-            s.arwic_transaction("local",1,Action::Talk,102).unwrap();
-            let iron=crate::arwic_mines::owned(&s.characters[&1].inventory,IRON).unwrap();
-            s.arwic_transaction("local",1,Action::Craft(iron),103).unwrap();
-            assert!(s.characters[&1].inventory.items().any(|i|i.definition==SWORD));
-        }
-        {
-            let mut s=Store::open(&dir).unwrap();assert_eq!(s.characters[&1].quests.arwic.phase,4);
-            assert!(s.characters[&1].quests.arwic.learned);
-            s.arwic_transaction("local",1,Action::Talk,104).unwrap();
-            s.save_now().unwrap();
-            s.arwic_transaction("local",1,Action::Talk,105).unwrap();
-            assert!(!s.dirty());
-        }
-        {
-            let s=Store::open(&dir).unwrap();let c=&s.characters[&1];
-            assert_eq!(c.progression.xp,150);assert_eq!(c.quests.arwic.completed,104);
-            assert!(c.quests.arwic.learned);
-            for definition in [GLYPH,GUIDE] {assert_eq!(c.inventory.items().filter(|i|i.definition==definition).count(),1);}
-            assert!(!c.inventory.items().any(|i|i.definition==SWORD));
-        }
     }
     #[test]
     fn mixed_versions_retain_exact_native_appearance_after_restart() {

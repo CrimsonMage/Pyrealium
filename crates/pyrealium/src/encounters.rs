@@ -67,11 +67,11 @@ mod spawner_tests {
         let content=Content::parse_text(include_str!("../../../content/arwic-mines-world-v1.tsv"),Path::new(&path)).unwrap();
         let mut runtime=Encounters::parse(include_str!("../../../content/development-encounters.tsv"),&content).unwrap();
         assert_eq!(runtime.actors.len(),6);assert_eq!(runtime.spawners.group_count(),2);
-        assert_eq!(runtime.actors.values().filter(|a|a.entity==crate::arwic_mines::OUTCAST).count(),4);
+        assert_eq!(runtime.actors.values().filter(|a|a.entity==crate::arwic_items::OUTCAST).count(),4);
         for actor in runtime.actors.values() {
-            assert_eq!((actor.rule.level,actor.health),if actor.entity==crate::arwic_mines::OUTCAST {(Some(6),164)}else{(Some(3),59)});
+            assert_eq!((actor.rule.level,actor.health),if actor.entity==crate::arwic_items::OUTCAST {(Some(6),164)}else{(Some(3),59)});
             assert!(actor.ai.aggressive());
-            if actor.entity==crate::arwic_mines::OUTCAST {
+            if actor.entity==crate::arwic_items::OUTCAST {
                 assert_eq!((actor.rule.damage,actor.rule.armor,actor.rule.xp),(28,4,19));
                 assert_eq!((actor.ai.perception,actor.ai.homesick,actor.ai.loot_profile),(30.,Some(60.),948));
                 assert!(!actor.ai.wanders(),"No wandering radius was recovered for this template");

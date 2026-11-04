@@ -167,6 +167,7 @@ impl Tables {
             t.actions.insert(set, list.into_iter().map(|(_, _, a)| a).collect());
         }
         t.check_personal(&lines)?;
+        t.quest_recipes(&rows.recipes, &aliases)?;
         Ok(t)
     }
 
@@ -257,3 +258,27 @@ impl Tables {
         Ok(())
     }
 }
+
+impl Tables {
+    /// The quest recipes (`quest_recipe`: recipe, ingredient, quantity, output, source), each made
+    /// a hidden set (`craft`) that takes the ingredient and gives the output; and the recipes the
+    /// quests teach.
+    fn quest_recipes(&mut self, rows: &[Row], aliases: &BTreeMap<String, (super::spec::AliasKind, String)>) -> io::Result<()> {
+        let entity = |v: &str| hex32(v).or_else(|| aliases.get(v).filter(|(k, _)| *k == super::spec::AliasKind::Entity).and_then(|(_, v)| hex32(v)))
+            .filter(|e| e >> 24 == 0x47);
+        for (at, f) in rows {
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
+            let recipe = hex32(&f[0]).ok_or_else(|| bad("recipe must be hex"))?;
+            let ingredient = entity(&f[1]).ok_or_else(|| bad("ingredient must be an EntityDesc DID or an entity alias"))?;
+            let quantity: u32 = f[2].parse().map_err(|_| bad("quantity must be 1 to 65535"))?;
+            let output = entity(&f[3]).ok_or_else(|| bad("output must be an EntityDesc DID or an entity alias"))?;
+            self.recipes.insert(recipe, (ingredient, quantity, output));
+            self.actions.insert(craft_set(recipe), vec![(0, Action::TakeQuantity { entity: ingredient, quantity }), (0, Action::GiveItem { entity: output, count: 1 })]);
+        }
+        self.taught = self.actions.values().flatten().filter_map(|(_, a)| if let Action::LearnRecipe(r) = a { Some(*r) } else { None }).collect();
+        Ok(())
+    }
+}
+
+/// The hidden set a quest recipe crafts through.
+pub(super) fn craft_set(recipe: u32) -> String { format!("__craft_{recipe:08x}") }

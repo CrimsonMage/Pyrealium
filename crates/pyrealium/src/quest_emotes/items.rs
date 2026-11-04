@@ -57,7 +57,13 @@ pub fn read_items(tables: &Tables, dat: &mut crate::dat::Dat) -> io::Result<Vec<
         // As the tradeskills' items (`tradeskills::item`): the class defaults' bag metadata, and
         // the visual its physical record names.
         dat.read(entity).map_err(|e| bad(&e.to_string()))?;
-        let info = crate::inventory_request::Metadata::load(dat, entity).map_err(|e| bad(&e.to_string()))?;
+        // An item whose class defaults do not read (the Arwic glyph's names use substitutions)
+        // takes a quest_item visual and a bare profile.
+        let info = match crate::inventory_request::Metadata::load(dat, entity) {
+            Ok(info) => info,
+            Err(_) if over.visual.is_some() => crate::inventory_request::Metadata { implement: None, icon: 0, physical: 0, equipment: None },
+            Err(e) => return Err(bad(&e.to_string())),
+        };
         let visual = match over.visual { Some(v) => v, None => crate::tradeskills::visual_of(dat, info.physical).map_err(|e| bad(&e.to_string()))? };
         dat.read(visual).map_err(|e| bad(&e.to_string()))?;
         let mask = over.equipment_mask.unwrap_or_else(|| crate::apparel::recovered_slot(entity, visual).unwrap_or(info.equipment.map_or(0, |e| e.valid as u16 & 0x7ff)));
