@@ -241,6 +241,10 @@ impl Tables {
                 Action::Message(text) => s.outcome.lines.push(text.clone()),
                 Action::AwardXp(xp) => s.change(crate::progression::Command::AwardXp(*xp))?,
                 Action::AwardGold(gold) => s.change(crate::progression::Command::AwardGold(*gold))?,
+                Action::TakeGold(gold) => {
+                    if s.progression.gold < *gold { return Err(io::Error::other("You do not have enough coins.")); }
+                    s.change(crate::progression::Command::SpendGold(*gold))?;
+                }
                 Action::AwardLevelProportionalXp { basis_points, min, max } => {
                     // At the last level (no span) a capped reward pays its cap.
                     let Some(span) = s.progression.level_span() else {

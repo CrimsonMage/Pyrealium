@@ -226,6 +226,7 @@ pub enum Action {
     /// Adds Kingdom Points, up to `max` (0: no cap).
     AwardKingdomPoints { points: u32, max: u32 },
     AwardQuestPoints(u32),
+    TakeGold(u32),
     /// Whether the player has at least `points` Kingdom Points.
     InqKingdomPoints { points: u32, success: Option<String>, failure: Option<String> },
 }

@@ -649,3 +649,17 @@ fn world_builder_quests_merge_over_the_shipped_quests_row_by_row() {
     // Nothing edited: the merge is the shipped dump.
     assert_eq!(db::merge(&text, &shipped, &text).unwrap().text, shipped);
 }
+
+/// TakeGold pays coins; with too few the whole set fails (InqStat gold checks first).
+#[test]
+fn take_gold_pays_or_fails_the_set() {
+    let reg = HEADERS[0].to_owned() + "\n";
+    let sets = HEADERS[2].to_owned() + "\npay\t0x47000002\t\tUse\t\t\t\t\t\t\tsrc\n";
+    let acts = HEADERS[3].to_owned() + "\npay\t1\tTakeGold\t0\t1000\t\t\t\t\tsrc\n";
+    let t = Tables::parse([&reg, &(HEADERS[1].to_owned() + "\n"), &sets, &acts], ["r", "s", "e", "a"]).unwrap();
+    let none = Inventory::default();
+    let rich = Progression::default().apply(&crate::progression::Command::AwardGold(1500)).unwrap();
+    let o = t.run(Trigger::Use, 0x47000002, 0, None, &Book::default(), &none, &rich, first(&none), 0.0, 1, &item).unwrap().unwrap();
+    assert!(matches!(o.changes.as_slice(), [crate::progression::Command::SpendGold(1000)]));
+    assert!(t.run(Trigger::Use, 0x47000002, 0, None, &Book::default(), &none, &Progression::default(), first(&none), 0.0, 1, &item).is_err());
+}

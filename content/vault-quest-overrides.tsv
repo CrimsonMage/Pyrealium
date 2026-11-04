@@ -154,8 +154,6 @@ vault_id	field	key	value	source
 132	step	2	talk Gurog Supreme Warlord	DAT questslayundyingone.stt (2500796b) 2e5f1e52 'Return to the Gurog Supreme Warlord for your reward.'
 133	kill_target	Blood Lords	0x4700278c,0x4700278d,0x4700278e	DAT questslaybloodlords.stt description: 'Slay some combination of 12 Blood Lords, Blood Lord Champions, and Blood Lord Chieftains'; entities wsl_gurogbloodlord / champion / chieftain
 134	kill_target	Gurog Harren Oathbreaker	0x4700279c	DAT wsl_gurogbloodlordoathbreaker.entity (name 'Harren Oathbreaker[mn]'); guroghighshaman.stt 2a6b097a 'Slay the great warrior-chief Harren Oathbreaker'
-136	step	1	talk Gallus	AC2Hero quest 'Fanboi': 'Travel to Whitebay and speak to Gallus'; AC2 Vault quests/db 136 walkthrough: 'Take the Note pad to Gallus in Whitebay'
-136	step	2	talk Stubby	AC2 Vault quests/db 136 walkthrough: 'Return the note to Stubby'
 141	item	Black Dye Plant	0x4700171b	DAT wsl_dyeplantblack.entity (stem dyeplantblack; its name string is 'Thananim Plant'); quest line 'Find a black dye plant'. Medium confidence: the DAT never calls it 'black dye plant'
 141	step	1	give Black Dye Plant to Adesar the Mushroom Collector	DAT questimperatorgreenthumb.stt (250079dd) phase line 2e5f1e52; DAT adesar table cdaf2916 'Give me a black dye plant'
 141	step	2	use Dark Syrup on Mucor Mushroom	DAT questimperatorgreenthumb.stt (250079dd) phase line 2e5e1e52 'Apply the dark syrup to a mucor mushroom'
@@ -300,3 +298,13 @@ vault_id	field	key	value	source
 296	kill_target	Wind Flayers	0x47000fb8	DAT wsl_flayerwind.entity (name string 'Wind Flayer')
 296	step	1	kill 10 Drift Flayers	AC2 Vault quests/db 296 walkthrough: 'You must kill 10 Drift Flayers and 10 Wind Flayers'
 296	step	2	kill 10 Wind Flayers	AC2 Vault quests/db 296 walkthrough: 'You must kill 10 Drift Flayers and 10 Wind Flayers'
+136	step	1	receive Stationary Pad	AC2 Vault quests/db 136 walkthrough: Stubby hands you a note pad; DAT wsl_stationarypad.entity
+136	step	2	give Stationary Pad to Gallus	AC2 Vault quests/db 136: 'Take the Note pad to Gallus in Whitebay'
+136	step	3	receive Gallus's Autograph from Gallus	AC2 Vault quests/db 136: Gallus signs it; DAT wsl_stationarypadsigned.entity 'Gallus's Autograph'
+136	step	4	give Gallus's Autograph to Stubby	AC2 Vault quests/db 136: 'Return the note to Stubby'
+136	item	Stationary Pad	0x470027d3	DAT wsl_stationarypad.entity
+136	item	Gallus's Autograph	0x470027cb	DAT wsl_stationarypadsigned.entity (name string 'Gallus's Autograph')
+136	line	offer	0x2500798a:0xa0960c17	DAT stubby.stt: 'Ever hear of the great war hero Gallus? ... I'd really love to get his autograph!'
+136	line	2	0x250074b0:0x02a7ad71	DAT gallus.stt: 'You want my autograph... how flattering.'
+136	line	turn	0x2500798a:0x1df66a95	DAT stubby.stt: 'Stubby looks at the signature.'
+136	line	turn	0x2500798a:0xc456aa35	DAT stubby.stt: 'Finally, an autograph from the great Gallus to call my own.'

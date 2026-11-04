@@ -208,7 +208,8 @@ impl Tables {
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
                         | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. }
                         | Action::GenerateStep { .. } | Action::MoveToStep { .. } | Action::AwardXpShare { .. } | Action::AwardGoldShare { .. }
-                        | Action::TakeQuantity { .. } | Action::GiveStack { .. });
+                        | Action::TakeQuantity { .. } | Action::GiveStack { .. } | Action::TakeGold(_) | Action::AwardQuestPoints(_)
+                        | Action::AwardKingdomPoints { .. });
                     if refused {
                         let at = lines.get(start.id.as_str()).map_or("", String::as_str);
                         return Err(io::Error::other(format!("{at}: a {:?} set changes quests and talks only, but reaches {action:?} in set {set}",

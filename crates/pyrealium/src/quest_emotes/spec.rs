@@ -98,6 +98,8 @@ pub const ACTIONS: &[Spec] = &[
     Spec { name: "AwardLevelProportionalXP", params: &[req("percent", Kind::Percent), opt("min", Kind::Range(0, u64::MAX)), opt("max", Kind::Range(0, u64::MAX))],
         doc: "Gives a percent of the experience the player's current level spans, at least min and at most max (empty: no limit)." },
     Spec { name: "AwardGold", params: &[req("gold", Kind::Range(1, u32::MAX as u64))], doc: "Gives coins." },
+    Spec { name: "TakeGold", params: &[req("gold", Kind::Range(1, u32::MAX as u64))],
+        doc: "Takes coins (a payment). The whole set fails when the player has fewer: check first with InqStat gold." },
     Spec { name: "AwardXPShare", params: &[req("percent", Kind::Percent), QUEST, req("part", Kind::Counter), req("whole", Kind::Counter)],
         doc: "Gives the percent of the level's experience span times counter part over counter whole of the quest (a share of a reward: fights won of fights)." },
     Spec { name: "AwardGoldShare", params: &[req("gold", Kind::Range(1, u32::MAX as u64)), QUEST, req("part", Kind::Counter), req("whole", Kind::Counter)],
@@ -330,6 +332,7 @@ pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
             Action::AwardLevelProportionalXp { basis_points: v[0].u(), min, max }
         }
         "AwardGold" => Action::AwardGold(v[0].u32()),
+        "TakeGold" => Action::TakeGold(v[0].u32()),
         "GiveItem" => Action::GiveItem { entity: v[0].u32(), count: v[1].u32() },
         "TakeItem" => Action::TakeItem { entity: v[0].u32(), count: v[1].u16() },
         "RandomGive" => Action::RandomGive(match &v[0] { V::Weights(w) => w.clone(), _ => Vec::new() }),

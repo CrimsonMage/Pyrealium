@@ -10,6 +10,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `AwardXP` | p1 xp: whole number, at least 1 | Gives experience. |
 | `AwardLevelProportionalXP` | p1 percent: percent (up to 2 decimals)<br>[p2 min: whole number, at least 0]<br>[p3 max: whole number, at least 0] | Gives a percent of the experience the player's current level spans, at least min and at most max (empty: no limit). |
 | `AwardGold` | p1 gold: whole number, at least 1 | Gives coins. |
+| `TakeGold` | p1 gold: whole number, at least 1 | Takes coins (a payment). The whole set fails when the player has fewer: check first with InqStat gold. |
 | `AwardXPShare` | p1 percent: percent (up to 2 decimals)<br>p2 quest: quest name<br>p3 part: counter (0-255, or its quest_counter name)<br>p4 whole: counter (0-255, or its quest_counter name) | Gives the percent of the level's experience span times counter part over counter whole of the quest (a share of a reward: fights won of fights). |
 | `AwardGoldShare` | p1 gold: whole number, at least 1<br>p2 quest: quest name<br>p3 part: counter (0-255, or its quest_counter name)<br>p4 whole: counter (0-255, or its quest_counter name) | Gives the coins times counter part over counter whole of the quest. |
 | `GiveItem` | p1 item: entity DID (0x47...) or entity alias<br>p2 count: whole number 1-16 | Gives items (one bag slot each). The whole set fails when the bag is full. |
