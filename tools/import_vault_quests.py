@@ -449,8 +449,8 @@ class Data:
                     if q.get("title"):
                         self.catalog_title[key(q["title"])].append(src)
                         self.catalog_quest_rows[key(q["title"])].append((src, q))
-                        if src.startswith("hunting"):
-                            self.catalog_hunts.setdefault(src, []).append(q)
+                        # The hunting catalog's hunts are hand rows in quests.sql now (their own
+                        # journal ids and DAT lines): the Vault rows never regenerate them.
                     if q.get("npc"):
                         self.catalog_npc[q["npc"]].append(src + " (quest NPC)")
             for n in (d.get("npcs") or []) + (d.get("profiles") or []):
@@ -2202,7 +2202,9 @@ def ship_rows(drafts):
         cands = [(src, cq) for src, cq in DATA.catalog_quest_rows.get(key(d["title"]), []) if src.startswith("hunting")]
         if len(cands) == 1:
             cat = cands[0]
-        other = [o for o in d["overlaps"] if o["by"] in ("journal id", "title") and not any(c.startswith("hunting") for c in o["catalogs"])]
+        # A quest the database already runs (a hand row, `quests.sql ...`) never gets vault rows too.
+        other = [o for o in d["overlaps"] if o["by"] in ("journal id", "title") and (
+            any(c.startswith("quests.sql") for c in o["catalogs"]) or not any(c.startswith("hunting") for c in o["catalogs"]))]
         if other:
             d["blocks"].append(("Runs as a Pyrealium catalog quest", "operated", "; ".join(", ".join(o["catalogs"]) for o in other)
                                 + " already runs it (Pyrealium's recovered quests)"))
