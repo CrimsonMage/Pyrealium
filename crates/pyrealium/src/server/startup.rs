@@ -501,7 +501,10 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             crate::admin::Paths { world, rules,
                 quests: quests_sidecar.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))?,
                 quests_base: quests_base.clone().ok_or_else(|| invalid("--admin-bind needs --content-overlay"))? },
-            base_objects, quest_text.map(|(text, _)| text), shipped_canonical.clone())?),
+            // The world builder edits the quests: it is handed the dumps without the world's rows
+            // (the merge at the start keeps those from the shipped dump).
+            base_objects, quest_text.map(|(text, _)| crate::content_db::without_world(&text)).transpose()?,
+            crate::content_db::without_world(&shipped_canonical)?)?),
         _ => None,
     };
     let next_resource_cleanup=0;

@@ -183,31 +183,37 @@ CREATE TABLE IF NOT EXISTS quest_item (
 );
 CREATE TABLE IF NOT EXISTS world_pack (
   name TEXT PRIMARY KEY CHECK (name <> ''),
-  kind TEXT NOT NULL CHECK (kind IN ('base', 'authored', 'capture', 'recovered', 'builder')),
-  report TEXT,
-  manifest_sha256 TEXT,
-  source_sha256 TEXT,
-  native_ground_verified INTEGER CHECK (native_ground_verified IN (0, 1)),
+  ord INTEGER NOT NULL UNIQUE CHECK (ord >= 0),
+  kind TEXT NOT NULL CHECK (kind IN ('observed', 'authored', 'capture', 'recovered', 'inferred', 'builder')),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS world_evidence (
+  name TEXT PRIMARY KEY CHECK (name <> ''),
+  body TEXT NOT NULL CHECK (json_valid(body)),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
 CREATE TABLE IF NOT EXISTS world_object (
-  iid TEXT PRIMARY KEY CHECK (iid GLOB '0x8140[0-9a-fA-F]*' AND length(iid) = 18),
-  entity TEXT NOT NULL CHECK (entity GLOB '0x47[0-9a-fA-F]*' AND length(entity) = 10),
-  visual TEXT NOT NULL CHECK (visual GLOB '0x1f[0-9a-fA-F]*' AND length(visual) = 10),
-  cell TEXT NOT NULL CHECK (cell GLOB '0x[0-9a-fA-F]*' AND length(cell) = 10),
-  x REAL NOT NULL,
-  y REAL NOT NULL,
-  z REAL NOT NULL,
-  qw REAL NOT NULL,
-  qx REAL NOT NULL,
-  qy REAL NOT NULL,
-  qz REAL NOT NULL,
-  scale REAL CHECK (scale > 0 AND scale <= 100),
-  name TEXT CHECK (length(name) <= 256),
   pack TEXT NOT NULL REFERENCES world_pack(name) ON UPDATE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  iid TEXT NOT NULL CHECK (iid GLOB '0x[0-9a-fA-F]*' AND length(iid) = 18),
+  entity TEXT NOT NULL CHECK (entity GLOB '0x[0-9a-fA-F]*' AND length(entity) = 10),
+  visual TEXT NOT NULL CHECK (visual GLOB '0x[0-9a-fA-F]*' AND length(visual) = 10),
+  cell TEXT NOT NULL CHECK (cell GLOB '0x[0-9a-fA-F]*' AND length(cell) = 10),
+  x TEXT NOT NULL CHECK (x <> ''),
+  y TEXT NOT NULL CHECK (y <> ''),
+  z TEXT NOT NULL CHECK (z <> ''),
+  qw TEXT NOT NULL CHECK (qw <> ''),
+  qx TEXT NOT NULL CHECK (qx <> ''),
+  qy TEXT NOT NULL CHECK (qy <> ''),
+  qz TEXT NOT NULL CHECK (qz <> ''),
+  scale TEXT CHECK (scale <> ''),
+  name TEXT CHECK (length(name) <= 256),
   family TEXT NOT NULL DEFAULT 'hand',
-  source TEXT
+  source TEXT,
+  PRIMARY KEY (pack, iid),
+  UNIQUE (pack, ord)
 );
 CREATE TABLE IF NOT EXISTS creature_stats (
   target TEXT PRIMARY KEY CHECK (target GLOB '0x47[0-9a-fA-F]*' OR target GLOB '0x8140[0-9a-fA-F]*'),

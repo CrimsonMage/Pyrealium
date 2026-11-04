@@ -40,11 +40,13 @@ def signature(world_path):
     return mtime(quests_path(world_path)), mtime(quests_db_path(world_path))
 
 
-def read_dump(path):
+def read_dump(path, limit=LIMIT):
+    """A dump's text; a world's quest dump is refused past `limit` (the shipped content dump, which
+    holds the whole world, is read with `limit=None`)."""
     with path.open("rb") as file:
-        data = file.read(LIMIT + 1)
-    if len(data) > LIMIT:
-        raise ValueError(f"{path.name} exceeds 8 MiB")
+        data = file.read() if limit is None else file.read(limit + 1)
+    if limit is not None and len(data) > limit:
+        raise ValueError(f"{path.name} exceeds {limit // (1024 * 1024)} MiB")
     return data.decode("utf-8")
 
 

@@ -341,7 +341,9 @@ pub fn fellow_kill(book: &Book, inventory: &Inventory, progression: &crate::prog
 /// The shipped tables (`content/`), installed, for unit tests.
 #[cfg(test)]
 pub fn shipped() -> Arc<Tables> {
-    let tables = Tables::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content")).unwrap();
+    // Read once per test run: the dump holds the world too (tens of thousands of rows).
+    static SHIPPED: std::sync::OnceLock<Tables> = std::sync::OnceLock::new();
+    let tables = SHIPPED.get_or_init(|| Tables::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content")).unwrap()).clone();
     install(tables).unwrap();
     installed().unwrap()
 }

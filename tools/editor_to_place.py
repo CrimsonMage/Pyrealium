@@ -25,7 +25,7 @@ def read_rows(source=None):
             db = sqlite3.connect(f"{source.resolve().as_uri()}?mode=ro", uri=True)
         else:
             db = sqlite3.connect(":memory:")
-            db.executescript(editor_quests.read_dump(source))
+            db.executescript(editor_quests.read_dump(source, limit=None if source == SHIPPED else editor_quests.LIMIT))
         try:
             found = db.execute(f"SELECT {', '.join(COLUMNS)} FROM placement_hint ORDER BY what, name").fetchall()
         finally:

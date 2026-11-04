@@ -1,7 +1,6 @@
 """The Quests tab over the shipped quest dump, with a stand-in for the server's DAT line list."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
-import shutil
 import sqlite3
 import tempfile
 import threading
@@ -42,7 +41,13 @@ class QuestPanelTests(unittest.TestCase):
         (folder / "admin.token").write_text("secret\n")
         self.world = folder / "w.tsv"
         self.world.write_text("pyrealium-world-v2\n")
-        shutil.copy(SHIPPED, folder / "w.quests.sql")
+        # The world's quests as the server hands them: the shipped dump without the world's rows.
+        db = sqlite3.connect(":memory:")
+        db.executescript(SHIPPED.read_text(encoding="utf-8"))
+        for table in ("world_object", "world_evidence", "world_pack"):
+            db.execute(f"DELETE FROM {table}")
+        (folder / "w.quests.sql").write_text("\n".join(db.iterdump()) + "\n", encoding="utf-8")
+        db.close()
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Strings)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.addCleanup(self.server.server_close)

@@ -4,6 +4,11 @@
 resolver = "2"
 members = ["crates/*"]
 
+# The bundled SQLite (the content database: tens of thousands of rows) is optimised in debug and
+# test builds too; unoptimised, loading the content dump takes a minute instead of a second.
+[profile.dev.package.libsqlite3-sys]
+opt-level = 3
+
 [profile.release]
 overflow-checks = true
 lto = "thin"

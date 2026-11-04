@@ -21,6 +21,8 @@ use rusqlite::types::{Value, ValueRef};
 
 use crate::quest_emotes::Tables;
 
+pub mod world;
+
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
 pub const SCHEMA_VERSION: i32 = 12;
 
@@ -79,7 +81,7 @@ pub const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 17] = [
+const SHAPES_TAIL: [Shape; 18] = [
     Shape { table: "quest_recipe", order: "recipe", key: 1, columns: &["recipe", "ingredient", "quantity", "output", "source"] },
     Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
@@ -93,10 +95,10 @@ const SHAPES_TAIL: [Shape; 17] = [
         columns: &["entity", "what", "name", "north", "east", "cell", "x", "y", "quests", "source"] },
     // The world: its packs (with the evidence the prepare step checks), its placed objects, the
     // world builder's creature rules and spawn groups, and the portal routes.
-    Shape { table: "world_pack", order: "name", key: 1,
-        columns: &["name", "kind", "report", "manifest_sha256", "source_sha256", "native_ground_verified", "source"] },
-    Shape { table: "world_object", order: "iid", key: 1,
-        columns: &["iid", "entity", "visual", "cell", "x", "y", "z", "qw", "qx", "qy", "qz", "scale", "name", "pack", "source"] },
+    Shape { table: "world_pack", order: "ord", key: 1, columns: &["name", "ord", "kind", "source"] },
+    Shape { table: "world_evidence", order: "name", key: 1, columns: &["name", "body", "source"] },
+    Shape { table: "world_object", order: "pack, ord", key: 2,
+        columns: &["pack", "iid", "ord", "entity", "visual", "cell", "x", "y", "z", "qw", "qx", "qy", "qz", "scale", "name", "source"] },
     Shape { table: "creature_stats", order: "target", key: 1,
         columns: &["target", "health", "damage", "armor", "level", "xp", "gold", "interval_ms", "range", "leash", "respawn_ms", "source"] },
     Shape { table: "creature_ai", order: "target", key: 1,
@@ -130,7 +132,7 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
     let db = Connection::open_in_memory().map_err(sql)?;
     // References are checked once every row is in (the bundled SQLite turns them on by default).
     db.execute_batch("PRAGMA foreign_keys = OFF;").map_err(sql)?;
-    db.execute_batch(text).map_err(|e| io::Error::other(format!("content.sql: {e}")))?;
+    execute_dump(&db, text).map_err(|e| io::Error::other(format!("content.sql: {e}")))?;
     db.execute_batch(SCHEMA).map_err(sql)?;
     for shape in shapes() {
         let mut statement = db.prepare(&format!("PRAGMA table_info({})", shape.table)).map_err(sql)?;
@@ -146,7 +148,14 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
         have.sort();
         want.sort();
         if have != want {
-            return Err(io::Error::other(format!("content.sql: table {} has columns {}; this server reads {}", shape.table, have.join(", "), want.join(", "))));
+            // An empty table of an earlier shape (a table added and reshaped before it held rows)
+            // is made anew; a table with rows must match.
+            let rows: i64 = db.query_row(&format!("SELECT COUNT(*) FROM {}", shape.table), [], |r| r.get(0)).map_err(sql)?;
+            if rows > 0 || !RESHAPED_EMPTY.contains(&shape.table) {
+                return Err(io::Error::other(format!("content.sql: table {} has columns {}; this server reads {}", shape.table, have.join(", "), want.join(", "))));
+            }
+            db.execute_batch(&format!("DROP TABLE {}", shape.table)).map_err(sql)?;
+            db.execute_batch(SCHEMA).map_err(sql)?;
         }
     }
     let broken: Option<(String, i64, String)> = db.query_row("PRAGMA foreign_key_check", [], |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)))
@@ -157,6 +166,46 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
     db.execute_batch("PRAGMA foreign_keys = ON;").map_err(sql)?;
     check_version(&db)?;
     Ok(db)
+}
+
+/// Tables whose shape changed before they ever held rows: a dump's empty one of the earlier shape
+/// is made anew (any other table must match).
+const RESHAPED_EMPTY: [&str; 1] = ["world_pack"];
+
+/// The world's tables (`world::*`), which the quest-editing paths leave out of their dumps.
+pub const WORLD_TABLES: [&str; 3] = ["world_pack", "world_evidence", "world_object"];
+
+/// The dump `text` without the world's rows (`WORLD_TABLES`), in export form: what the world
+/// builder's quest editing exchanges (the shipped world is tens of megabytes and is not edited
+/// there; a merge over the shipped dump keeps it).
+pub fn without_world(text: &str) -> io::Result<String> {
+    let db = open_dump(text)?;
+    for table in WORLD_TABLES.iter().rev() {
+        db.execute(&format!("DELETE FROM {table}"), []).map_err(sql)?;
+    }
+    export(&db)
+}
+
+/// Runs a SQL dump statement by statement. SQLite copies the text it is given to prepare when that
+/// text is not NUL-terminated, so handing it the whole rest of a large dump for each of its
+/// statements (as `execute_batch` does) copies the dump once per row: tens of thousands of rows
+/// made a load take most of a minute. A statement ends at a line ending in `;` once its single
+/// quotes balance (SQL doubles a quote inside a string); comment lines do not count.
+pub fn execute_dump(db: &Connection, text: &str) -> rusqlite::Result<()> {
+    let (mut statement, mut quotes) = (String::new(), 0usize);
+    for line in text.split_inclusive('\n') {
+        let trimmed = line.trim_end();
+        if statement.is_empty() && (trimmed.is_empty() || trimmed.starts_with("--")) { continue; }
+        statement.push_str(line);
+        quotes += line.bytes().filter(|b| *b == b'\'').count();
+        if quotes % 2 == 0 && trimmed.ends_with(';') {
+            db.execute_batch(&statement)?;
+            statement.clear();
+            quotes = 0;
+        }
+    }
+    if !statement.trim().is_empty() { db.execute_batch(&statement)?; }
+    Ok(())
 }
 
 /// The dump `text` as `export` writes it (checked as the server checks it), so any dump of the
@@ -298,7 +347,7 @@ pub fn import_sql(db: &mut Connection, text: &str, family: &str) -> io::Result<(
         tx.query_row(&format!("SELECT COUNT(*) FROM {table} WHERE family <> ?1"), [family], |r| r.get(0)).map_err(sql)
     };
     let before: Vec<i64> = all.iter().map(|s| count(&tx, s.table)).collect::<io::Result<_>>()?;
-    tx.execute_batch(text).map_err(|e| io::Error::other(format!("the {family} rows: {e}")))?;
+    execute_dump(&tx, text).map_err(|e| io::Error::other(format!("the {family} rows: {e}")))?;
     // Every row the text adds is the family's (a row left at the default `hand` would not be
     // replaced by the next import).
     for (shape, was) in all.iter().zip(before) {
