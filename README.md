@@ -250,6 +250,10 @@ rather than writing the settings themselves; its header lists the options and va
 
 ## Build and verify
 
+File size rule: plan a split by responsibility once a `.rs` file reaches 1000 lines; 1500 is a
+hard fail. `scripts/check_file_sizes.sh` warns at 1000 and fails at 1500, and so does the
+`file_sizes` test.
+
 ```powershell
 .\Build-Pyrealium.ps1 -Test
 .\Build-AC2Network.ps1 -Test
