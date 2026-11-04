@@ -463,7 +463,7 @@ fn typed(table: &str, column: &str, v: &str) -> Value {
 }
 
 /// Replaces `family`'s placement hints with the TSV `text` (a header of `placement_hint`'s
-/// columns, then one hint per line).
+/// columns, then one hint per line); an entity another family hints at is left as it is.
 pub fn import_hints(db: &mut Connection, text: &str, family: &str) -> io::Result<usize> {
     let shape = shape("placement_hint");
     let mut lines = text.lines();
@@ -474,7 +474,8 @@ pub fn import_hints(db: &mut Connection, text: &str, family: &str) -> io::Result
     let tx = db.transaction().map_err(sql)?;
     tx.execute("DELETE FROM placement_hint WHERE family = ?1", [family]).map_err(sql)?;
     let marks: Vec<String> = (1..=shape.columns.len() + 1).map(|i| format!("?{i}")).collect();
-    let query = format!("INSERT INTO placement_hint ({}, family) VALUES ({})", shape.columns.join(", "), marks.join(", "));
+    // An entity another family already hints at (hand rows, edited in the database) keeps its row.
+    let query = format!("INSERT OR IGNORE INTO placement_hint ({}, family) VALUES ({})", shape.columns.join(", "), marks.join(", "));
     let mut count = 0;
     for (n, line) in lines.enumerate().filter(|(_, l)| !l.trim().is_empty()) {
         let fields: Vec<&str> = line.split('\t').collect();

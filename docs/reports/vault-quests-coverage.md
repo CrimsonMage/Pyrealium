@@ -8,18 +8,18 @@ Evidence ranking: client/DAT, then AC2 Vault, then AC2Hero, then Pyrealium polic
 
 | Status | Quests |
 |---|---|
-| Shipped (rows in `content/*-vault.tsv`) | 66 |
-| Fully resolved, not shipped | 22 |
-| Partially resolved (no engine gap; data missing) | 56 |
-| Blocked by an engine gap | 98 |
-| ...of which every parsed field also resolves and no catalog overlaps | 4 |
+| Shipped (rows in `content/*-vault.tsv`) | 0 |
+| Fully resolved, not shipped | 58 |
+| Partially resolved (no engine gap; data missing) | 70 |
+| Blocked by an engine gap | 114 |
+| ...of which every parsed field also resolves and no catalog overlaps | 3 |
 | **All** | 242 |
 
 Phase 2 gave the engine the registry's level, time limit, repeat delay and solve limit, GiveItem of any item entity, AwardGold, InqSolved (prerequisites), InqLevel and InqQuestReady (refusal lines). A gap the engine now has no longer blocks; the rest do (`remaining_gaps` in the drafts). A quest ships only when its rows can also be generated: so far the hunt shape (one NPC, N kills of one creature, the journal phases and NPC lines from the DAT, an experience reward).
 
 | Gap closed (Phase 2, in order) | Quests shipped by it |
 |---|---|
-| level requirement + time limit + repeat timer | 66 (every shipped quest needs all three) |
+| level requirement + time limit + repeat timer | 0 (every shipped quest needs all three) |
 | item grants (any item entity) | 0 (no generated shape grants items yet) |
 | gold reward, prerequisite quests | 0 (no generated shape uses them yet) |
 
@@ -27,16 +27,13 @@ Why the hunt generator passed over the rest:
 
 | Reason | Quests |
 |---|---|
-| not one kill target | 137 |
-| no DAT quest table (quest*.stt) holds the title | 25 |
-|  | 23 |
-| the quest table's phase lines are not 1..1 and a report line | 18 |
-| generated | 16 |
-| the NPC table has no single offer/reward pair whose offer is the quest's summary | 7 |
-| the quest table's phase lines are not 1..10 and a report line | 6 |
+| not one kill target | 123 |
+|  | 89 |
+| no DAT quest table (quest*.stt) holds the title | 13 |
+| the quest table's phase lines are not 1..1 and a report line | 5 |
+| the NPC table has no single offer/reward pair whose offer is the quest's summary | 4 |
 | the quest table's phase lines are not 1..30 and a report line | 4 |
-| the quest table's phase lines are not 1..15 and a report line | 4 |
-| the quest table's phase lines are not 1..3 and a report line | 1 |
+| the quest table's phase lines are not 1..10 and a report line | 3 |
 | no placed start NPC with a string table | 1 |
 
 ### Resolution
@@ -46,13 +43,13 @@ Why the hunt generator passed over the rest:
 | journal id (DAT quest) | 44 |
 | start coordinates | 179 |
 | start NPC named | 203 |
-| start NPC placed in Pyrealium's world | 171 |
-| ...high confidence | 133 |
+| start NPC placed in Pyrealium's world | 170 |
+| ...high confidence | 131 |
 | has quoted dialogue | 62 |
 | every quote matched to a DAT string | 44 |
-| has kill steps | 138 |
-| every kill target resolved | 119 |
-| kill targets from the DAT's death effects | 33 |
+| has kill steps | 123 |
+| every kill target resolved | 101 |
+| kill targets from the DAT's death effects | 18 |
 | named effects (eff_*.wc) | 27 |
 | quoted lines matched / all quoted lines | 133 / 168 (131 high confidence) |
 
@@ -65,9 +62,9 @@ Why the hunt generator passed over the rest:
 | start NPC not named | 35 |
 | reward item entity | 33 |
 | start NPC placement | 23 |
-| kill target entity | 19 |
+| kill target entity | 22 |
 | quoted lines without a DAT match | 18 |
-| start NPC entity | 16 |
+| start NPC entity | 17 |
 | experience percentage | 13 |
 | no parseable steps | 12 |
 
@@ -85,9 +82,9 @@ Why the hunt generator passed over the rest:
 | 6 | ApplyEffect | 45 | has | 0 |
 | 7 | prerequisite quests | 36 | has | 0 |
 | 8 | crafting step | 35 | 35 | 17 |
-| 9 | random reward choice | 27 | 27 | 8 |
-| 10 | fellowship credit | 25 | 25 | 4 |
-| 11 | Enter hook (arrive at a place) | 25 | has | 0 |
+| 9 | Enter hook (arrive at a place) | 35 | has | 0 |
+| 10 | random reward choice | 27 | 27 | 8 |
+| 11 | fellowship credit | 25 | 25 | 4 |
 | 12 | summoned pet reward | 15 | 15 | 2 |
 | 13 | kingdom/faction/hero status | 12 | 12 | 4 |
 | 14 | quest points | 10 | 10 | 5 |
@@ -99,7 +96,7 @@ Why the hunt generator passed over the rest:
 
 Detected for no quest: Kill-set Tell (a line on a kill); delays (delay_ms) (delays: the Vault's prose gives no timed beats; a kill-time chat line is quoted by no walkthrough).
 
-Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 86 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
+Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 90 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
 
 ### Build order
 
@@ -109,32 +106,32 @@ Features in the order that makes the most quests runnable, counting only quests 
 |---|---|---|---|
 | 0 | (in the engine: ApplyEffect, Enter hook (arrive at a place), Kill-set Tell (a line on a kill), gold reward, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, several kill counters in one quest, time limit) | 1 | 128 |
 | 1 | chest/door/lever interaction | 3 | 155 |
-| 2 | crafting step | 4 | 175 |
-| 3 | random reward choice | 5 | 190 |
-| 4 | fellowship credit | 5 | 205 |
-| 5 | kingdom/faction/hero status | 6 | 212 |
-| 6 | summoned pet reward | 6 | 225 |
-| 7 | escort/protect | 7 | 226 |
-| 8 | quest points | 7 | 236 |
-| 9 | kingdom points | 7 | 239 |
-| 10 | defend a spawned object | 7 | 242 |
+| 2 | crafting step | 3 | 175 |
+| 3 | random reward choice | 3 | 190 |
+| 4 | fellowship credit | 3 | 205 |
+| 5 | kingdom/faction/hero status | 4 | 212 |
+| 6 | summoned pet reward | 4 | 225 |
+| 7 | quest points | 4 | 235 |
+| 8 | kingdom points | 4 | 238 |
+| 9 | defend a spawned object | 4 | 241 |
+| 10 | escort/protect | 4 | 242 |
 
 ### Most common gap sets
 
 | Gaps | Quests | ...data complete, no overlap |
 |---|---|---|
-| level requirement + repeat timer + time limit | 64 | 0 |
+| level requirement + repeat timer + time limit | 61 | 0 |
 | level requirement + prerequisite quests + repeat timer + time limit | 17 | 0 |
-| item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 9 | 1 |
+| Enter hook (arrive at a place) + level requirement + repeat timer + time limit | 8 | 0 |
+| item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 8 | 1 |
 | chest/door/lever interaction + level requirement + repeat timer + time limit | 7 | 0 |
 | chest/door/lever interaction + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 7 | 2 |
-| level requirement + time limit | 5 | 0 |
-| Enter hook (arrive at a place) + level requirement + repeat timer + time limit | 5 | 0 |
 | ApplyEffect + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 5 | 0 |
+| level requirement + time limit | 4 | 0 |
+| Enter hook (arrive at a place) + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 3 | 0 |
 | item grants beyond the Shelter's item profiles + level requirement + prerequisite quests + repeat timer + time limit | 3 | 0 |
 | ApplyEffect + Enter hook (arrive at a place) + crafting step + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
 | ApplyEffect + crafting step + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
-| Enter hook (arrive at a place) + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
 
 ## Overlaps with the older hand-coded catalogs
 
@@ -142,8 +139,11 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 
 | Vault quest | Overlap | Catalogs | Winner today | Why |
 |---|---|---|---|---|
+| Dillo Rustlers | journal id | quests.sql v22 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Dillo Rustlers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Mucor Mushroom Hunt | journal id | quests.sql v39 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Mucor Mushroom Hunt | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay the Shrethwarden | title | quests.sql v41 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay the Shrethwarden | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Linvak Soulbound Weapons | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Osteth Soulbound Weapons | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -151,29 +151,55 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Armor of the Ancient Knights | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Shoyanen's Solutions | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Armor of the Ancient Lords | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Mimbu Negotiations | title | quests.sql v57 | catalog | an operated quest of this title; rows here would double-run it |
 | Mimbu Negotiations | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Akkilea's Purification | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Vengence for Unaro | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Kill the Keerik | title | quests.sql v62 | catalog | an operated quest of this title; rows here would double-run it |
 | Kill the Keerik | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Olthoi Grub Meat | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Journey to Linvak | title | quests.sql v64 | catalog | an operated quest of this title; rows here would double-run it |
 | Journey to Linvak | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Temple Forge Repair | journal id | quests.sql v69 | catalog | an operated quest of this journal id; rows here would double-run it |
+| Temple Forge Repair | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay the Gray Flayer | title | quests.sql v74 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay the Gray Flayer | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Gurog Vuldor | title | quests.sql v76 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay Gurog Vuldor | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Uran the Black | title | quests.sql v77 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay Uran the Black | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Veran | title | quests.sql v78 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay Veran | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Rymeras | title | quests.sql v79 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay Rymeras | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay the Shattered Golem | title | quests.sql v80 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay the Shattered Golem | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay the Demented Warath | title | quests.sql v81 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay the Demented Warath | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Thanos | title | quests.sql v82 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay Thanos | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Sword of the Doomed Hero | journal id | quests.sql v83 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Sword of the Doomed Hero | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Mosswart Rescue | title | quests.sql v87 | catalog | an operated quest of this title; rows here would double-run it |
+| Mosswart Rescue | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Scent of the Prey | title | quests.sql v90 | catalog | an operated quest of this title; rows here would double-run it |
 | Scent of the Prey | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Shreth-Hide Leather | title | quests.sql v91 | catalog | an operated quest of this title; rows here would double-run it |
 | Shreth-Hide Leather | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Find a Good Spear | title | quests.sql v92 | catalog | an operated quest of this title; rows here would double-run it |
 | Find a Good Spear | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Moarsman Fin Soup | title | quests.sql v93 | catalog | an operated quest of this title; rows here would double-run it |
 | Moarsman Fin Soup | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Shreth-Hunters Guide to Omishan | title | quests.sql v94 | catalog | an operated quest of this title; rows here would double-run it |
 | Shreth-Hunters Guide to Omishan | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Dreams of the Ero-Bal | title | quests.sql v103 | catalog | an operated quest of this title; rows here would double-run it |
 | Dreams of the Ero-Bal | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Something Borrowed | title | quests.sql v104 | catalog | an operated quest of this title; rows here would double-run it |
 | Something Borrowed | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Decode the Glyphs | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| The Long Eared Menace | title | quests.sql v106 | catalog | an operated quest of this title; rows here would double-run it |
 | The Long Eared Menace | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Hunt the Plague Mucor | title | quests.sql v107 | catalog | an operated quest of this title; rows here would double-run it |
 | Hunt the Plague Mucor | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | There's something about Lahry | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Destroy The Chaos Eidolon | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -186,21 +212,29 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Slay the White Rabbit | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Rashans Last Word | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | New Burun Threat | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Gurog Ancients | journal id | quests.sql v131 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Slay Gurog Ancients | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Slay Gurog Undying One | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay Gurog Blood Lords | journal id | quests.sql v133 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Slay Gurog Blood Lords | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Slay Gurog Oathbreaker | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| I'm Hungry | title | quests.sql v135 | catalog | an operated quest of this title; rows here would double-run it |
 | I'm Hungry | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Fanboi | title | quests.sql v136 | catalog | an operated quest of this title; rows here would double-run it |
 | Fanboi | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Pumping Iron | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Wild Hare | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Green Thumb | title | quests.sql v141 | catalog | an operated quest of this title; rows here would double-run it |
 | Green Thumb | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | White Wedding | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Follow the Bouncing Ball | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Herd Rescue | title | quests.sql v144 | catalog | an operated quest of this title; rows here would double-run it |
 | Herd Rescue | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Land Claim | title | quests.sql v145 | catalog | an operated quest of this title; rows here would double-run it |
 | Land Claim | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Dillo Rancher | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Carrot-Eating Freaks | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Get Buzzed | title | quests.sql v148 | catalog | an operated quest of this title; rows here would double-run it |
 | Get Buzzed | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Dereth Rally | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | S.H.R.E.T.H. | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -217,23 +251,26 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Temple of Elemental Light | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Dereth Tarot | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Path of Darkness | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Crush the Sandy Armoredillos | title | quests.sql v180 | catalog | an operated quest of this title; rows here would double-run it |
 | Crush the Sandy Armoredillos | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Exterminate the Green Phyntos Wasps | title | quests.sql v181 | catalog | an operated quest of this title; rows here would double-run it |
 | Exterminate the Green Phyntos Wasps | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Destroy the Tanglefoot Vermin | journal id | inferred-content-v1, quests.sql inferred_incursion_tanglefoot_vermin | catalog | an operated quest of this journal id; rows here would double-run it |
+| Put Down the Carrion Shreth | title | quests.sql v183 | catalog | an operated quest of this title; rows here would double-run it |
 | Put Down the Carrion Shreth | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Rout the Deranged Lashers | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Rout the Deranged Lashers | title | hunting-content-v1, quests.sql v184 | catalog | an operated quest of this title; rows here would double-run it |
 | Rout the Deranged Lashers | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Rout the Deranged Lashers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Dispatch the Anguish Crones | title | hunting-content-v2, quests.sql hunt_dispatch_the_anguish_crones | catalog | an operated quest of this title; rows here would double-run it |
 | Dispatch the Anguish Crones | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Dispatch the Anguish Crones | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Perforate the Spawn | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Perforate the Spawn | title | hunting-content-v2, quests.sql v186 | catalog | an operated quest of this title; rows here would double-run it |
 | Perforate the Spawn | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Perforate the Spawn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Exterminate the Olthoi Harvesters | title | hunting-content-v1, quests.sql hunt_exterminate_the_olthoi_harvesters | catalog | an operated quest of this title; rows here would double-run it |
 | Exterminate the Olthoi Harvesters | start NPC entity | hunting-content-v1 (quest NPC), hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Exterminate the Olthoi Harvesters | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Vaporize the Frost Wisps | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Vaporize the Frost Wisps | title | hunting-content-v1, quests.sql v188 | catalog | an operated quest of this title; rows here would double-run it |
 | Vaporize the Frost Wisps | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Vaporize the Frost Wisps | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Unravel the Dark Dread Mu-miyah | title | hunting-content-v2, quests.sql hunt_unravel_the_dark_dread_mu_miyah | catalog | an operated quest of this title; rows here would double-run it |
@@ -248,17 +285,19 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Exterminate the Olthoi Worker Nymphs | title | hunting-content-v2, quests.sql hunt_exterminate_the_olthoi_worker_nymphs | catalog | an operated quest of this title; rows here would double-run it |
 | Exterminate the Olthoi Worker Nymphs | start NPC entity | hunting-content-v1 (quest NPC), hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Exterminate the Olthoi Worker Nymphs | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Fracture the Lumna Niffis | journal id | quests.sql v193 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Fracture the Lumna Niffis | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Fracture the Lumna Niffis | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Fracture the Veinu Niffis | journal id | quests.sql v194 | catalog | an operated quest of this journal id; rows here would double-run it |
 | Fracture the Veinu Niffis | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Fracture the Veinu Niffis | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Fracture the Bone Golems | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Fracture the Bone Golems | title | hunting-content-v1, quests.sql v195 | catalog | an operated quest of this title; rows here would double-run it |
 | Fracture the Bone Golems | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Fracture the Bone Golems | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Fracture the Rime Golems | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Fracture the Rime Golems | title | hunting-content-v1, quests.sql v196 | catalog | an operated quest of this title; rows here would double-run it |
 | Fracture the Rime Golems | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Fracture the Rime Golems | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Fracture the Uncharneled Golems | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Fracture the Uncharneled Golems | title | hunting-content-v1, quests.sql v197 | catalog | an operated quest of this title; rows here would double-run it |
 | Fracture the Uncharneled Golems | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Fracture the Uncharneled Golems | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Exterminate the Olthoi Drones | title | hunting-content-v2, quests.sql hunt_exterminate_the_olthoi_drones | catalog | an operated quest of this title; rows here would double-run it |
@@ -267,13 +306,13 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Pluck the Stray Darkenfowl | title | hunting-content-v2, quests.sql hunt_pluck_the_stray_darkenfowl | catalog | an operated quest of this title; rows here would double-run it |
 | Pluck the Stray Darkenfowl | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Pluck the Stray Darkenfowl | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Perforate the Servitor Spawn | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Perforate the Servitor Spawn | title | hunting-content-v2, quests.sql v201 | catalog | an operated quest of this title; rows here would double-run it |
 | Perforate the Servitor Spawn | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Perforate the Servitor Spawn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Perforate the Puppet Spawn | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Perforate the Puppet Spawn | title | hunting-content-v2, quests.sql v202 | catalog | an operated quest of this title; rows here would double-run it |
 | Perforate the Puppet Spawn | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Perforate the Puppet Spawn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Perforate the Surrogate Spawn | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Perforate the Surrogate Spawn | title | hunting-content-v2, quests.sql v203 | catalog | an operated quest of this title; rows here would double-run it |
 | Perforate the Surrogate Spawn | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Perforate the Surrogate Spawn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Drive Out the Kachem Mimbu | title | hunting-content-v2, quests.sql hunt_drive_out_the_kachem_mimbu | catalog | an operated quest of this title; rows here would double-run it |
@@ -285,13 +324,13 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Deflate the Listris Niffis | title | hunting-content-v2, quests.sql hunt_deflate_the_listris_niffis | catalog | an operated quest of this title; rows here would double-run it |
 | Deflate the Listris Niffis | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Deflate the Listris Niffis | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Eliminate the Ulu Sclavus | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Eliminate the Ulu Sclavus | title | hunting-content-v2, quests.sql v207 | catalog | an operated quest of this title; rows here would double-run it |
 | Eliminate the Ulu Sclavus | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Eliminate the Ulu Sclavus | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Eliminate the Faisi Sclavus | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Eliminate the Faisi Sclavus | title | hunting-content-v2, quests.sql v208 | catalog | an operated quest of this title; rows here would double-run it |
 | Eliminate the Faisi Sclavus | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Eliminate the Faisi Sclavus | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Thin the Marsh Armoredillos | title | hunting-content-v2 | catalog | an operated quest of this title; rows here would double-run it |
+| Thin the Marsh Armoredillos | title | hunting-content-v2, quests.sql v209 | catalog | an operated quest of this title; rows here would double-run it |
 | Thin the Marsh Armoredillos | start NPC entity | hunting-content-v2 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Thin the Marsh Armoredillos | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Cull the Blighted Mucor | title | hunting-content-v2, quests.sql hunt_cull_the_blighted_mucor | catalog | an operated quest of this title; rows here would double-run it |
@@ -309,17 +348,21 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Gardens Mushroom Hunt | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Knorr Mushroom Hunt | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Eliminate Linthes Divinators | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Destroy the Toxic Grievvers | title | quests.sql v227 | catalog | an operated quest of this title; rows here would double-run it |
 | Destroy the Toxic Grievvers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Destroy the Anguish Felsisters | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Destroy the Anguish Felsisters | title | quests.sql v228 | catalog | an operated quest of this title; rows here would double-run it |
 | Terminate the Swarm | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | A Grievous Threat | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Cleanse the Standing Stones | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| A Fell Plot | title | quests.sql v232 | catalog | an operated quest of this title; rows here would double-run it |
 | A Fell Plot | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Lost Ithkanda | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Smash The Sandstone Colossi | title | quests.sql v234 | catalog | an operated quest of this title; rows here would double-run it |
 | Smash The Sandstone Colossi | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Infiltrate the Nursery | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Crypt Keys | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Siege Stores | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Slay the Banderling Maulers | title | quests.sql v240 | catalog | an operated quest of this title; rows here would double-run it |
 | Slay the Banderling Maulers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Eradicate the Skyport Controllers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Slay the Banderling Berserkers | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -328,7 +371,7 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Crush the Cursed Bones | title | hunting-content-v1, quests.sql hunt_crush_the_cursed_bones | catalog | an operated quest of this title; rows here would double-run it |
 | Crush the Cursed Bones | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Crush the Cursed Bones | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
-| Crush the Skeleton Lieutenants | title | hunting-content-v1 | catalog | an operated quest of this title; rows here would double-run it |
+| Crush the Skeleton Lieutenants | title | hunting-content-v1, quests.sql v247 | catalog | an operated quest of this title; rows here would double-run it |
 | Crush the Skeleton Lieutenants | start NPC entity | hunting-content-v1 (quest NPC) | catalog | server.rs runs the hunting/exploration NPC handlers before quest emotes, so a Use set on this NPC never runs |
 | Crush the Skeleton Lieutenants | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Blood Feud | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -347,20 +390,29 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Destroy the Ruthless Waraths | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | In the Name of Science | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Journey to Greenstone | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Destroy the Moarsman Sentries | title | quests.sql v267 | catalog | an operated quest of this title; rows here would double-run it |
 | Destroy the Moarsman Sentries | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Eliminate the Sishalti Spawn | title | quests.sql v268 | catalog | an operated quest of this title; rows here would double-run it |
 | Eliminate the Sishalti Spawn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Eliminate the Slithis Eyestalks | title | quests.sql v270 | catalog | an operated quest of this title; rows here would double-run it |
 | Eliminate the Slithis Eyestalks | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Thin the Shade Matrons | title | quests.sql v271 | catalog | an operated quest of this title; rows here would double-run it |
 | Thin the Shade Matrons | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Release the Ryai Takeru | title | quests.sql v272 | catalog | an operated quest of this title; rows here would double-run it |
 | Release the Ryai Takeru | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Lost Homestead | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Kallikan of the Corn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Sulthis Scare | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Temple Chromast | title | quests.sql v276 | catalog | an operated quest of this title; rows here would double-run it |
 | Temple Chromast | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | The Revered One | journal id | inferred-content-v1, quests.sql inferred_kill_the_revered_one | catalog | an operated quest of this journal id; rows here would double-run it |
 | The Revered One | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Journey to the Aerie | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Eliminate the Swarm Drone Nymphs | title | quests.sql v280 | catalog | an operated quest of this title; rows here would double-run it |
 | Eliminate the Swarm Drone Nymphs | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Exterminate the Swarm Harvesters | title | quests.sql v282 | catalog | an operated quest of this title; rows here would double-run it |
 | Exterminate the Swarm Harvesters | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Destroy the Cahi Takeru | title | quests.sql v283 | catalog | an operated quest of this title; rows here would double-run it |
 | Destroy the Cahi Takeru | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Crypt Keys II | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Aldemon's Slaughterfest | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -371,19 +423,6 @@ These catalog hunts are their Vault rows: every catalog hunt of the NPC has gene
 
 | Vault quest | Catalog hunt | Fields changed (catalog -> Vault) |
 |---|---|---|
-| Rout the Deranged Lashers | hunting-content-v1 0x4000fc05 | repeat: 583200 -> 604800; experience: 3% cap 22085504 -> 3% cap - |
-| Perforate the Spawn | hunting-content-v2 0x4000fc13 | repeat: 583200 -> 604800; experience: 3% cap 22085504 -> 3% cap - |
-| Vaporize the Frost Wisps | hunting-content-v1 0x4000fc06 | repeat: 583200 -> 604800; experience: 2.5% cap 88254343 -> 2.5% cap - |
-| Fracture the Bone Golems | hunting-content-v1 0x4000fc01 | none |
-| Fracture the Rime Golems | hunting-content-v1 0x4000fc02 | none |
-| Fracture the Uncharneled Golems | hunting-content-v1 0x4000fc03 | repeat: 583200 -> 604800; experience: 4% cap 119705147 -> 4% cap - |
-| Perforate the Servitor Spawn | hunting-content-v2 0x4000fc18 | repeat: 72000 -> 604800; experience: 4300 XP -> 2000 XP |
-| Perforate the Puppet Spawn | hunting-content-v2 0x4000fc19 | repeat: 72000 -> 604800; experience: 7500 XP -> 3600 XP |
-| Perforate the Surrogate Spawn | hunting-content-v2 0x4000fc1a | repeat: 72000 -> 604800; experience: 12000 XP -> 7000 XP |
-| Eliminate the Ulu Sclavus | hunting-content-v2 0x4000fc1e | level: 23 -> 25; time limit: 0 -> 604800; repeat: 72000 -> 604800; experience: 22000 XP -> 19000 XP |
-| Eliminate the Faisi Sclavus | hunting-content-v2 0x4000fc1f | level: 23 -> 26; time limit: 0 -> 604800; repeat: 72000 -> 604800; experience: 30000 XP -> 26000 XP |
-| Thin the Marsh Armoredillos | hunting-content-v2 0x4000fc20 | time limit: 0 -> 604800; repeat: 72000 -> 604800; experience: 44000 XP -> 35000 XP |
-| Crush the Skeleton Lieutenants | hunting-content-v1 0x4000fc08 | none |
 
 ### Catalog quests whose Vault rows generate but stay with the catalog
 
@@ -392,7 +431,7 @@ Rows generate for these, but another catalog hunt of the same NPC has none (the 
 | Vault quest | Catalog | Parity |
 |---|---|---|
 
-Start NPCs that an older catalog only places, or that have an information-only `npc-dialogue-v1` profile (vault rows win, nothing to retire): 156 quests: Dillo Rustlers, Mucor Mushroom Hunt, Slay the Shrethwarden, Linvak Soulbound Weapons, Osteth Soulbound Weapons, Armor of the Ancient Kings, Armor of the Ancient Knights, Shoyanen's Solutions, Armor of the Ancient Lords, Mimbu Negotiations, Akkilea's Purification, Vengence for Unaro, Kill the Keerik, Olthoi Grub Meat, Journey to Linvak, Slay the Gray Flayer, Slay Gurog Vuldor, Slay Uran the Black, Slay Veran, Slay Rymeras, Slay the Shattered Golem, Slay the Demented Warath, Slay Thanos, Sword of the Doomed Hero, Great Big Pumpkin, Scent of the Prey, Shreth-Hide Leather, Find a Good Spear, Moarsman Fin Soup, Shreth-Hunters Guide to Omishan, Dreams of the Ero-Bal, Something Borrowed, Decode the Glyphs, The Long Eared Menace, Hunt the Plague Mucor, There's something about Lahry, Destroy The Chaos Eidolon, Lost Company, Bringing Down the Catacombs, Spirit Guide, Vengeance for Unaro, Gem Quest, Recover the Arcanum's Library, Slay the White Rabbit, Rashans Last Word, New Burun Threat, Slay Gurog Ancients, Slay Gurog Undying One, Slay Gurog Blood Lords, Slay Gurog Oathbreaker, I'm Hungry, Fanboi, Pumping Iron, Wild Hare, Green Thumb, White Wedding, Follow the Bouncing Ball, Herd Rescue, Land Claim, Dillo Rancher, Carrot-Eating Freaks, Get Buzzed, Dereth Rally, S.H.R.E.T.H., Slithis Hunt, Dairy Heir, Ludwards Dream, Virindi Training, Naokim's Gift, Rescue the Folk, Broken Wheel, Trumped, Ero-Bal Purification, Temple of Elemental Light, Dereth Tarot, Path of Darkness, Crush the Sandy Armoredillos, Exterminate the Green Phyntos Wasps, Put Down the Carrion Shreth, Rout the Deranged Lashers, Dispatch the Anguish Crones, Perforate the Spawn, Exterminate the Olthoi Harvesters, Vaporize the Frost Wisps, Unravel the Dark Dread Mu-miyah, Dispatch the Thornling Plunderers, Dispatch the Shock Reapers, Exterminate the Olthoi Worker Nymphs, Fracture the Lumna Niffis, Fracture the Veinu Niffis, Fracture the Bone Golems, Fracture the Rime Golems, Fracture the Uncharneled Golems, Exterminate the Olthoi Drones, Pluck the Stray Darkenfowl, Perforate the Servitor Spawn, Perforate the Puppet Spawn, Perforate the Surrogate Spawn, Drive Out the Kachem Mimbu, Deflate the Parfal Nefanes, Deflate the Listris Niffis, Eliminate the Ulu Sclavus, Eliminate the Faisi Sclavus, Thin the Marsh Armoredillos, Cull the Blighted Mucor, Puncture the Opor Nefanes, Gearknight Rumble, Piercing the Shield wall, Tibri outpost, Wild Mushroom Hunt, Foundry Mushroom Hunt, Gardens Mushroom Hunt, Knorr Mushroom Hunt, Eliminate Linthes Divinators, Destroy the Toxic Grievvers, Destroy the Anguish Felsisters, Terminate the Swarm, A Grievous Threat, Cleanse the Standing Stones, A Fell Plot, Lost Ithkanda, Smash The Sandstone Colossi, Infiltrate the Nursery, Crypt Keys, Siege Stores, Slay the Banderling Maulers, Eradicate the Skyport Controllers, Slay the Banderling Berserkers, Investigate Vothardun, Release Uncle Finiel, Crush the Cursed Bones, Crush the Skeleton Lieutenants, Blood Feud, Destroy the Ravenous Lashers, Magma Golem Madness, Crush the Skeleton Lancers, Save the Farm, Destroy the Ruthless Waraths, In the Name of Science, Journey to Greenstone, Destroy the Moarsman Sentries, Eliminate the Sishalti Spawn, Eliminate the Slithis Eyestalks, Thin the Shade Matrons, Release the Ryai Takeru, Lost Homestead, Kallikan of the Corn, Sulthis Scare, Temple Chromast, The Revered One, Journey to the Aerie, Eliminate the Swarm Drone Nymphs, Exterminate the Swarm Harvesters, Destroy the Cahi Takeru, Crypt Keys II, Aldemon's Slaughterfest.
+Start NPCs that an older catalog only places, or that have an information-only `npc-dialogue-v1` profile (vault rows win, nothing to retire): 155 quests: Dillo Rustlers, Mucor Mushroom Hunt, Slay the Shrethwarden, Linvak Soulbound Weapons, Osteth Soulbound Weapons, Armor of the Ancient Kings, Armor of the Ancient Knights, Shoyanen's Solutions, Armor of the Ancient Lords, Mimbu Negotiations, Akkilea's Purification, Vengence for Unaro, Kill the Keerik, Olthoi Grub Meat, Journey to Linvak, Slay the Gray Flayer, Slay Gurog Vuldor, Slay Uran the Black, Slay Veran, Slay Rymeras, Slay the Shattered Golem, Slay the Demented Warath, Slay Thanos, Sword of the Doomed Hero, Great Big Pumpkin, Scent of the Prey, Shreth-Hide Leather, Find a Good Spear, Moarsman Fin Soup, Shreth-Hunters Guide to Omishan, Dreams of the Ero-Bal, Something Borrowed, Decode the Glyphs, The Long Eared Menace, Hunt the Plague Mucor, There's something about Lahry, Destroy The Chaos Eidolon, Lost Company, Bringing Down the Catacombs, Spirit Guide, Vengeance for Unaro, Gem Quest, Recover the Arcanum's Library, Slay the White Rabbit, Rashans Last Word, New Burun Threat, Slay Gurog Ancients, Slay Gurog Undying One, Slay Gurog Blood Lords, Slay Gurog Oathbreaker, I'm Hungry, Fanboi, Pumping Iron, Wild Hare, Green Thumb, White Wedding, Follow the Bouncing Ball, Herd Rescue, Land Claim, Dillo Rancher, Carrot-Eating Freaks, Get Buzzed, Dereth Rally, S.H.R.E.T.H., Slithis Hunt, Dairy Heir, Ludwards Dream, Virindi Training, Naokim's Gift, Rescue the Folk, Broken Wheel, Trumped, Ero-Bal Purification, Temple of Elemental Light, Dereth Tarot, Path of Darkness, Crush the Sandy Armoredillos, Exterminate the Green Phyntos Wasps, Put Down the Carrion Shreth, Rout the Deranged Lashers, Dispatch the Anguish Crones, Perforate the Spawn, Exterminate the Olthoi Harvesters, Vaporize the Frost Wisps, Unravel the Dark Dread Mu-miyah, Dispatch the Thornling Plunderers, Dispatch the Shock Reapers, Exterminate the Olthoi Worker Nymphs, Fracture the Lumna Niffis, Fracture the Veinu Niffis, Fracture the Bone Golems, Fracture the Rime Golems, Fracture the Uncharneled Golems, Exterminate the Olthoi Drones, Pluck the Stray Darkenfowl, Perforate the Servitor Spawn, Perforate the Puppet Spawn, Perforate the Surrogate Spawn, Drive Out the Kachem Mimbu, Deflate the Parfal Nefanes, Deflate the Listris Niffis, Eliminate the Ulu Sclavus, Eliminate the Faisi Sclavus, Thin the Marsh Armoredillos, Cull the Blighted Mucor, Puncture the Opor Nefanes, Gearknight Rumble, Piercing the Shield wall, Tibri outpost, Wild Mushroom Hunt, Foundry Mushroom Hunt, Gardens Mushroom Hunt, Knorr Mushroom Hunt, Eliminate Linthes Divinators, Destroy the Toxic Grievvers, Terminate the Swarm, A Grievous Threat, Cleanse the Standing Stones, A Fell Plot, Lost Ithkanda, Smash The Sandstone Colossi, Infiltrate the Nursery, Crypt Keys, Siege Stores, Slay the Banderling Maulers, Eradicate the Skyport Controllers, Slay the Banderling Berserkers, Investigate Vothardun, Release Uncle Finiel, Crush the Cursed Bones, Crush the Skeleton Lieutenants, Blood Feud, Destroy the Ravenous Lashers, Magma Golem Madness, Crush the Skeleton Lancers, Save the Farm, Destroy the Ruthless Waraths, In the Name of Science, Journey to Greenstone, Destroy the Moarsman Sentries, Eliminate the Sishalti Spawn, Eliminate the Slithis Eyestalks, Thin the Shade Matrons, Release the Ryai Takeru, Lost Homestead, Kallikan of the Corn, Sulthis Scare, Temple Chromast, The Revered One, Journey to the Aerie, Eliminate the Swarm Drone Nymphs, Exterminate the Swarm Harvesters, Destroy the Cahi Takeru, Crypt Keys II, Aldemon's Slaughterfest.
 
 ## Per quest
 
@@ -424,18 +463,21 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 224 | Desolation Mushroom Hunt | blocked |  |  | 0/0 | Enter hook (arrive at a place), crafting step, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Vendor' entity (no DAT/definitions name match); reward item 'Recipe for Mushroom Stew' entity |
 | 156 | Destroy Black Ferahs Shadow | blocked | 0x40000373 | Enter the Shadow Antechamber  (none) | 0/1 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | start NPC override (entity 0x47003275) has no placement in the prepared world; 1 of 1 quoted lines have no DAT string match |
 | 113 | Destroy The Chaos Eidolon | blocked | 0x400002a5 | Rodan 0x8140b0ead2cf59ef (high) | 0/0 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | kill target 'Eidolon' entity |
+| 22 | Dillo Rustlers | blocked | 0x4000006e | Eli Spinekeeper None (medium) | 1/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, several kill counters in one quest, summoned pet reward, time limit |  |
 | 97 | Drudge Portal Beacon Blowout | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), chest/door/lever interaction, fellowship credit, level requirement, random reward choice, summoned pet reward | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Drudge Summoner Gem (Destroyed on use)' entity |
 | 95 | Eep Treats | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), level requirement, random reward choice | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC) |
 | 85 | Eibhils Vengance | blocked |  |  | 0/0 | Enter hook (arrive at a place), chest/door/lever interaction, level requirement | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC) |
 | 154 | Elder Mine Raid | blocked | 0x40000354 |  | 0/0 | defend a spawned object, kingdom points, kingdom/faction/hero status, level requirement, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps |
 | 258 | Factory | blocked |  |  | 0/0 | chest/door/lever interaction, level requirement, prerequisite quests, time limit | start NPC (the Vault names none, or the start is not an NPC); prerequisite quests: the generator does not link them to their own rows yet |
 | 151 | Fate of the Scholars | blocked | 0x4000033b |  | 0/0 | ApplyEffect, chest/door/lever interaction, defend a spawned object, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | start NPC 'Theotor' entity (no DAT/definitions name match); reward item 'Jewels (You get 1 per key)' entity; reward item 'Guardian's Adroitness Jewel (+5 T2 Hero Skill)' entity; reward item 'Guardian's Deftness Jewel (+5 T1 Hero Skill)' entity; kill target 'The Beast' entity |
+| 92 | Find a Good Spear | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | crafting step, gold reward, level requirement, quest points, repeat timer, time limit |  |
 | 221 | Foundry Mushroom Hunt | blocked |  | Vendor 18 0x8140cbe6351ae8f8 (high) | 0/0 | crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 222 | Gardens Mushroom Hunt | blocked |  | Vendor 19 0x8140d40047003ccd (high) | 0/0 | Enter hook (arrive at a place), crafting step, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); reward item 'Recipe for Mushroom Stew' entity |
 | 213 | Gearknight Rumble | blocked |  | Gear Master None (medium) | 0/0 | crafting step, level requirement, repeat timer, time limit |  |
 | 216 | Grievver Folly | blocked |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | start NPC (the Vault names none, or the start is not an NPC); reward item 'Click to summon a Grievver per' entity |
 | 98 | Gurog Portal Beacon Blowout | blocked |  |  | 0/0 | ApplyEffect, chest/door/lever interaction, fellowship credit, level requirement, random reward choice, summoned pet reward | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; reward item 'Gurog Summoner Gem (Destroyed on use)' entity |
 | 256 | Heart of Stone | blocked |  |  | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, summoned pet reward, time limit | start NPC (the Vault names none, or the start is not an NPC); prerequisite quests: the generator does not link them to their own rows yet |
+| 144 | Herd Rescue | blocked |  | Ulafa Olvidan 0x8140dd4f509af946 (medium) | 3/3 | chest/door/lever interaction, fellowship credit, level requirement, repeat timer, time limit |  |
 | 265 | In the Name of Science | blocked |  | Adora Fellar 0x8140e775c04944f9 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from nearby chest' entity |
 | 274 | Kallikan of the Corn | blocked |  | Urln Bestaad 0x8140d40047004094 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from the nearby chest' entity; kill target 'Chip the Gnawer' entity |
 | 49 | Karus Lament | blocked |  | Karu Geddon  (none) | 1/3 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC override (entity 0x47001900) has no placement in the prepared world; 2 of 3 quoted lines have no DAT string match |
@@ -455,6 +497,9 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 109 | Master Vault of Omishan | blocked |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); kill target 'Archon Renselm' entity |
 | 111 | Master Vault of Oseth | blocked |  |  | 0/0 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Master Vault of Oseth Key' entity |
 | 114 | Mirra Essence | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), chest/door/lever interaction, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Beryl Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity; reward item 'Beryl Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity |
+| 93 | Moarsman Fin Soup | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
+| 87 | Mosswart Rescue | blocked |  | Fungal Mosswart Hut 0x8140a56b83feed7c (medium) | 0/0 | Enter hook (arrive at a place), escort/protect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, summoned pet reward, time limit |  |
+| 39 | Mucor Mushroom Hunt | blocked | 0x400000ff | Adesar the Mushroom Collector 0x8140869166568783 (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 86 | Mysterious Egg | blocked | 0x40000263 |  | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | start NPC 'She' entity (no DAT/definitions name match) |
 | 163 | Naokim's Gift | blocked |  | Naokim 0x81408e776e1bb127 (low) | 0/1 | fellowship credit, kingdom/faction/hero status, level requirement, time limit | 1 of 1 quoted lines have no DAT string match; start NPC placement (several same-named placements and no Vault coordinates) |
 | 130 | New Burun Threat | blocked | 0x40000306 | Tuamoa 0x8140a5ca5b4bdbd6 (high) | 4/4 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Burun Immortal Grandmaster' entity |
@@ -472,19 +517,29 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 155 | S.H.R.E.T.H. | blocked |  | Justiciar Maronak 0x8140d40047002f42 (high) | 0/0 | ApplyEffect, chest/door/lever interaction, crafting step, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); reward item 'Juggernaught Staff' entity; reward item 'Alchemist Vial' entity |
 | 68 | Salvation of Artefon | blocked | 0x400001c7 | Hoshino Kei  (none) | 1/1 | ApplyEffect, chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | start NPC 'Hoshino Kei' placement (entity known: 0x47001d37, 0x47001d43, 0x47001e39; none placed in Pyrealium's world near the Vault coordinates) |
 | 263 | Save the Farm | blocked |  | Derrigos Elan 0x8140b1fa86cf9bca (high) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Tromp Wheran' entity |
+| 90 | Scent of the Prey | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, level requirement, quest points, repeat timer, time limit |  |
 | 149 | Search for Isin Dule II | blocked |  | None  (none) | 4/4 | ApplyEffect, chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, summoned pet reward, time limit | start NPC override (entity 0x470027d7) has no placement in the prepared world; prerequisite quests: the generator does not link them to their own rows yet |
 | 285 | Shaper's Hoard Keys | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Mined Trait' entity; reward item 'Lodestones (sometimes)' entity |
 | 55 | Shoyanen's Solutions | blocked |  | Orlen Jarlns 0x81408912b2d9bf89 (high) | 3/3 | crafting step, item grants beyond the Shelter's item profiles, random reward choice, time limit |  |
+| 91 | Shreth-Hide Leather | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | Enter hook (arrive at a place), gold reward, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
+| 94 | Shreth-Hunters Guide to Omishan | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | level requirement, quest points, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 237 | Siege Stores | blocked |  | Torgara 0x8140893d7533ad86 (high) | 0/0 | Enter hook (arrive at a place), defend a spawned object, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 134 | Slay Gurog Oathbreaker | blocked | 0x4000030b | Gurog High Shaman None (medium) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Treasure Chest loot' entity |
 | 132 | Slay Gurog Undying One | blocked | 0x4000030c | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | chest/door/lever interaction, level requirement, prerequisite quests, repeat timer, time limit | reward item 'Treasure Chest loot' entity; prerequisite quests: the generator does not link them to their own rows yet |
 | 59 | Slay Lady Silva | blocked |  |  | 2/2 | ApplyEffect, crafting step, level requirement | journal id and title string (no DAT quest or string of this name); start NPC 'Darvain Geddon' entity (no DAT/definitions name match) |
+| 79 | Slay Rymeras | blocked |  | Voice of the Singularity 0x8140a266263402f2 (high) | 0/0 | Enter hook (arrive at a place), kingdom/faction/hero status, level requirement, repeat timer, time limit |  |
+| 77 | Slay Uran the Black | blocked |  | Venedeta's Servant 0x8140e58688866a18 (high) | 0/0 | Enter hook (arrive at a place), kingdom/faction/hero status, level requirement, repeat timer, time limit |  |
+| 78 | Slay Veran | blocked |  | Mara Sereda 0x81408c944078daac (high) | 0/0 | Enter hook (arrive at a place), kingdom/faction/hero status, repeat timer, time limit |  |
+| 41 | Slay the Shrethwarden | blocked |  | Kiral 0x8140f2046642acd1 (high) | 0/1 | chest/door/lever interaction, crafting step, level requirement, quest points, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match; kill target 'Shrethwarden' entity |
 | 128 | Slay the White Rabbit | blocked | 0x40000294 | Lahry 0x8140954475888a04 (high) | 0/1 | ApplyEffect, chest/door/lever interaction, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, time limit | 1 of 1 quoted lines have no DAT string match; reward item 'Staff/Drum of Bunny Booty' entity |
 | 158 | Slithis Hunt | blocked | 0x40000379 | Shi Kenarea - Master of the Hunt None (medium) | 0/0 | ApplyEffect, Enter hook (arrive at a place), level requirement, random reward choice, repeat timer, time limit | reward item 'Shadow Wing Ort OR Shadow Blade Ort (random)' entity |
 | 260 | Smith's Chambers | blocked |  |  | 0/0 | ApplyEffect, chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; prerequisite quests: the generator does not link them to their own rows yet |
+| 104 | Something Borrowed | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | crafting step, gold reward, level requirement, repeat timer, time limit |  |
 | 112 | Soulslayer Weapon | blocked |  |  | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; reward item 'Soulslayer Weapon' entity; prerequisite quests: the generator does not link them to their own rows yet |
 | 294 | Stolen Siraluun Cargo | blocked |  | Elder Jrim  (none) | 0/0 | chest/door/lever interaction, level requirement, random reward choice, repeat timer, time limit | start NPC 'Elder Jrim' placement (entity known: 0x47004645; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount); reward item 'Several Drudge Rocket fireworks' entity |
 | 174 | Stop Aun Tanua | blocked |  |  | 0/0 | chest/door/lever interaction, fellowship credit, repeat timer | start NPC (the Vault names none, or the start is not an NPC); experience percentage (the Vault records only an observed amount); reward item 'Stop Aun Tanua is a 1 time quest' entity |
+| 83 | Sword of the Doomed Hero | blocked | 0x400001fa | Vargil Darkener 0x8140b204892c2d57 (high) | 0/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
+| 69 | Temple Forge Repair | blocked | 0x400001ce | Radiant Temple Master Smith 0x814095f79363f958 (high) | 2/2 | crafting step, level requirement, time limit |  |
 | 229 | Terminate the Swarm | blocked |  | Daranua None (medium) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Swarm Gardener Nymphet' entity |
 | 67 | The Star of Heroes | blocked | 0x400001cf | Radiant Temple High Priestess 0x8140b9f3b9166f69 (high) | 2/2 | ApplyEffect, crafting step, kingdom/faction/hero status, level requirement, time limit | reward item 'Arramora Recall' entity |
 | 73 | Three Ancient Artifacts | blocked |  |  | 1/1 | kingdom points, kingdom/faction/hero status, level requirement | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC) |
@@ -507,19 +562,27 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 206 | Deflate the Listris Niffis | partial |  | Baliga 0x8140ccf25b3ddd8b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 205 | Deflate the Parfal Nefanes | partial |  | Baliga 0x8140ccf25b3ddd8b (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 290 | Destroy Swarm Nymphs | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 228 | Destroy the Anguish Felsisters | partial |  |  | 0/0 | level requirement, repeat timer, time limit | start NPC 'Sia Jorlon' entity (no DAT/definitions name match) |
 | 281 | Destroy the Sorrow Thralls | partial |  | Argen Jenis  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC override (entity 0x47003fbe) has no placement in the prepared world |
 | 182 | Destroy the Tanglefoot Vermin | partial | 0x400000a3 | Grey Ondarus  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC 'Grey Ondarus' placement (entity known: 0x47003550; none placed in Pyrealium's world near the Vault coordinates) |
+| 227 | Destroy the Toxic Grievvers | partial |  | Brela Shon 0x81408f7959013bef (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 191 | Dispatch the Shock Reapers | partial | 0x4000020e | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 190 | Dispatch the Thornling Plunderers | partial | 0x40000221 | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 103 | Dreams of the Ero-Bal | partial |  | Lupe 0x8140b4ed06cc1d4d (high) | 5/7 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 2 of 7 quoted lines have no DAT string match |
 | 204 | Drive Out the Kachem Mimbu | partial |  | Pim Donar 0x8140a4d2f2dca678 (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 262 | Eliminate Colossi | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | ApplyEffect, level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 226 | Eliminate Linthes Divinators | partial |  | Alainn Russmad 0x8140d40047003fc4 (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); experience percentage (the Vault records only an observed amount) |
+| 208 | Eliminate the Faisi Sclavus | partial |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 280 | Eliminate the Swarm Drone Nymphs | partial |  | Temakhe None (medium) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 242 | Eradicate the Skyport Controllers | partial |  | Maera Torvaeya None (medium) | 0/0 | level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 241 | Exterminate the Iridescent Piercers | partial |  | Ivor Strongbow  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC override (entity 0x47003f69) has no placement in the prepared world |
 | 198 | Exterminate the Olthoi Drones | partial | 0x40000210 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 192 | Exterminate the Olthoi Worker Nymphs | partial | 0x40000214 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 143 | Follow the Bouncing Ball | partial |  | Wimbul Olvidan 0x81408df95ea53493 (high) | 3/5 | level requirement, repeat timer, time limit | 2 of 5 quoted lines have no DAT string match |
 | 254 | Foundry Gates | partial |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); prerequisite quests: the generator does not link them to their own rows yet |
+| 196 | Fracture the Rime Golems | partial | 0x40000205 | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 197 | Fracture the Uncharneled Golems | partial |  | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 194 | Fracture the Veinu Niffis | partial | 0x4000020f | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 124 | Gem Quest | partial |  | Ryvenna Orxon 0x81409cf3387a4d78 (high) | 0/0 | level requirement, time limit | journal id and title string (no DAT quest or string of this name); walkthrough has no parseable steps |
 | 119 | Infiltrate the Clutch/Slay the Broodmother | partial |  | Lavvana 0x8140c68b0b0c03c6 (high) | 4/4 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 235 | Infiltrate the Nursery | partial |  | Shi Kelinua 0x8140f54444913f55 (high) | 0/0 | level requirement, time limit | journal id and title string (no DAT quest or string of this name) |
@@ -529,6 +592,8 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 225 | Knorr Mushroom Hunt | partial |  | Vendor 17 0x8140d40047003ccb (high) | 0/0 | level requirement, repeat timer | walkthrough has no parseable steps |
 | 52 | Osteth Soulbound Weapons | partial |  | Tamar 0x8140c30514029c69 (medium) | 1/1 | Enter hook (arrive at a place), item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 172 | Path of Light | partial |  | None  (none) | 0/1 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, time limit | journal id and title string (no DAT quest or string of this name); start NPC override (entity 0x4700343c) has no placement in the prepared world; 1 of 1 quoted lines have no DAT string match; prerequisite quests: the generator does not link them to their own rows yet |
+| 202 | Perforate the Puppet Spawn | partial |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 203 | Perforate the Surrogate Spawn | partial |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 199 | Pluck the Stray Darkenfowl | partial |  | Karin Dirae 0x8140fe48263242d5 (low) | 0/0 | level requirement, repeat timer, time limit | start NPC placement (several same-named placements and no Vault coordinates) |
 | 212 | Puncture the Opor Nefanes | partial |  | Laurikhe 0x8140b49ef91785e5 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); prerequisite quests: the generator does not link them to their own rows yet |
 | 211 | Puncture the Opor Niffis | partial |  |  | 0/0 | level requirement, repeat timer, time limit | start NPC 'Lauriche' entity (no DAT/definitions name match) |
@@ -538,13 +603,17 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 249 | Shred the Mu-Miyah Warriors | partial |  | Furakhe  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC 'Furakhe' placement (entity known: 0x47003fa8; none placed in Pyrealium's world near the Vault coordinates) |
 | 293 | Skeleton Totem | partial |  | Mikaci  (none) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | start NPC 'Mikaci' placement (entity known: 0x470045d8; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount); prerequisite quests: the generator does not link them to their own rows yet |
 | 292 | Skull Totem | partial |  | Mikaci  (none) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | start NPC 'Mikaci' placement (entity known: 0x470045d8; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount) |
+| 133 | Slay Gurog Blood Lords | partial | 0x4000030a | Gurog High Shaman None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Blood Lords' entity |
+| 76 | Slay Gurog Vuldor | partial |  | Iridar Vel'Kaid 0x8140b8442fdad43d (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 243 | Slay the Banderling Berserkers | partial | 0x4000004c | Gwynna Stronghand None (medium) | 0/0 | level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 71 | Slow the Olthoi Menace | partial | 0x400001da |  | 1/1 | level requirement, time limit | start NPC (the Vault names none, or the start is not an NPC) |
+| 234 | Smash The Sandstone Colossi | partial |  | Jasper Urleg None (medium) | 0/0 | level requirement, repeat timer, time limit | kill target 'Sandstone Colossi' entity |
 | 252 | Smash the Coral Golems | partial |  |  | 0/0 | level requirement, repeat timer, time limit | start NPC 'Endaren Brightstar' entity (no DAT/definitions name match) |
 | 275 | Sulthis Scare | partial |  | Giranua 0x8140d40047004080 (high) | 0/0 | level requirement, repeat timer, time limit | kill target 'Slitharon Sulthis' entity |
 | 169 | Temple of Elemental Light | partial |  | Empyrean Scholar Kathyr 0x8140e8695014a28f (high) | 0/2 | level requirement, repeat timer | journal id and title string (no DAT quest or string of this name); 2 of 2 quoted lines have no DAT string match |
 | 161 | The Gauntlet | partial |  | Master None (medium) | 2/2 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 167 | The Golden Bean | partial |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Gypsy Elenura' entity (no DAT/definitions name match); walkthrough has no parseable steps |
+| 106 | The Long Eared Menace | partial |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | Enter hook (arrive at a place), gold reward, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 108 | There's something about Lahry | partial |  | Lahry 0x8140954475888a04 (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement | walkthrough has no parseable steps |
 | 291 | Thin the Felsister Ranks | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 284 | Thin the Thrall Ranks | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | ApplyEffect, level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
@@ -552,92 +621,62 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 116 | Uncovering the Past | partial |  | Lodrog the Forsaken 0x8140bd370eb36561 (high) | 5/5 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 61 | Vengence for Unaro | partial |  | Akkilea 0x8140f3984b7f353e (high) | 2/2 | level requirement, prerequisite quests, time limit | journal id and title string (no DAT quest or string of this name); prerequisite quests: the generator does not link them to their own rows yet |
 | 140 | Wild Hare | partial |  | Mayala Olvidan 0x8140e211810c1187 (high) | 1/2 | level requirement, repeat timer, time limit | 1 of 2 quoted lines have no DAT string match |
-| 232 | A Fell Plot | shipped |  | Shrill Angostara None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 232 | A Fell Plot | resolved |  | Shrill Angostara None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
 | 147 | Carrot-Eating Freaks | resolved |  | Stubby 0x8140ce2fbf4e43cf (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
 | 246 | Crush the Cursed Bones | resolved |  | Brelar Marlage 0x8140939b9cb146ca (high) | 0/0 | ApplyEffect, level requirement, repeat timer, time limit |  |
-| 180 | Crush the Sandy Armoredillos | shipped |  | Shiela Ondaran 0x8140b551b320f961 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 180 | Crush the Sandy Armoredillos | resolved |  | Shiela Ondaran 0x8140b551b320f961 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 253 | Crush the Skeleton Lancers | resolved |  | Moira Len 0x8140914a0c3cb235 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 247 | Crush the Skeleton Lieutenants | shipped |  | Illiana Bain 0x8140a02b1bf42b30 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 247 | Crush the Skeleton Lieutenants | resolved |  | Illiana Bain 0x8140a02b1bf42b30 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 210 | Cull the Blighted Mucor | resolved |  | Ingara 0x8140d3004700430c (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 152 | Dereth Rally | resolved |  | Rogol 0x8140d40047002b59 (high) | 1/1 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
-| 228 | Destroy the Anguish Felsisters | shipped |  | Sia Jorlorn 0x8140a20e245a743d (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 283 | Destroy the Cahi Takeru | shipped |  | Onakhe 0x8140f95e44094a91 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 267 | Destroy the Moarsman Sentries | shipped |  | Brenden Dale 0x8140d40047003fb8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 283 | Destroy the Cahi Takeru | resolved |  | Onakhe 0x8140f95e44094a91 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 267 | Destroy the Moarsman Sentries | resolved |  | Brenden Dale 0x8140d40047003fb8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 250 | Destroy the Ravenous Lashers | resolved |  | Shurakhe 0x8140d20047003fa9 (medium) | 0/0 | level requirement, repeat timer, time limit |  |
 | 264 | Destroy the Ruthless Waraths | resolved |  | Urlin Furst 0x8140db41c7caae24 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 227 | Destroy the Toxic Grievvers | shipped |  | Brela Shon 0x81408f7959013bef (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 146 | Dillo Rancher | resolved |  | Odaba Olvidan 0x8140f1904bb70f22 (medium) | 1/1 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
-| 22 | Dillo Rustlers | shipped | 0x4000006e | Eli Spinekeeper None (medium) | 1/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, several kill counters in one quest, summoned pet reward, time limit |  |
 | 185 | Dispatch the Anguish Crones | resolved | 0x400001fe | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 103 | Dreams of the Ero-Bal | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 5/7 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 2 of 7 quoted lines have no DAT string match |
-| 208 | Eliminate the Faisi Sclavus | shipped |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 268 | Eliminate the Sishalti Spawn | shipped |  | Jaina Larin 0x8140d40047003fb9 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 270 | Eliminate the Slithis Eyestalks | shipped |  | Norekhe 0x8140d40047003fbb (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 280 | Eliminate the Swarm Drone Nymphs | shipped |  | Temakhe None (medium) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
-| 207 | Eliminate the Ulu Sclavus | shipped |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 268 | Eliminate the Sishalti Spawn | resolved |  | Jaina Larin 0x8140d40047003fb9 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 270 | Eliminate the Slithis Eyestalks | resolved |  | Norekhe 0x8140d40047003fbb (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 207 | Eliminate the Ulu Sclavus | resolved |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 168 | Ero-Bal Purification | resolved |  | Valentaua 0x8140ffba8eec578f (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 181 | Exterminate the Green Phyntos Wasps | shipped |  | Krestovmik 0x8140f2e375f7cf3b (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 181 | Exterminate the Green Phyntos Wasps | resolved |  | Krestovmik 0x8140f2e375f7cf3b (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 187 | Exterminate the Olthoi Harvesters | resolved | 0x40000213 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 282 | Exterminate the Swarm Harvesters | shipped |  | Bertrand Jas None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
-| 136 | Fanboi | shipped |  | Stubby None (medium) | 3/3 | level requirement, repeat timer, time limit |  |
-| 92 | Find a Good Spear | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | crafting step, gold reward, level requirement, quest points, repeat timer, time limit |  |
-| 195 | Fracture the Bone Golems | shipped | 0x40000200 | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 193 | Fracture the Lumna Niffis | shipped | 0x40000206 | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 196 | Fracture the Rime Golems | shipped | 0x40000205 | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 197 | Fracture the Uncharneled Golems | shipped |  | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 194 | Fracture the Veinu Niffis | shipped | 0x4000020f | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 148 | Get Buzzed | shipped |  | Stubby None (medium) | 2/2 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 282 | Exterminate the Swarm Harvesters | resolved |  | Bertrand Jas None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
+| 136 | Fanboi | resolved |  | Stubby None (medium) | 3/3 | level requirement, repeat timer, time limit |  |
+| 195 | Fracture the Bone Golems | resolved | 0x40000200 | Vreema 0x8140afbda0898be8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 193 | Fracture the Lumna Niffis | resolved | 0x40000206 | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 148 | Get Buzzed | resolved |  | Stubby None (medium) | 2/2 | Enter hook (arrive at a place), item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 89 | Great Big Pumpkin | resolved | 0x4000027b | Ikkabod 0x8140b07822c7d041 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 141 | Green Thumb | shipped |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | level requirement, repeat timer, time limit |  |
-| 144 | Herd Rescue | shipped |  | Ulafa Olvidan 0x8140dd4f509af946 (medium) | 3/3 | chest/door/lever interaction, fellowship credit, level requirement, repeat timer, time limit |  |
-| 107 | Hunt the Plague Mucor | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 135 | I'm Hungry | shipped |  | Stubby None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
+| 141 | Green Thumb | resolved |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 107 | Hunt the Plague Mucor | resolved |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 135 | I'm Hungry | resolved |  | Stubby None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
 | 244 | Investigate Vothardun | resolved |  | Jethric 0x8140ba6d593e3a9a (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
-| 64 | Journey to Linvak | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 4/4 | level requirement, repeat timer, time limit |  |
-| 62 | Kill the Keerik | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 1/1 | level requirement, time limit |  |
-| 145 | Land Claim | shipped |  | Almahra Olvidan 0x8140bcd6627af0b0 (high) | 1/1 | level requirement, repeat timer, time limit |  |
-| 57 | Mimbu Negotiations | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 3/3 | level requirement, time limit |  |
-| 93 | Moarsman Fin Soup | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
-| 87 | Mosswart Rescue | shipped |  | Fungal Mosswart Hut 0x8140a56b83feed7c (high) | 0/0 | escort/protect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, summoned pet reward, time limit |  |
-| 39 | Mucor Mushroom Hunt | shipped | 0x400000ff | Adesar the Mushroom Collector 0x8140869166568783 (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
-| 202 | Perforate the Puppet Spawn | shipped |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 201 | Perforate the Servitor Spawn | shipped |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 186 | Perforate the Spawn | shipped |  | Audalon 0x8140a37df61e22e6 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 203 | Perforate the Surrogate Spawn | shipped |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
+| 64 | Journey to Linvak | resolved |  | Akkilea 0x8140f3984b7f353e (high) | 4/4 | level requirement, repeat timer, time limit |  |
+| 62 | Kill the Keerik | resolved |  | Akkilea 0x8140f3984b7f353e (high) | 1/1 | item grants beyond the Shelter's item profiles, level requirement, time limit |  |
+| 145 | Land Claim | resolved |  | Almahra Olvidan 0x8140bcd6627af0b0 (high) | 1/1 | level requirement, repeat timer, time limit |  |
+| 57 | Mimbu Negotiations | resolved |  | Akkilea 0x8140f3984b7f353e (high) | 3/3 | level requirement, time limit |  |
+| 201 | Perforate the Servitor Spawn | resolved |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 186 | Perforate the Spawn | resolved |  | Audalon 0x8140a37df61e22e6 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 214 | Piercing the Shield wall | resolved |  | Gear Sentinel 0x814085b5575f18fd (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 183 | Put Down the Carrion Shreth | shipped |  | Oriona 0x8140a9448481d316 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 183 | Put Down the Carrion Shreth | resolved |  | Oriona 0x8140a9448481d316 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 129 | Rashans Last Word | resolved | 0x40000308 | Spectre of Rashan Twoblades 0x8140d40047000894 (high) | 2/2 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 125 | Recover the Arcanum's Library | resolved |  | Eshivon Ugim 0x814085863aa903a2 (high) | 1/1 | level requirement, repeat timer, time limit |  |
-| 272 | Release the Ryai Takeru | shipped |  | Kyrin Sorelar 0x8140d40047003fb7 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 272 | Release the Ryai Takeru | resolved |  | Kyrin Sorelar 0x8140d40047003fb7 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 164 | Rescue the Folk | resolved |  | Araton 0x8140841d1f74ccab (high) | 0/0 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 184 | Rout the Deranged Lashers | shipped |  | Nola Vontag 0x8140868534db609d (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 90 | Scent of the Prey | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, level requirement, quest points, repeat timer, time limit |  |
-| 91 | Shreth-Hide Leather | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
-| 94 | Shreth-Hunters Guide to Omishan | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | level requirement, quest points, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
-| 131 | Slay Gurog Ancients | shipped | 0x40000309 | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 133 | Slay Gurog Blood Lords | shipped | 0x4000030a | Gurog High Shaman None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 76 | Slay Gurog Vuldor | shipped |  | Iridar Vel'Kaid 0x8140b8442fdad43d (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
-| 79 | Slay Rymeras | shipped |  | Voice of the Singularity 0x8140a266263402f2 (high) | 0/0 | kingdom/faction/hero status, level requirement, repeat timer, time limit |  |
-| 82 | Slay Thanos | shipped |  | Vorgas 0x8140b27d6926bbbc (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 77 | Slay Uran the Black | shipped |  | Venedeta's Servant 0x8140e58688866a18 (high) | 0/0 | kingdom/faction/hero status, level requirement, repeat timer, time limit |  |
-| 78 | Slay Veran | shipped |  | Mara Sereda 0x81408c944078daac (high) | 0/0 | kingdom/faction/hero status, repeat timer, time limit |  |
-| 240 | Slay the Banderling Maulers | shipped |  | Savorlin Gahntar None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
-| 81 | Slay the Demented Warath | shipped |  | Vere Anthor 0x8140e7babf4a0dd8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 74 | Slay the Gray Flayer | shipped |  | Portus 0x8140e5d6a8dacfb3 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 80 | Slay the Shattered Golem | shipped |  | Randon Fordes 0x8140972601ba03ad (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 41 | Slay the Shrethwarden | shipped |  | Kiral 0x8140f2046642acd1 (high) | 0/1 | chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
-| 234 | Smash The Sandstone Colossi | shipped |  | Jasper Urleg None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
-| 104 | Something Borrowed | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | crafting step, gold reward, level requirement, repeat timer, time limit |  |
+| 184 | Rout the Deranged Lashers | resolved |  | Nola Vontag 0x8140868534db609d (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 131 | Slay Gurog Ancients | resolved | 0x40000309 | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 82 | Slay Thanos | resolved |  | Vorgas 0x8140b27d6926bbbc (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 240 | Slay the Banderling Maulers | resolved |  | Savorlin Gahntar None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
+| 81 | Slay the Demented Warath | resolved |  | Vere Anthor 0x8140e7babf4a0dd8 (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
+| 74 | Slay the Gray Flayer | resolved |  | Portus 0x8140e5d6a8dacfb3 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 80 | Slay the Shattered Golem | resolved |  | Randon Fordes 0x8140972601ba03ad (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
 | 122 | Spirit Guide | resolved | 0x400002bd | Amano-Bal 0x8140b016909d4ce0 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 83 | Sword of the Doomed Hero | shipped | 0x400001fa | Vargil Darkener 0x8140b204892c2d57 (high) | 0/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
-| 276 | Temple Chromast | shipped |  | Elion Magnaron 0x8140d40047004082 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 69 | Temple Forge Repair | shipped | 0x400001ce | Radiant Temple Master Smith 0x814095f79363f958 (high) | 2/2 | crafting step, level requirement, time limit |  |
-| 106 | The Long Eared Menace | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
+| 276 | Temple Chromast | resolved |  | Elion Magnaron 0x8140d40047004082 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 277 | The Revered One | resolved | 0x400000f2 | Shelara Volsaerion 0x8140d40047004079 (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 209 | Thin the Marsh Armoredillos | shipped |  | Baltor Vultu 0x8140fa768d39c98b (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 271 | Thin the Shade Matrons | shipped |  | Andar Morlean 0x8140d40047003fbc (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 209 | Thin the Marsh Armoredillos | resolved |  | Baltor Vultu 0x8140fa768d39c98b (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 271 | Thin the Shade Matrons | resolved |  | Andar Morlean 0x8140d40047003fbc (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 189 | Unravel the Dark Dread Mu-miyah | resolved |  | Red Bellows 0x8140f18fe63f8a5b (high) | 0/0 | level requirement, repeat timer, time limit |  |
-| 188 | Vaporize the Frost Wisps | shipped |  | Tankaru 0x81408b1515a4d431 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 188 | Vaporize the Frost Wisps | resolved |  | Tankaru 0x81408b1515a4d431 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 123 | Vengeance for Unaro | resolved |  | Akkilea 0x8140f3984b7f353e (high) | 2/2 | level requirement, repeat timer, time limit |  |
 | 142 | White Wedding | resolved |  | Silia Olvidan 0x8140e242441aa3d8 (high) | 2/2 | level requirement, repeat timer, time limit |  |
 
