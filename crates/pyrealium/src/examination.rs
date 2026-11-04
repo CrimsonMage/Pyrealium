@@ -24,7 +24,10 @@ pub fn item_lines(item:&crate::inventory::Item,location:&str)->Vec<String> {
     }
     if item.definition==crate::arwic_mines::SWORD {lines.push("Weapon damage: 10".into());lines.push("Return this quest sword to the Arwic Mines Overseer in your backpack.".into());}
     if item.definition==crate::arwic_mines::GUIDE {lines.push("Double-click to read the next of 15 pages. Text appears in chat.".into());}
-    if let Some(q)=crate::recovered_quests::use_profile(item.definition){lines.push(format!("Begins {}. Level {}+. Defeat {} targets for {} XP.",q.title,q.level,q.goal,q.xp));}
+    // An item a quest's UseItem set starts (`quest_emotes`).
+    if let Some(q)=crate::quest_emotes::tables().and_then(|t|t.started_by_item(item.definition).map(|q|(q.title_text.clone(),q.min_level,q.goal))) {
+        lines.push(if q.2>0 {format!("Begins {}. Level {}+. Defeat {} targets.",q.0,q.1,q.2)} else {format!("Begins {}. Level {}+.",q.0,q.1)});
+    }
     if let Some(race)=crate::apparel::required_race(item.definition){lines.push(format!("Race: {}",match race{1=>"Human",2=>"Lugian",4=>"Tumerok",8=>"Drudge",16=>"Empyrean",_=>"Unknown"}));}
     if item.definition==crate::item_services::POTION_DEFINITION && item.visual==crate::item_services::POTION_VISUAL {
         lines.push(format!("Restores {} health.",crate::item_services::POTION_HEALTH));

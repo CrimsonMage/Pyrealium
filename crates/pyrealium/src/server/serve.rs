@@ -108,7 +108,7 @@ pub(super) fn serve(mut srv: Server, mut peers: BTreeMap<SocketAddr, Peer>, mut 
             }
         }
         if srv.now_ms>=srv.next_resource_cleanup{
-            srv.next_resource_cleanup=srv.now_ms+10_000;let time=crate::recovered_quests::now();
+            srv.next_resource_cleanup=srv.now_ms+10_000;let time=crate::clock::now();
             let live:std::collections::BTreeSet<_>=srv.store.characters.values().filter(|c|!c.deleted).flat_map(|c|c.professions.1.jobs.iter()).filter(|(_,j)|j.point.is_some()&&j.expires>time&&j.remaining>0).map(|(id,_)|crate::harvesting::node_id(*id)).collect();
             let expired:Vec<_>=srv.scene.content_objects().filter(|o|o.id>>48==0x8190&&!live.contains(&o.id)).map(|o|o.id).collect();
             for id in expired{let updates=srv.scene.remove_content_live(id)?;deliver_scene(updates,&srv.active_characters,&mut peers,&srv.primary,srv.now,&mut srv.failed_peers)?;}

@@ -1,24 +1,9 @@
 //! Quest items and NPCs used in the world: elixirs, deliveries, training potions, quest actions.
 use super::*;
 
-pub(super) fn use_recovered_elixir(peer:&mut Peer,character:u64,item:u64,store:&mut Store,scene:&mut crate::scene::Scene)->io::Result<()> {
-    if !scene.can_observe(character,character)||peer.combat{return Err(invalid("Leave combat before drinking a quest elixir."));}
-    let c=&store.characters[&character];let account=c.account.clone();
-    let owned=c.inventory.items().find(|i|i.id==item).ok_or_else(||invalid("Elixir not owned"))?;
-    let q=crate::recovered_quests::use_profile(owned.definition).ok_or_else(||invalid("Unsupported quest elixir"))?;
-    let instance=scene.inventory_instance(character,item).map_err(other)?;
-    let mut quests=c.quests.clone();
-    quests.recovered=quests.recovered.accept(q.id,c.progression.level().number,crate::recovered_quests::now())?;
-    let mut events=vec![crate::item_services::removed(item).map_err(other)?,world::destroy_inventory_item(item,instance)];
-    events.extend(quests.updates_since(&c.quests).map_err(other)?);
-    events.push(script::chat(&format!("{} accepted. Defeat {} targets before the time limit.",q.title,q.goal),1).map_err(other)?);
-    peer.validate_scene_batch(&events)?;
-    store.recovered_elixir(&account,character,item)?;
-    scene.inventory_removed(character,item).map_err(other)?;peer.queue_ordered_batch(events)?;Ok(())
-}
 
 pub(super) fn arwic_exchange(peer:&mut Peer,character:u64,action:crate::arwic_mines::Action,events:Vec<Vec<u8>>,store:&mut Store,scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>)->io::Result<Vec<crate::scene::Delivery>> {
-    let saved=&store.characters[&character];let time=crate::recovered_quests::now();
+    let saved=&store.characters[&character];let time=crate::clock::now();
     let plan=crate::arwic_mines::plan(&saved.quests,&saved.inventory,action,store.next_item_id()?,time)?;
     item_service_transaction_profile(peer,character,&plan.items,&plan.rewards,events,store,scene,metadata,false,false,None,None,Some((action,time)))
 }
@@ -32,7 +17,7 @@ pub(super) fn use_exploration_npc(peer:&mut Peer,character:u64,target:u64,store:
     let entity=scene.examination_content(character,target).ok_or_else(||invalid("Quest object is not visible."))?.entity;
     peer.admit_npc_dialogue(now)?;
     let saved=&store.characters[&character];let account=saved.account.clone();
-    let time=crate::recovered_quests::now();
+    let time=crate::clock::now();
     let conversation=saved.quests.exploration.converse(entity,saved.progression.level().number,time)?;
     let mut quests=saved.quests.clone();quests.exploration=conversation.book;
     let state=if conversation.xp>0 {saved.progression.apply(&crate::progression::Command::AwardXp(conversation.xp)).map_err(other)?}
@@ -51,42 +36,6 @@ pub(super) fn use_exploration_npc(peer:&mut Peer,character:u64,target:u64,store:
 }
 
 
-pub(super) fn use_recovered_delivery(peer:&mut Peer,character:u64,target:u64,store:&mut Store,scene:&mut crate::scene::Scene,
-    metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>)->io::Result<Vec<crate::scene::Delivery>> {
-    if peer.combat||!store.characters[&character].progression.alive(){return Err(invalid("Speak to the quest NPC while alive and out of combat."));}
-    let npc=scene.examination_content(character,target).ok_or_else(||invalid("Quest NPC is not visible."))?.entity;
-    let completion=npc_use_completion(character,target,scene)?;
-    let saved=&store.characters[&character];let account=saved.account.clone();let time=crate::recovered_quests::now();
-    let first=store.next_item_id()?;
-    let (items,changes,book)=saved.quests.recovered.delivery(&saved.inventory,npc,saved.progression.level().number,time,first)?;
-    let (bag,state)=if items.is_empty()&&changes.is_empty(){(saved.inventory.clone(),saved.progression.clone())}else{
-        crate::player_transaction::candidate(&saved.inventory,&saved.progression,&items,&changes,Some(first))?};
-    let mut quests=saved.quests.clone();quests.recovered=book;
-    let mut events=vec![completion];let mut granted=Vec::new();let mut removed=Vec::new();
-    for command in &items {match command {
-        crate::inventory::Command::Grant(item)=>{
-            let info=metadata.get(&item.definition).and_then(|i|*i).ok_or_else(||invalid("Quest bag metadata unavailable"))?;
-            let instance=scene.admit_inventory_grant(character,item.id).map_err(other)?;
-            events.push(world::create_inventory_item(item,character,instance).map_err(other)?);
-            events.push(crate::item_services::acquired(character,item,info).map_err(other)?);granted.push((item.id,instance));
-        },
-        crate::inventory::Command::ConsumeDense{item}=>{
-            let instance=scene.inventory_instance(character,*item).map_err(other)?;
-            events.push(crate::item_services::removed(*item).map_err(other)?);events.push(world::destroy_inventory_item(*item,instance));removed.push(*item);
-        },_=>return Err(invalid("Unsupported delivery inventory transition"))
-    }}
-    events.extend(state.private_changes(&saved.progression));
-    events.extend(quests.updates_since(&saved.quests).map_err(other)?);
-    events.push(script::chat(if npc==crate::recovered_quests::KANTEN {"Gambling Debt: deliver Kanten's Bag to Orven in Arwic (44.9N, 7.1W) within two hours."}
-        else {"Gambling Debt complete. You receive 1,000 experience."},1).map_err(other)?);
-    if saved.skills.available_credits(&state)!=saved.skills.available_credits(&saved.progression){events.push(crate::ui::skills_state(&saved.skills,&state,&saved.skill_used).map_err(other)?);}
-    peer.validate_scene_batch(&events)?;
-    store.recovered_delivery(&account,character,npc,time)?;
-    debug_assert_eq!(store.characters[&character].inventory,bag);
-    for item in removed {scene.inventory_removed(character,item).map_err(other)?;}
-    for (item,instance) in granted {scene.inventory_granted(character,item,instance).map_err(other)?;}
-    let updates=scene.player_stats(character,&state);peer.queue_ordered_batch(events)?;Ok(updates)
-}
 
 pub(super) fn use_training_potion(
     peer: &mut Peer,

@@ -17,7 +17,7 @@ pub(super) fn use_emote(peer:&mut Peer,character:u64,target:u64,trigger:crate::q
     let used=item.map(|id|saved.inventory.items().find(|i|i.id==id && matches!(i.location,crate::inventory::Location::Bag(_))).map(|i|i.definition)
         .ok_or_else(||invalid("Use an item from your backpack."))).transpose()?;
     let roll=(now % 1000) as f32/1000.;
-    let outcome=crate::quest_emotes::installed()?.run(trigger,object.entity,target,used,&saved.quests,&saved.inventory,&saved.progression,store.next_item_id()?,roll,crate::recovered_quests::now(),&crate::quest_emotes::item)?
+    let outcome=crate::quest_emotes::installed()?.run(trigger,object.entity,target,used,&saved.quests,&saved.inventory,&saved.progression,store.next_item_id()?,roll,crate::clock::now(),&crate::quest_emotes::item)?
         .ok_or_else(||invalid("Nothing happens."))?;
     let player=scene.player_placement(character).ok_or_else(||invalid("Player is not ready."))?;
     let distance=player.distance(object.placement).filter(|d|*d<=outcome.range)
@@ -69,7 +69,7 @@ pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_em
     // The quest's effects (ApplyEffect / RemoveEffect) reach the client's strip (`WM_Effect`);
     // an escort starts or ends.
     if let Some(runtime)=encounters.as_mut() {
-        let unix=crate::recovered_quests::now();
+        let unix=crate::clock::now();
         runtime.sync_quest_effects(character,&store.characters[&character].quests.quest_effects(unix),unix,now,true);
         if let Some(entity)=outcome.escort {
             if runtime.start_escort(character,entity,scene).is_none() {events_note(peer,"Your escort is not nearby.")?;}
@@ -100,7 +100,7 @@ pub(super) fn trigger_emotes(peer:&mut Peer,character:u64,trigger:crate::quest_e
     ->io::Result<Vec<crate::scene::Delivery>> {
     let Some(tables)=crate::quest_emotes::tables() else {return Ok(Vec::new())};
     let mut updates=Vec::new();
-    let unix=crate::recovered_quests::now();
+    let unix=crate::clock::now();
     for definition in made {
         let saved=&store.characters[&character];
         if !tables.answers(trigger,*definition,0,None,&saved.quests,unix) {continue;}

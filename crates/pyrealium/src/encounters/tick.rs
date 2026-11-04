@@ -157,7 +157,7 @@ impl Encounters {
             let previous = character.progression.clone();
             let previous_quests = character.quests.clone();
             // A kill's quest emotes give their items as this kill's loot (`quest_emotes::kill`).
-            let kill_outcome=crate::quest_emotes::kill(&character.quests,&character.inventory,&character.progression,actor.entity,attack.target,crate::recovered_quests::now());
+            let kill_outcome=crate::quest_emotes::kill(&character.quests,&character.inventory,&character.progression,actor.entity,attack.target,crate::clock::now());
             let quest_drop=kill_outcome.as_ref().and_then(|o|o.given.first().copied());
             // A Kill set that pauses for a delay carries on from the server's tick.
             if killed { if let Some(outcome)=&kill_outcome { crate::quest_emotes::instances::committed(player,outcome); } }

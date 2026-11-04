@@ -46,6 +46,11 @@ impl WorldClock {
     }
 }
 
+/// Now, in Unix seconds: the wall clock quest and profession times go by (durable records).
+pub fn now() -> u64 {
+    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

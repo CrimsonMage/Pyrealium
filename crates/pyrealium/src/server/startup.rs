@@ -188,7 +188,6 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             }
             if quest_gameplay {
                 for (definition,metadata) in crate::apparel::validate(&mut portal)?.into_iter().chain(crate::arwic_mines::validate(&mut portal)?) {inventory_metadata.insert(definition,Some(metadata));}
-                inventory_metadata.insert(crate::recovered_quests::BAG,Some(crate::recovered_quests::delivery_metadata(&mut portal)?));
             }
             if starter_equipment {
                 for (definition, metadata) in crate::starter_gear::validate(&mut portal)? {
@@ -449,7 +448,7 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     }
     for dropped in store.drops.values() {scene.add_drop(dropped)?;}
     for saved in store.characters.values().filter(|s|!s.deleted){for (item,j) in &saved.professions.1.jobs{
-        if j.expires<=crate::recovered_quests::now(){continue}let Some(p)=j.placement()else{continue};
+        if j.expires<=crate::clock::now(){continue}let Some(p)=j.placement()else{continue};
         let m=crate::harvesting::mine(crate::harvesting::map(j.definition).ok_or_else(||invalid("Saved survey definition missing"))?.mine).unwrap();
         scene.prepare_cell(p.cell)?;scene.insert_content_live(crate::content::Object::resource(crate::harvesting::node_id(*item),m.id,m.visual,p)?,true)?;
     }}

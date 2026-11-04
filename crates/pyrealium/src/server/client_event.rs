@@ -166,7 +166,7 @@ pub(super) fn client_event(
                 let hit = crate::quest_emotes::tables().and_then(|t| {
                     let me = srv.scene.player_placement(character)?;
                     let book = &srv.store.characters[&character].quests;
-                    let now = crate::recovered_quests::now();
+                    let now = crate::clock::now();
                     t.enter_points().find(|(iid, range)| {
                         srv.scene.examination_content(character, *iid).is_some_and(|o| {
                             me.distance(o.placement).is_some_and(|d| d <= *range)
@@ -632,7 +632,7 @@ pub(super) fn client_event(
                 // The quest book's effects join the ledger the login lists.
                 if let (Phase::Entering { character }, Some(runtime)) = (&peer.session.phase, srv.encounters.as_mut()) { let character = *character;
                     if let Some(c) = srv.store.characters.get(&character) {
-                        let unix = crate::recovered_quests::now();
+                        let unix = crate::clock::now();
                         runtime.sync_quest_effects(character, &c.quests.quest_effects(unix), unix, srv.now_ms, false);
                     }
                 }

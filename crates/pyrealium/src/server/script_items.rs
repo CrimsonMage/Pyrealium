@@ -15,7 +15,7 @@ pub(super) fn on_craft_raise(
     }
     let result=(||->io::Result<()>{
         if !(srv.config.training_kit||srv.quest_gameplay)||!srv.config.initialize_ui||peer.combat||!srv.scene.can_observe(character,character){return Err(invalid("Crafting training requires a ready player in peace stance."))}
-        let change=crate::professions::Change{skill,xp:0,time:crate::recovered_quests::now(),raise:true,activity:None};
+        let change=crate::professions::Change{skill,xp:0,time:crate::clock::now(),raise:true,activity:None};
         let next=srv.store.characters[&character].professions.apply(&change)?;
         let event=crate::crafting::skill_update(skill,&next).map_err(other)?;peer.validate_scene_batch(&[event.clone()])?;
         srv.store.profession_transaction(&peer.session.account,character,&[],&[],&change)?;

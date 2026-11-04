@@ -25,8 +25,9 @@ fn the_shipped_tables_load() {
     let t = &shipped();
     assert_eq!(t.quest("shelter").map(|q| q.journal_id), Some(SHELTER));
     assert_eq!(t.stage(SHELTER, 6).map(|(done, _)| done), Some(true));
-    // The Shelter's pinned items, and the Gauntlet's Frenzy Potion (read from the DATs at start).
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || e == 0x4700_326f));
+    // The Shelter's pinned items, and the items read from the DATs at start (the Gauntlet's Frenzy
+    // Potion, Kanten's Bag).
+    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || [0x4700_326f, 0x4700_1c1e].contains(&e)));
 }
 
 #[test]
@@ -37,8 +38,9 @@ fn the_shipped_dump_is_its_own_export() {
     assert_eq!(db::export(&db::open_dump(&text).unwrap()).unwrap(), text);
     let t = Tables::from_sql(&text).unwrap();
     assert_eq!(t, *shipped());
-    // The Shelter's pinned items, and the Gauntlet's Frenzy Potion (read from the DATs at start).
-    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || e == 0x4700_326f));
+    // The Shelter's pinned items, and the items read from the DATs at start (the Gauntlet's Frenzy
+    // Potion, Kanten's Bag).
+    assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some() || [0x4700_326f, 0x4700_1c1e].contains(&e)));
 }
 
 fn family_tables(family: &str, quest: &str, journal: &str, set: &str) -> [Vec<(String, String)>; 4] {
@@ -408,7 +410,8 @@ fn the_vault_talk_chain_journey_to_linvak_plays_through() {
     let talk = |who: (u32, u64), book: &Book, now: u64| t.run(Trigger::Use, who.0, who.1, None, book, &none, &p, first(&none), 0.0, now, &item).unwrap();
     assert!(talk(pelloran, &Book::default(), 1).is_none(), "Pelloran has nothing before the offer");
     let mut book = commit(&Book::default(), &talk(akkilea, &Book::default(), 10).unwrap());
-    assert!(talk(kanten, &book, 20).is_none(), "Kanten waits for Pelloran");
+    // Kanten waits for Pelloran (what he answers is his own delivery job, not this chain).
+    assert!(talk(kanten, &book, 20).is_none_or(|o| !o.quests.iter().any(|q| matches!(q, Q::Stage { quest: x, .. } if *x == quest))), "Kanten waits for Pelloran");
     for (who, line, stage) in [(pelloran, (0x2500707b, 0x8f8dca2a), 2), (kanten, (0x25006f84, 0x8f8dca2a), 3)] {
         let o = talk(who, &book, 30).unwrap();
         assert_eq!((o.tells.as_slice(), o.quests.as_slice()), (&[line][..], &[Q::Stage { quest, stage }][..]));

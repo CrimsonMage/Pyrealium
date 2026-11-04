@@ -180,7 +180,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     // A quest with no EscortAbandoned set fails as for a lost escort.
                     let tables = crate::quest_emotes::tables();
                     let answers = |t: crate::quest_emotes::Trigger| tables.as_ref().zip(srv.store.characters.get(&player))
-                        .is_some_and(|(tables, c)| tables.answers(t, entity, 0, None, &c.quests, crate::recovered_quests::now()));
+                        .is_some_and(|(tables, c)| tables.answers(t, entity, 0, None, &c.quests, crate::clock::now()));
                     let trigger = if answers(crate::quest_emotes::Trigger::EscortAbandoned) { crate::quest_emotes::Trigger::EscortAbandoned }
                         else { crate::quest_emotes::Trigger::EscortLost };
                     updates.extend(escort_quest(&mut srv.store, player, entity, trigger)?);
@@ -190,7 +190,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     srv.corpse_loot.killed(actor, player);
                     // A fellowship quest's kill counts for the killer's fellows in the world
                     // (registry credit `fellowship`; Pyrealium policy: no range limit is recovered).
-                    let unix = crate::recovered_quests::now();
+                    let unix = crate::clock::now();
                     for fellow in srv.groups.members(player).into_iter().filter(|f| *f != player && srv.active_characters.contains_key(f)) {
                         let Some(c) = srv.store.characters.get(&fellow).filter(|c| !c.deleted && c.progression.alive()) else { continue };
                         let Some(outcome) = crate::quest_emotes::fellow_kill(&c.quests, &c.inventory, &c.progression, entity, unix) else { continue };
@@ -391,7 +391,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
 /// only quest progress, lines and tells, as a fellow's kill credit is applied.
 fn escort_quest(store: &mut Store, player: u64, entity: u32, trigger: crate::quest_emotes::Trigger) -> io::Result<Vec<crate::scene::Delivery>> {
     let mut updates = Vec::new();
-    let unix = crate::recovered_quests::now();
+    let unix = crate::clock::now();
     let Some((tables, c)) = crate::quest_emotes::tables().zip(store.characters.get(&player).filter(|c| !c.deleted)) else { return Ok(updates) };
     let Some(outcome) = tables.run(trigger, entity, 0, None, &c.quests, &c.inventory, &c.progression, 0, 0., unix, &crate::quest_emotes::item)
         .ok().flatten().filter(|o| o.items.is_empty() && o.changes.is_empty()) else { return Ok(updates) };

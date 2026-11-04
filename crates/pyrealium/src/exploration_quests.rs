@@ -39,11 +39,6 @@ pub fn catalog() -> &'static Catalog {
         for q in c.quests.iter().chain([&c.referral]) {
             assert!(ids.insert(q.id) && q.id >> 24 == 0x40 && q.npc >> 24 == 0x47);
             assert!(q.limit_seconds > 0 && q.repeat_seconds > 0 && q.level == 1);
-            assert!(
-                !crate::recovered_quests::profiles()
-                    .iter()
-                    .any(|old| old.id == q.id)
-            );
         }
         for q in &c.quests {
             assert_eq!(q.objectives.len(), 3);

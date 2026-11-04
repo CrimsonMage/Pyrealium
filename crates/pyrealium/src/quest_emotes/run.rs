@@ -17,6 +17,11 @@ impl Tables {
     }
     pub fn quest(&self, key: &str) -> Option<&Quest> { self.keys.get(key).and_then(|id| self.quests.get(id)) }
     pub fn quests(&self) -> impl Iterator<Item = &Quest> { self.quests.values() }
+    /// The quest a UseItem set of the item starts (an elixir), for the item's examination.
+    pub fn started_by_item(&self, entity: u32) -> Option<&Quest> {
+        let quest = self.sets.iter().find(|s| s.trigger == Trigger::UseItem && s.owner_entities.contains(&entity) && s.stages.0 == 0)?.quest?;
+        self.quests.get(&quest)
+    }
     /// Every quest's name (`quest.name`).
     pub fn quest_names(&self) -> impl Iterator<Item = &str> { self.keys.keys().map(String::as_str) }
     /// The journal line and finished flag of `quest` at `stage`.

@@ -24,7 +24,7 @@ pub(super) fn personal_quests(store: &mut Store, character: u64, trigger: Trigge
     let Some(tables) = crate::quest_emotes::tables() else { return Ok(Vec::new()) };
     let Some(c) = store.characters.get(&character).filter(|c| !c.deleted) else { return Ok(Vec::new()) };
     let outcomes = tables.run_personal(trigger, &c.quests, &c.inventory, &c.progression, store.next_item_id()?,
-        crate::recovered_quests::now(), &crate::quest_emotes::item)?;
+        crate::clock::now(), &crate::quest_emotes::item)?;
     let mut events = Vec::new();
     for outcome in &outcomes { events.extend(commit_quest_outcome(store, character, outcome)?); }
     Ok(events)
@@ -37,7 +37,7 @@ pub(super) fn object_quests(store: &mut Store, character: u64, trigger: Trigger,
         let Some(tables) = crate::quest_emotes::tables() else { return Ok(Vec::new()) };
         let Some(c) = store.characters.get(&character).filter(|c| !c.deleted) else { return Ok(Vec::new()) };
         let Some(outcome) = tables.run(trigger, entity, iid, None, &c.quests, &c.inventory, &c.progression, store.next_item_id()?, 0.0,
-            crate::recovered_quests::now(), &crate::quest_emotes::item)? else { return Ok(Vec::new()) };
+            crate::clock::now(), &crate::quest_emotes::item)? else { return Ok(Vec::new()) };
         commit_quest_outcome(store, character, &outcome)
     };
     run().unwrap_or_else(|error| { eprintln!("Quest {trigger:?} sets for character {character:x}: {error}"); Vec::new() })
@@ -72,7 +72,7 @@ pub(super) fn quest_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer
     srv.next_quest_expiry = srv.now_ms + 1000;
     let timed: BTreeSet<u32> = tables.timed_quests().collect();
     if timed.is_empty() { return Ok(()); }
-    let unix = crate::recovered_quests::now();
+    let unix = crate::clock::now();
     let characters: Vec<u64> = srv.active_characters.keys().copied().collect();
     for character in characters {
         let Some(book) = srv.store.characters.get(&character).map(|c| c.quests.clone()) else { continue };
@@ -97,7 +97,7 @@ fn resume_set(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer>, tables: 
     let Some(peer) = peers.get_mut(&addr) else { return Ok(()) };
     let Some(saved) = srv.store.characters.get(&character) else { return Ok(()) };
     let outcome = tables.resume(resume, &saved.quests, &saved.inventory, &saved.progression, srv.store.next_item_id()?,
-        (srv.now_ms % 1000) as f32 / 1000.0, crate::recovered_quests::now(), &crate::quest_emotes::item)?;
+        (srv.now_ms % 1000) as f32 / 1000.0, crate::clock::now(), &crate::quest_emotes::item)?;
     let talks_only = outcome.items.is_empty() && outcome.changes.is_empty() && outcome.moveto.is_none()
         && outcome.escort.is_none() && !outcome.end_escort;
     if talks_only {

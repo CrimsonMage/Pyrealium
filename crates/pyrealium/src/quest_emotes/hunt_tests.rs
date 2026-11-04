@@ -47,3 +47,27 @@ fn a_hunt_is_offered_counted_paid_and_leads_to_the_next_link() {
     // A kill of a creature the hunt does not list changes nothing.
     assert!(act(Trigger::Kill, 0x4700_0001, 1004, &mut book, &mut p).is_none());
 }
+
+#[test]
+fn an_elixir_starts_its_quest_and_kantens_bag_goes_to_orven() {
+    let t = &shipped();
+    let p = at_level(20);
+    let elixir = item(0x4700_0f43, ITEM_NAMESPACE + 1, 0).unwrap();
+    let bag = Inventory::default().apply(&crate::inventory::Command::Grant(elixir)).unwrap();
+    // Wasp Bane: using the elixir takes it and starts the quest.
+    let o = t.run(Trigger::UseItem, 0x4700_0f43, 0, None, &Book::default(), &bag, &p, ITEM_NAMESPACE + 2, 0.0, 100, &item).unwrap().unwrap();
+    assert!(o.quests.contains(&Q::Stage { quest: 0x4000_000a, stage: 1 }) && o.items.len() == 1);
+    assert!(o.lines.iter().any(|l| l == "Wasp Bane accepted. Defeat 10 targets before the time limit."), "{:?}", o.lines);
+    // Gambling Debt: Kanten gives the job and his bag; Orven takes the bag and pays.
+    let (kanten, orven, debt) = (0x4700_1a3c, 0x4700_1c27, 0x4000_fe01);
+    let o = t.run(Trigger::Use, kanten, 9, None, &Book::default(), &Inventory::default(), &at_level(11), ITEM_NAMESPACE + 1, 0.0, 100, &item).unwrap().unwrap();
+    assert_eq!(o.given, [0x4700_1c1e]);
+    let book = o.quests.iter().try_fold(Book::default(), |b, c| b.apply(c)).unwrap();
+    let bag = o.items.iter().try_fold(Inventory::default(), |b, c| b.apply(c)).unwrap();
+    let o = t.run(Trigger::Use, orven, 9, None, &book, &bag, &at_level(11), ITEM_NAMESPACE + 2, 0.0, 200, &item).unwrap().unwrap();
+    assert_eq!(format!("{:?}", o.changes), "[AwardXp(1000)]");
+    assert!(o.quests.contains(&Q::Solved { quest: debt, at: 200 }));
+    // Without the bag, Orven says so.
+    let o = t.run(Trigger::Use, orven, 9, None, &book, &Inventory::default(), &at_level(11), ITEM_NAMESPACE + 2, 0.0, 200, &item).unwrap().unwrap();
+    assert_eq!(o.says[0].1, "Bring Kanten's Bag in your backpack to complete Gambling Debt.");
+}

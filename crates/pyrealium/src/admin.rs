@@ -246,8 +246,8 @@ mod tests {
         let shipped = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/quests.sql")).unwrap();
         let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
         d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
-        // No item needing the DATs (this folder has none): the Gauntlet's potion goes.
-        d.execute("DELETE FROM emote_action WHERE action = 'GiveItem' AND p1 = 'frenzy_potion'", []).unwrap();
+        // No item needing the DATs (this folder has none): the quests' item rewards go.
+        d.execute("DELETE FROM emote_action WHERE action IN ('GiveItem', 'GiveStack', 'RandomGive')", []).unwrap();
         let dump = crate::quest_emotes::db::export(&d).unwrap();
         let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);

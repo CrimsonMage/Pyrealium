@@ -148,27 +148,7 @@ impl Store {
     }
     /// Version-two NPC hunt progression and its XP are one durable event.
     /// Commit the canonical inferred delivery exchange and its quest journal together.
-    pub fn recovered_delivery(&mut self,account:&str,id:u64,npc:u32,time:u64)->io::Result<()> {
-        let first=self.next_item_id()?;
-        let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive()).ok_or_else(||invalid("Quest owner unavailable"))?;
-        let (items,changes,book)=c.quests.recovered.delivery(&c.inventory,npc,c.progression.level().number,time,first)?;
-        let (bag,state)=if items.is_empty()&&changes.is_empty(){(c.inventory.clone(),c.progression.clone())}else{
-            crate::player_transaction::candidate(&c.inventory,&c.progression,&items,&changes,Some(first))?};
-        self.touch(id);
-        let c=self.characters.get_mut(&id).unwrap();c.inventory=bag;c.progression=state;c.quests.recovered=book;Ok(())
-    }
     /// Consume a supported hunt elixir and bestow its quest journal in one step.
-    pub fn recovered_elixir(&mut self,account:&str,id:u64,item:u64)->io::Result<()> {
-        let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive()).ok_or_else(||invalid("Quest owner unavailable"))?;
-        let owned=c.inventory.items().find(|i|i.id==item&&matches!(i.location,crate::inventory::Location::Bag(_)))
-            .ok_or_else(||invalid("Quest starter must be in your backpack"))?;
-        let q=crate::recovered_quests::use_profile(owned.definition).ok_or_else(||invalid("Unsupported quest starter"))?;
-        let time=crate::recovered_quests::now();
-        let book=c.quests.recovered.accept(q.id,c.progression.level().number,time)?;
-        let bag=c.inventory.apply(&crate::inventory::Command::ConsumeDense{item}).map_err(io::Error::other)?;
-        self.touch(id);
-        let c=self.characters.get_mut(&id).unwrap();c.inventory=bag;c.quests.recovered=book;Ok(())
-    }
     /// Moves each character's state of the quests that were code onto the data quests of the
     /// same journal id (`legacy_quests::commands`). Run at start, after the quest tables are
     /// installed; returns how many characters moved.
@@ -226,15 +206,12 @@ impl Store {
             .get(&id)
             .filter(|c| c.account == account && !c.deleted && c.progression.alive())
             .ok_or_else(|| invalid("encounter reward character unavailable"))?;
-        let time=crate::recovered_quests::now();
+        let time=crate::clock::now();
         let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
         let mut quests=character.quests.record_kill(entity);
-        let (recovered,xp)=quests.recovered.kill(entity,character.progression.level().number,time);
-        quests.recovered=recovered;
         for command in &kill_quests {quests=quests.apply(command).map_err(io::Error::other)?;}
         let mut progression=character.progression.clone();
         for command in commands.iter().chain(&kill_xp) {progression=progression.apply(command).map_err(io::Error::other)?;}
-        if xp>0 {progression=progression.apply(&crate::progression::Command::AwardXp(xp)).map_err(io::Error::other)?;}
         self.touch(id);
         let character = self.characters.get_mut(&id).unwrap();
         character.quests = quests;
@@ -271,7 +248,7 @@ impl Store {
             first,
         )?;
         // The kill's time is recorded (`ek1`): the quest emotes' time limits and solve times go by it.
-        let time=crate::recovered_quests::now();
+        let time=crate::clock::now();
         let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
         let progression=kill_xp.iter().try_fold(progression,|p,c|p.apply(c)).map_err(io::Error::other)?;
         let quests=kill_quests.iter().try_fold(character.quests.record_kill(entity),|b,c|b.apply(c)).map_err(io::Error::other)?;

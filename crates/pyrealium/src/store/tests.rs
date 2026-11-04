@@ -100,12 +100,17 @@
             // (a stage per kill), one now a hand-written hunt (underway / goal met / done).
             s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(marsh,crate::legacy_quests::HuntState{count:3,started:500,completed:0,rewarded_xp:0});
             s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(mucor,crate::legacy_quests::HuntState{count:2,started:600,completed:0,rewarded_xp:0});
+            // An inferred quest underway and one finished.
+            s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x40000097,crate::legacy_quests::RunState{count:2,started:700,completed:0});
+            s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x4000000a,crate::legacy_quests::RunState{count:10,started:100,completed:900});
             assert_eq!(s.migrate_legacy_quests(&t).unwrap(),1);
             assert_eq!(s.migrate_legacy_quests(&t).unwrap(),0,"once");
             saved=s.characters[&c.id].clone();
             assert_eq!((saved.quests.stage(marsh),saved.quests.timer(marsh).started),(4,500));
             assert_eq!((saved.quests.stage(mucor),saved.quests.count(mucor),saved.quests.timer(mucor).started),(1,2,600));
-            assert!(saved.quests.hunting.0.is_empty());
+            assert!(saved.quests.hunting.0.is_empty() && saved.quests.recovered.0.is_empty());
+            assert_eq!((saved.quests.stage(0x40000097),saved.quests.count(0x40000097)),(1,2));
+            assert!(t.solved(&saved.quests,0x4000000a) && saved.quests.timer(0x4000000a).completed==900);
         }
         // The migration marked the character changed, so its whole state was saved.
         let mut s=Store::open(&dir).unwrap();
@@ -182,13 +187,18 @@
         }
     }
     #[test]
-    fn inferred_hunts_elixirs_and_rolled_armor_survive_restart_atomically() {
+    fn an_inferred_quest_and_rolled_armor_survive_restart_atomically() {
         use crate::{inventory::{Item,Roll,Location,Command as I,ITEM_NAMESPACE},progression::Command as P};
+        let t=crate::quest_emotes::shipped();
+        // Quest 0x40000097 (the inferred catalog's evidence): a starter kill bestows it, its targets count.
+        let catalog:serde_json::Value=serde_json::from_str(include_str!("../../../../content/inferred-content-v1.json")).unwrap();
+        let q=catalog["quests"].as_array().unwrap().iter().find(|q|q["id"].as_u64()==Some(0x40000097)).unwrap();
+        let (starter,target)=(q["kill_starters"][0].as_u64().unwrap() as u32,q["targets"][0].as_u64().unwrap() as u32);
+        let (goal,xp)=(q["goal"].as_u64().unwrap(),q["xp"].as_u64().unwrap());
         let dir=crate::db::testdb::fresh();
-        let q=crate::recovered_quests::profiles().iter().find(|q|q.id==0x40000097).unwrap();
         let armor=Item{roll:Some(Roll{armor:17,tint:731,level:7,..Default::default()}),id:ITEM_NAMESPACE+1,
             definition:0x47000fdc,visual:0x1f00058c,quantity:1,stack_limit:1,equipment_mask:16,location:Location::Bag(0)};
-        let before;let finished;let bag;
+        let before;let saved;
         {
             let mut s=Store::open(&dir).unwrap();s.create("local","Recovered Hero").unwrap();
             s.progression_command("local",1,P::AwardXp(10000)).unwrap();
@@ -198,62 +208,20 @@
             assert!(crate::apparel::aspects(&s.characters[&1].inventory,1,0x1000).iter().any(|(_,a,v)|*a==2&&(*v-0.731).abs()<0.0001));
             before=s.characters[&1].progression.xp;
             let normal=[P::AwardXp(1)];
-            s.encounter_reward("local",1,q.kill_starters[0],0,&normal).unwrap();
-            for _ in 0..q.goal {s.encounter_reward("local",1,q.targets[0],0,&normal).unwrap();}
-            assert_eq!(s.characters[&1].progression.xp,before+u64::from(q.goal)+1+q.xp);
-            finished=s.characters[&1].quests.recovered.0[&q.id].clone();assert!(finished.completed>0);
-            s.encounter_reward("local",1,q.kill_starters[0],0,&normal).unwrap();
-            assert_eq!(s.characters[&1].quests.recovered.0[&q.id],finished);
-            for offset in 2..=3 {
-                let elixir=Item{roll:None,id:ITEM_NAMESPACE+offset,definition:0x47000f43,visual:0x1f0001cf,
-                    quantity:1,stack_limit:1,equipment_mask:0,location:Location::Bag((offset-2) as u16)};
-                s.inventory_command("local",1,I::Grant(elixir)).unwrap();
-            }
+            s.encounter_reward("local",1,starter,0,&normal).unwrap();
+            assert_eq!(s.characters[&1].quests.stage(0x40000097),1,"the starter bestows it");
+            for _ in 0..goal {s.encounter_reward("local",1,target,0,&normal).unwrap();}
+            assert_eq!(s.characters[&1].progression.xp,before+goal+1+xp);
+            assert!(t.solved(&s.characters[&1].quests,0x40000097));
+            // A starter kill within the repeat delay bestows nothing.
+            s.encounter_reward("local",1,starter,0,&normal).unwrap();
+            assert_eq!(s.characters[&1].quests.stage(0x40000097),2);
             s.save_now().unwrap();
-            assert!(s.recovered_elixir("other",1,ITEM_NAMESPACE+2).is_err());assert!(!s.dirty());
-            s.recovered_elixir("local",1,ITEM_NAMESPACE+2).unwrap();
-            s.save_now().unwrap();
-            assert!(s.recovered_elixir("local",1,ITEM_NAMESPACE+3).is_err());assert!(!s.dirty());
-            assert!(s.characters[&1].inventory.items().any(|i|i.id==ITEM_NAMESPACE+3));
-            bag=s.characters[&1].inventory.clone();
+            saved=s.characters[&1].clone();
         }
-        {
-            let s=Store::open(&dir).unwrap();let c=&s.characters[&1];
-            assert_eq!(c.inventory,bag);assert_eq!(c.quests.recovered.0[&q.id],finished);
-            assert_eq!(c.progression.xp,before+u64::from(q.goal)+2+q.xp);
-            assert_eq!(c.quests.recovered.0[&0x4000000a].count,0);
-            assert_eq!(crate::apparel::armor(&c.inventory,1),17);
-            assert!(!c.inventory.items().any(|i|i.id==ITEM_NAMESPACE+2));
-        }
-    }
-    #[test]
-    fn recovered_delivery_consumes_owned_bag_and_replays_without_duplicate_xp() {
-        use crate::{recovered_quests::{DEBT,KANTEN,ORVEN,BAG},progression::Command as P};
-        let dir=crate::db::testdb::fresh();
-        let xp;
-        {
-            let mut s=Store::open(&dir).unwrap();s.create("local","Delivery Hero").unwrap();
-            s.save_now().unwrap();
-            assert!(s.recovered_delivery("local",1,KANTEN,100).is_err());assert!(!s.dirty());
-            s.progression_command("local",1,P::AwardXp(100000)).unwrap();
-            s.recovered_delivery("local",1,KANTEN,100).unwrap();
-            assert_eq!(s.characters[&1].inventory.items().filter(|i|i.definition==BAG).count(),1);
-            assert!(s.recovered_delivery("local",1,KANTEN,101).is_err());
-            assert!(s.recovered_delivery("other",1,ORVEN,102).is_err());
-            assert!(s.recovered_delivery("local",1,ORVEN,7300).is_err());
-            // Renewing an expired job reuses the owned bag, never duplicates it.
-            s.recovered_delivery("local",1,KANTEN,7300).unwrap();
-            assert_eq!(s.characters[&1].inventory.items().filter(|i|i.definition==BAG).count(),1);
-            s.recovered_delivery("local",1,ORVEN,7301).unwrap();
-            xp=s.characters[&1].progression.xp;assert_eq!(xp,101000);
-            assert!(s.recovered_delivery("local",1,ORVEN,7302).is_err());
-            assert!(s.recovered_delivery("local",1,KANTEN,7302).is_err());
-        }
-        {
-            let s=Store::open(&dir).unwrap();let c=&s.characters[&1];assert_eq!(c.progression.xp,xp);
-            assert_eq!(c.quests.recovered.0[&DEBT].completed,7301);
-            assert!(!c.inventory.items().any(|i|i.definition==BAG));
-        }
+        let s=Store::open(&dir).unwrap();
+        assert_eq!(s.characters[&1],saved);
+        assert_eq!(crate::apparel::armor(&s.characters[&1].inventory,1),17);
     }
     #[test]
     fn exploration_conversations_replay_partial_and_completed_quests_exactly_once() {

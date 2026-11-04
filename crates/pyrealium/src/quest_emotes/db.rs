@@ -457,7 +457,12 @@ fn literal(v: ValueRef) -> String {
         ValueRef::Null => "NULL".to_owned(),
         ValueRef::Integer(n) => n.to_string(),
         ValueRef::Real(x) => format!("{x:?}"),
-        ValueRef::Text(t) => format!("'{}'", String::from_utf8_lossy(t).replace('\'', "''")),
+        // A line break is written as char(10) (char(13) for a carriage return), so every row stays
+        // on one line of the dump.
+        ValueRef::Text(t) => {
+            let quoted = format!("'{}'", String::from_utf8_lossy(t).replace('\'', "''"));
+            quoted.replace('\r', "' || char(13) || '").replace('\n', "' || char(10) || '")
+        }
         ValueRef::Blob(b) => format!("X'{}'", b.iter().map(|c| format!("{c:02x}")).collect::<String>()),
     }
 }

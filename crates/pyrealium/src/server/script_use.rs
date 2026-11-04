@@ -68,20 +68,11 @@ pub(super) fn on_use_object(
     // Quest emotes (`quest_emotes`): a world object with a Use set that answers now. The
     // quest tables go first; the built-in quests below answer only what they do not.
     if srv.shelter_gameplay && srv.scene.examination_content(character,request.item).is_some_and(|o|crate::quest_emotes::tables().is_some_and(|t|
-        t.answers(crate::quest_emotes::Trigger::Use,o.entity,request.item,None,&srv.store.characters[&character].quests,crate::recovered_quests::now()))) {
+        t.answers(crate::quest_emotes::Trigger::Use,o.entity,request.item,None,&srv.store.characters[&character].quests,crate::clock::now()))) {
         if request.owner != character {return Err(invalid("Quest use owner mismatch."));}
         match use_emote(peer,character,request.item,crate::quest_emotes::Trigger::Use,None,&mut srv.store,&mut srv.scene,&srv.inventory_metadata,&mut srv.encounters,&mut srv.bootstrap,srv.now_ms) {
             Ok(updates)=>outbox.deliveries.extend(updates),
             Err(error)=>replies.extend(peer.send_event(&script::chat(&error.to_string(),1).map_err(other)?,srv.now)?),
-        }
-        return Ok(replies);
-    }
-    let quest_target=if request.target!=0 && srv.store.characters[&character].inventory.items().any(|i|i.id==request.item&&i.definition==crate::recovered_quests::BAG) {request.target}else{request.item};
-    if srv.quest_gameplay && srv.scene.examination_content(character,quest_target).is_some_and(|o|crate::recovered_quests::delivery_npc(o.entity)) {
-        if request.owner!=character{return Err(invalid("Quest use owner mismatch"));}
-        match use_recovered_delivery(peer,character,quest_target,&mut srv.store,&mut srv.scene,&srv.inventory_metadata) {
-            Ok(updates)=>outbox.deliveries.extend(updates),
-            Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,
         }
         return Ok(replies);
     }
@@ -206,18 +197,11 @@ pub(super) fn on_use_object(
     }
     // A bag item a quest's UseItem set answers for (`quest_emotes`).
     let used=srv.store.characters[&character].inventory.items().find(|i|i.id==request.item&&matches!(i.location,crate::inventory::Location::Bag(_))).map(|i|i.definition);
-    if let Some(definition)=used.filter(|d|crate::quest_emotes::tables().is_some_and(|t|t.answers(crate::quest_emotes::Trigger::UseItem,*d,0,None,&srv.store.characters[&character].quests,crate::recovered_quests::now()))) {
+    if let Some(definition)=used.filter(|d|crate::quest_emotes::tables().is_some_and(|t|t.answers(crate::quest_emotes::Trigger::UseItem,*d,0,None,&srv.store.characters[&character].quests,crate::clock::now()))) {
         if request.owner!=character{return Err(invalid("Quest item owner mismatch"));}
         match trigger_emotes(peer,character,crate::quest_emotes::Trigger::UseItem,&[definition],&mut srv.store,&mut srv.scene,&srv.inventory_metadata,&mut srv.encounters,srv.now_ms) {
             Ok(updates)=>outbox.deliveries.extend(updates),
             Err(error)=>replies.extend(peer.send_event(&script::chat(&error.to_string(),1).map_err(other)?,srv.now)?),
-        }
-        return Ok(replies);
-    }
-    if srv.store.characters[&character].inventory.items().any(|i|i.id==request.item&&crate::recovered_quests::use_profile(i.definition).is_some()) {
-        if request.owner!=character{return Err(invalid("Quest elixir owner mismatch"));}
-        if let Err(error)=use_recovered_elixir(peer,character,request.item,&mut srv.store,&mut srv.scene) {
-            replies.extend(peer.send_event(&script::chat(&error.to_string(),1).map_err(other)?,srv.now)?);
         }
         return Ok(replies);
     }

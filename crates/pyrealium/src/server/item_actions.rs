@@ -113,7 +113,7 @@ pub(super) fn merchant_action(
 pub(super) fn use_gathering(peer:&mut Peer,character:u64,item:u64,target:u64,store:&mut Store,scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,loot:&crate::loot::Loot,geometry:Option<&mut crate::geometry::Geometry>,now_ms:u64)->io::Result<Vec<crate::scene::Delivery>>{
     use crate::{harvesting as h,professions as p,inventory::{Command,Location}};
     if peer.last_inventory_ms.is_some_and(|last|now_ms.saturating_sub(last)<1500){return Err(invalid("Wait for your gathering action to finish."))}
-    let saved=&store.characters[&character];let time=crate::recovered_quests::now();
+    let saved=&store.characters[&character];let time=crate::clock::now();
     if !scene.can_observe(character,character)||!saved.progression.alive()||peer.combat{return Err(invalid("Gathering requires a ready living player in peace mode."))}
     let owned=saved.inventory.items().find(|i|i.id==item&&matches!(i.location,Location::Bag(_)));
     if let Some(map_item)=owned.filter(|i|h::map(i.definition).is_some()){
@@ -190,7 +190,7 @@ pub(super) fn craft_item(
         if request.ingredients.is_empty()&&request.primary!=character{return Err(invalid("Survey helper must be your character."))}
         crate::professions::require_workshop(scene,character,request.recipe)?;
         let mut entropy=[0u8;4];getrandom::getrandom(&mut entropy).map_err(|e|invalid(&format!("Craft randomness unavailable: {e}")))?;
-        let mut plan=crate::professions::plan(&saved.professions,&saved.inventory,request,store.next_item_id()?,u32::from_le_bytes(entropy),crate::recovered_quests::now(),metadata)?;
+        let mut plan=crate::professions::plan(&saved.professions,&saved.inventory,request,store.next_item_id()?,u32::from_le_bytes(entropy),crate::clock::now(),metadata)?;
         if matches!(plan.change.activity,Some(crate::harvesting::Activity::Survey{..})) {
             crate::harvesting::ground_survey(&saved.professions,&mut plan.change,geometry.ok_or_else(||invalid("Surveying requires native world geometry."))?)?;
         }

@@ -46,7 +46,8 @@ pub struct Progress {
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Book {
-    pub recovered: crate::recovered_quests::Book,
+    /// A legacy inferred quest's saved run, until the start moves it (`legacy_quests`).
+    pub recovered: crate::legacy_quests::Runs,
     pub exploration: crate::exploration_quests::Book,
     /// A legacy hunt's saved run, until the start moves it onto its data quest (`legacy_quests`).
     pub hunting: crate::legacy_quests::Hunts,
@@ -130,6 +131,8 @@ pub enum Command {
     LaneOff { group: u32 },
     /// A legacy hunt's state leaves the hunting book (`Store::migrate_legacy_quests`).
     RetireHunt { quest: u32 },
+    /// A legacy inferred quest's state leaves its book (`Store::migrate_legacy_quests`).
+    RetireRun { quest: u32 },
     /// A quest effect (an `Effect` state) put on at `at` until `until` (Unix seconds).
     EffectOn { effect: u32, at: u64, until: u64 },
     /// A quest effect taken off.
@@ -187,6 +190,7 @@ impl Command {
             Self::Recipe(r) => format!("recipe,{r:08x}"),
             Self::LaneOff { group } => format!("laneoff,{group:08x}"),
             Self::RetireHunt { quest } => format!("retire,{quest:08x}"),
+            Self::RetireRun { quest } => format!("retirerun,{quest:08x}"),
             Self::EffectOn { effect, at, until } => format!("effect,{effect:08x},{at},{until}"),
             Self::EffectOff { effect } => format!("effectoff,{effect:08x}"),
             Self::SubCount { quest, counter, count } => format!("subcount,{quest:08x},{counter},{count}"),
@@ -261,6 +265,11 @@ impl Command {
                 let hex = &text["erase,".len()..];
                 if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
                 Ok(Self::Erase { quest: u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)? })
+            }
+            _ if text.starts_with("retirerun,") => {
+                let hex = &text["retirerun,".len()..];
+                if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
+                Ok(Self::RetireRun { quest: u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)? })
             }
             _ if text.starts_with("retire,") => {
                 let hex = &text["retire,".len()..];
@@ -388,6 +397,7 @@ impl Book {
                 next.subcounts.retain(|(q, _), _| q != quest);
             }
             Command::RetireHunt { quest } => { next.hunting.0.remove(quest); }
+            Command::RetireRun { quest } => { next.recovered.0.remove(quest); }
             Command::Lane { group, lane } => { next.lanes.insert(*group, *lane); }
             Command::Recipe(r) => { next.recipes.insert(*r); }
             Command::LaneOff { group } => { next.lanes.remove(group); }
@@ -501,7 +511,7 @@ impl Book {
     /// The gmQuestInfoList argument used by UI_Load for saved journal restoration.
     pub fn list_graph(&self) -> Result<Vec<u8>, WorldError> {
         let mut payload = Vec::new();
-        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32 + self.recovered.0.len() as u32 + self.exploration.0.len() as u32 + u32::from(self.arwic.phase>0));
+        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32 + self.exploration.0.len() as u32 + u32::from(self.arwic.phase>0));
         if let Some(state) = self.training {
             payload.extend(info_payload(state, false)?);
         }
@@ -509,7 +519,6 @@ impl Book {
         if self.potion != 0 { payload.extend(self.lesson_payload(false, false)?); }
         if self.journey != 0 { payload.extend(self.lesson_payload(true, false)?); }
         for (quest, stage) in self.journal_stages() { payload.extend(stage_payload(quest, stage, self.timer(quest), self.count(quest), false)?); }
-        for (id,state) in &self.recovered.0 { payload.extend(recovered_payload(*id,state,false)?); }
         for (id,state) in &self.exploration.0 { payload.extend(exploration_payload(*id,state,false)?); }
         if self.arwic.phase>0 {payload.extend(arwic_payload(&self.arwic,false)?);}
         Ok(native_graph(0xa1, &payload))
@@ -591,12 +600,6 @@ impl Book {
         for (id,state) in &self.exploration.0 {
             if previous.exploration.0.get(id)==Some(state) {continue;}
             let mut args=script::integer(0);args.extend(native_graph(0xa0,&exploration_payload(*id,state,true)?));
-            args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
-            events.push(script::private_call(UPDATE,&args)?);
-        }
-        for (id,state) in &self.recovered.0 {
-            if previous.recovered.0.get(id)==Some(state) {continue;}
-            let mut args=script::integer(0);args.extend(native_graph(0xa0,&recovered_payload(*id,state,true)?));
             args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
             events.push(script::private_call(UPDATE,&args)?);
         }
@@ -744,15 +747,6 @@ fn exploration_payload(id:u32,state:&crate::exploration_quests::State,fx:bool)->
 }
 
 
-fn recovered_payload(id:u32,state:&crate::recovered_quests::State,fx:bool)->Result<Vec<u8>,WorldError> {
-    let q=crate::recovered_quests::profiles().iter().find(|q|q.id==id).ok_or(WorldError::InvalidValue)?;
-    let mut b=Vec::new();word(&mut b,id);b.extend(world::literal_name(&q.title)?);
-    b.extend(world::literal_name(&q.text)?);word(&mut b,ICON);
-    word(&mut b,if state.completed>0 {COMPLETED}else{UNDERWAY});word(&mut b,u32::from(state.completed==0));
-    b.extend(world::literal_name(&crate::recovered_quests::Book::guidance(q,state))?);word(&mut b,u32::from(q.level));
-    b.extend((state.started as f64).to_le_bytes());b.extend((if state.completed>0{state.completed as f64}else{-1.}).to_le_bytes());
-    word(&mut b,0);b.extend(0f64.to_le_bytes());b.extend(0f64.to_le_bytes());word(&mut b,u32::from(fx));Ok(b)
-}
 
 fn stage_completed(quest: u32, stage: u8) -> bool {
     crate::quest_emotes::tables().is_some_and(|t| t.stage(quest, stage).is_some_and(|(done, _)| done))
@@ -776,7 +770,7 @@ fn stage_payload(quest: u32, stage: u8, timer: Timer, count: u16, play_fx: bool)
     bytes.extend((if done { time(timer.completed) } else { -1.0 }).to_le_bytes());
     // gmQuestInfo::StreamPack 0060af00: _bExpires, _ttSecondsRemaining, _ttSecondsUntilRetry (the
     // registry's time limit for an underway run, its repeat delay after a solve).
-    let now = crate::recovered_quests::now();
+    let now = crate::clock::now();
     let remaining = registry.time_limit.filter(|_| !done && timer.started != 0).map(|l| timer.started.saturating_add(l).saturating_sub(now));
     let retry = registry.repeat.filter(|_| done && timer.completed != 0).map_or(0, |r| timer.completed.saturating_add(r).saturating_sub(now));
     word(&mut bytes,u32::from(remaining.is_some())); bytes.extend((remaining.unwrap_or(0) as f64).to_le_bytes());

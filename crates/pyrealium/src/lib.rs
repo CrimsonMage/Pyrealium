@@ -82,7 +82,6 @@ pub mod live_edit;
 pub mod admin;
 mod native_trophies;
 
-pub mod recovered_quests;
 pub mod exploration_quests;
 
 pub mod legacy_quests;

@@ -12,6 +12,12 @@ pub struct HuntState { pub count: u16, pub started: u64, pub completed: u64, pub
 #[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub struct Hunts(pub BTreeMap<u32, HuntState>);
 
+/// An inferred ("recovered") quest's saved run.
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct RunState { pub count: u16, pub started: u64, pub completed: u64 }
+#[derive(Clone, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Runs(pub BTreeMap<u32, RunState>);
+
 /// The quest's completed stage (the highest one marked completed).
 fn done_stage(tables: &crate::quest_emotes::Tables, quest: u32) -> Option<u8> {
     (0..=255u8).rev().find(|s| tables.stage(quest, *s).is_some_and(|(done, _)| done))
@@ -31,7 +37,9 @@ fn run(tables: &crate::quest_emotes::Tables, quest: u32, count: u16, started: u6
         // A stage per kill: 1 + kills, at most the report stage (done - 1).
         out.push(Q::Stage { quest, stage: 1 + u8::try_from(count).unwrap_or(u8::MAX).min(done - 2) });
     } else {
-        out.extend([Q::Stage { quest, stage: if count >= goal && goal > 0 { 2 } else { 1 } }, Q::Count { quest, count: count.min(goal) }]);
+        // A goal-met stage only where one sits before the completed stage.
+        let met = count >= goal && goal > 0 && done > 2;
+        out.extend([Q::Stage { quest, stage: if met { 2 } else { 1 } }, Q::Count { quest, count: count.min(goal) }]);
     }
     Some(out)
 }
@@ -44,6 +52,11 @@ pub fn commands(book: &Book, tables: &crate::quest_emotes::Tables) -> Vec<Q> {
         let Some(moved) = run(tables, *quest, state.count, state.started, state.completed) else { continue };
         out.extend(moved);
         out.push(Q::RetireHunt { quest: *quest });
+    }
+    for (quest, state) in &book.recovered.0 {
+        let Some(moved) = run(tables, *quest, state.count, state.started, state.completed) else { continue };
+        out.extend(moved);
+        out.push(Q::RetireRun { quest: *quest });
     }
     out
 }
