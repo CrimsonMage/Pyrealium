@@ -1,6 +1,6 @@
 //! Scripted quests as data, in the shape of ACEmulator's emote tables (`weenie_properties_emote`
 //! and `weenie_properties_emote_action`): four tables of the quest content database (`db`,
-//! checked in as `content/quests.sql`), read at start, so an edited row and a restart change a
+//! checked in as `content/content.sql`), read at start, so an edited row and a restart change a
 //! quest. The columns below are each table's, in the order `parse_rows` takes them (the TSV
 //! order a generator still writes, `db::import_tsv`).
 //!
@@ -302,7 +302,7 @@ pub fn replace(tables: Arc<Tables>) {
     *INSTALLED.write().unwrap_or_else(|e| e.into_inner()) = Some(tables);
 }
 pub fn installed() -> io::Result<Arc<Tables>> {
-    tables().ok_or_else(|| io::Error::other("the quest tables (quests.sql) are not loaded"))
+    tables().ok_or_else(|| io::Error::other("the quest tables (content.sql) are not loaded"))
 }
 /// The tables if loaded (journal views tolerate their absence).
 pub fn tables() -> Option<Arc<Tables>> { INSTALLED.read().unwrap_or_else(|e| e.into_inner()).clone() }

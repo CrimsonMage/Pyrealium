@@ -268,7 +268,7 @@ mod tests {
         // with the world and rules; the server checks it, swaps it in and saves it beside them.
         let (code, running) = call(handle.address, &token, "GET", "/admin/quests", "");
         assert_eq!((code, running["quests"].as_str(), running["revision"].as_str()), (200, Some(""), done["revision"].as_str()));
-        let shipped = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/quests.sql")).unwrap();
+        let shipped = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content/content.sql")).unwrap();
         let d = crate::quest_emotes::db::open_dump(&shipped).unwrap();
         d.execute("INSERT INTO quest (name, journal_id, title_table, title_key, title, source) VALUES ('q', '0x40fff001', '0x25000001', '0x1', 'Q', 't')", []).unwrap();
         // No item needing the DATs (this folder has none): the quests' item rewards go.

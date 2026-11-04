@@ -13,7 +13,7 @@ from types import SimpleNamespace
 from editor_live import LiveLink
 from editor_quest_panel import QuestPanel, action_specs
 
-SHIPPED = Path(__file__).resolve().parent.parent / "content" / "quests.sql"
+SHIPPED = Path(__file__).resolve().parent.parent / "content" / "content.sql"
 MOIRA = {"table": "0x2500895c", "lines": [
     {"key": "0x09200efe", "text": "Sorry, I don't have a task for you today."},
     {"key": "0x68f492a3", "text": "Come back to me when you are stronger."}]}

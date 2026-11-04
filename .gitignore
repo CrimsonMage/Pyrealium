@@ -149,3 +149,4 @@ Thumbs.db
 
 # The quest database built from content/quests.sql for editing (pyrealium-content build).
 content/quests.sqlite
+content/content.sqlite

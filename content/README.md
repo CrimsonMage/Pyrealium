@@ -128,20 +128,20 @@ out; without the strip it is not merged). The file's header gives the evidence f
 ## Scripted quests as data
 
 Scripted quests are rows of the quest database, four tables in the shape of ACEmulator's emote
-tables (`src/quest_emotes.rs`, `src/quest_emotes/db.rs`). Its checked-in form is `quests.sql`, a
+tables (`src/quest_emotes.rs`, `src/quest_emotes/db.rs`). Its checked-in form is `content.sql`, a
 dump with one `INSERT` per row in key order, so an edit reads as a diff. To edit:
 
-    cargo run -p pyrealium --bin pyrealium-content -- build    # quests.sql -> quests.sqlite
-    # edit content/quests.sqlite in any SQLite tool (DB Browser for SQLite, sqlite3)
-    cargo run -p pyrealium --bin pyrealium-content -- export   # quests.sqlite -> quests.sql
+    cargo run -p pyrealium --bin pyrealium-content -- build    # content.sql -> content.sqlite
+    # edit content/content.sqlite in any SQLite tool (DB Browser for SQLite, sqlite3)
+    cargo run -p pyrealium --bin pyrealium-content -- export   # content.sqlite -> content.sql
     cargo run -p pyrealium --bin pyrealium-content -- check    # the server's own checks
 
-`quests.sqlite` is not checked in; `build` refuses to overwrite edits that are not exported. The
+`content.sqlite` is not checked in; `build` refuses to overwrite edits that are not exported. The
 schema refuses the plainest mistakes as they are typed (an unknown trigger, a stage of a quest
 that does not exist, a renamed quest's stages and sets follow it); the server's checks name a bad
 row by table and key (`quests emote_action guard_start/2`) and refuse the start. Every row carries
 its evidence in `source` and its `family` (`hand`, or the generator that writes it). The server
-reads `quests.sql` from beside the world table (`--content`; content preparation copies it there).
+reads `content.sql` from beside the world table (`--content`; content preparation copies it there).
 
 - `quest`: name, journal_id, title_table, title_key, title, goal (a kill task's
   count), credit (`killer`), min_level, time_limit_seconds, max_solves, repeat_seconds, source.
@@ -1125,7 +1125,7 @@ are not replaced with invented quotations. Mirror aliases with identical quest
 bodies share a topic, and discontinued quests are labeled rather than activated.
 
 What these NPCs say is now quest content, not this file: each has a `Talk` set in
-`quests.sql` (family `npc`, named `talk_<entity>`). `Talk` runs when the player uses an
+`content.sql` (family `npc`, named `talk_<entity>`). `Talk` runs when the player uses an
 NPC and no quest Use set, merchant or other service answered, and on `@talk` with the NPC
 selected. 65 NPCs whose DAT string table has the "no task today" line (key `0x09200efe`)
 speak it with `Tell`. The other 152 keep their wiki summaries as `Say` rows, one topic at

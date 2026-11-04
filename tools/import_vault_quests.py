@@ -25,7 +25,7 @@ Outputs:
   --drafts  one structured draft per Vault quest: parsed fields, every resolved field with its
             confidence and source, the engine gaps that block it and its catalog overlaps.
   --report  the coverage report (markdown).
-  --ship    the content directory whose quest database (`quests.sql`) receives the rows, as its
+  --ship    the content directory whose quest database (`content.sql`) receives the rows, as its
             `vault` family: they are written as the four `<table>-vault.tsv` files into a
             temporary directory and imported with `pyrealium-content import-tsv DIR vault
             CONTENT`, which replaces only the vault family's rows (the tool is
@@ -452,7 +452,7 @@ class Data:
                     if q.get("title"):
                         self.catalog_title[key(q["title"])].append(src)
                         self.catalog_quest_rows[key(q["title"])].append((src, q))
-                        # The hunting catalog's hunts are hand rows in quests.sql now (their own
+                        # The hunting catalog's hunts are hand rows in content.sql now (their own
                         # journal ids and DAT lines): the Vault rows never regenerate them.
                     if q.get("npc"):
                         self.catalog_npc[q["npc"]].append(src + " (quest NPC)")
@@ -469,7 +469,9 @@ class Data:
                         self.catalog_quest[i].append(rs[:-3])
         # the shipped base tables: quests and owners already data
         self.base_owners = set()
-        p = os.path.join(a.content, "quests.sql")
+        p = os.path.join(a.content, "content.sql")
+        if not os.path.exists(p):
+            p = os.path.join(a.content, "quests.sql")   # before the rename
         if os.path.exists(p):
             db = sqlite3.connect(":memory:")
             db.executescript(open(p, encoding="utf-8").read())
@@ -482,8 +484,8 @@ class Data:
             # Quests the database already runs outside the vault family (hand rows, once the
             # hand-coded catalogs): the vault rows must not run them twice.
             for name, journal, title in db.execute("SELECT name, journal_id, title FROM quest WHERE family <> 'vault'"):
-                self.catalog_quest[int(journal, 16)].append(f"quests.sql {name}")
-                self.catalog_title[key(title)].append(f"quests.sql {name}")
+                self.catalog_quest[int(journal, 16)].append(f"content.sql {name}")
+                self.catalog_title[key(title)].append(f"content.sql {name}")
             db.close()
 
     # --- lookups -----------------------------------------------------------------------------
@@ -2392,9 +2394,9 @@ def ship_rows(drafts):
         cands = [(src, cq) for src, cq in DATA.catalog_quest_rows.get(key(d["title"]), []) if src.startswith("hunting")]
         if len(cands) == 1:
             cat = cands[0]
-        # A quest the database already runs (a hand row, `quests.sql ...`) never gets vault rows too.
+        # A quest the database already runs (a hand row, `content.sql ...`) never gets vault rows too.
         other = [o for o in d["overlaps"] if o["by"] in ("journal id", "title") and (
-            any(c.startswith("quests.sql") for c in o["catalogs"]) or not any(c.startswith("hunting") for c in o["catalogs"]))]
+            any(c.startswith("content.sql") for c in o["catalogs"]) or not any(c.startswith("hunting") for c in o["catalogs"]))]
         if other:
             d["blocks"].append(("Runs as a Pyrealium catalog quest", "operated", "; ".join(", ".join(o["catalogs"]) for o in other)
                                 + " already runs it (Pyrealium's recovered quests)"))

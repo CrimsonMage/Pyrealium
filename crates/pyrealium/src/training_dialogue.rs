@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 //! The training mentor's entity and the training portals' names (examination). The mentor's
-//! lessons and topics are quest rows (`content/quests.sql`: Use and Ask sets).
+//! lessons and topics are quest rows (`content/content.sql`: Use and Ask sets).
 
 pub const MENTOR_ENTITY: u32 = 0x47001699;
 pub const TUMEROK_RETURN: u64 = 0x8140000000030030;

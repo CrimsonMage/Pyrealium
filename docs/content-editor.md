@@ -343,7 +343,7 @@ The **Quests** tab (beside the World map) edits the quests in the editor itself:
 
 The guide to writing quests and speech is [`quest-authoring.md`](quest-authoring.md).
 
-The server's quest content (the quest database, `content/quests.sql`; see
+The server's quest content (the quest database, `content/content.sql`; see
 `content/README.md`) goes live the same way, as `my-world.quests.sql` beside the
 content file:
 
@@ -351,7 +351,7 @@ content file:
   quests the server runs into it. A save pushes the quests only when you changed
   them, so placement edits never touch the server's quests.
 - The server keeps only your quest edits, as a layer: while they differ from its
-  shipped quests (`content/quests.sql`) it saves them as `my-world.quests.sql` with
+  shipped quests (`content/content.sql`) it saves them as `my-world.quests.sql` with
   the shipped dump they were made against (`my-world.quests.base.sql`), and removes
   both once they match again. At the next start it merges them row by row over
   the shipped quests as they are then: rows you changed, added or deleted are
@@ -366,7 +366,7 @@ content file:
 - A row that does not check (a stage of a quest that does not exist, an unknown
   action, an item the DATs do not have) changes nothing; the editor reports the
   table and key. Items a new row grants are read from the DATs before the swap.
-- To ship the edited quests, copy `my-world.quests.sql` over `content/quests.sql`
+- To ship the edited quests, copy `my-world.quests.sql` over `content/content.sql`
   (`cargo run -p pyrealium --bin pyrealium-content -- check` checks either).
 
 Parsing, DAT checks, native movement resolution and diffing run on the admin

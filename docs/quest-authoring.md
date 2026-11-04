@@ -10,13 +10,13 @@ parameters is listed in [`quest-actions.md`](quest-actions.md).
 
 ## Where the rows live
 
-- `content/quests.sql` is the checked-in copy: one `INSERT` per row, so a review or a merge
+- `content/content.sql` is the checked-in copy: one `INSERT` per row, so a review or a merge
   works line by line.
 - Edit them as a database:
-  - `cargo run -p pyrealium --bin pyrealium-content -- build` makes `content/quests.sqlite`.
+  - `cargo run -p pyrealium --bin pyrealium-content -- build` makes `content/content.sqlite`.
   - Edit it in the world builder's **Quests** tab, or in any SQLite tool.
   - `... -- check` checks every row the way the server does.
-  - `... -- export` writes `quests.sql` back.
+  - `... -- export` writes `content.sql` back.
 - In the world builder, a world's own quests are `NAME.quests.sql` beside `NAME.tsv`.
   - **Quests > Open quests** opens them as `NAME.quests.sqlite`.
   - **Save** commits.

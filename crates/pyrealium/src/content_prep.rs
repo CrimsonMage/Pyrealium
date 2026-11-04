@@ -865,9 +865,10 @@ pub struct World {
 }
 
 impl World {
-    /// The quest database's dump (`quest_emotes::Tables::from_sql`), if prepared.
+    /// The content database's dump (`quest_emotes::Tables::from_sql`), if prepared (stored as
+    /// `content.sql`, or `quests.sql` by an older prepare).
     pub fn quest_sql(&self) -> Option<&str> {
-        self.tables.iter().find(|(n, _)| n == crate::quest_emotes::db::DUMP).map(|(_, t)| t.as_str())
+        self.tables.iter().find(|(n, _)| n == crate::content_db::DUMP || n == crate::content_db::OLD_DUMP).map(|(_, t)| t.as_str())
     }
 }
 

@@ -53,15 +53,15 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     // Replaying trained skills can initialize the process-wide skill catalog.
     // Select the native data profile before opening the character store.
     // The scripted quests' tables (`quest_emotes`), before the journal replays; a bad row refuses
-    // the start. The shipped database (prepared, or `quests.sql` beside the world table), unless
+    // the start. The shipped database (prepared, or `content.sql` beside the world table), unless
     // the world builder's overlay has its own beside it (`NAME.quests.sql`, saved by live edits),
     // which replaces it whole.
     let shipped_quests = if let Some(prepared) = &config.prepared {
-        let text = prepared.quest_sql().ok_or_else(|| invalid("the prepared content has no quest database (quests.sql)"))?;
+        let text = prepared.quest_sql().ok_or_else(|| invalid("the prepared content has no content database (content.sql)"))?;
         Some((text.to_owned(), "the prepared content".to_owned()))
     } else if let Some(world) = config.content.as_deref().filter(|p| p.is_file()) {
         let directory = world.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(std::path::Path::new("."));
-        let path = directory.join(crate::quest_emotes::db::DUMP);
+        let path = crate::content_db::dump_in(directory);
         Some((std::fs::read_to_string(&path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?, path.display().to_string()))
     } else {
         None

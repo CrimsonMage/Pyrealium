@@ -1,6 +1,8 @@
--- Pyrealium quest content (schema 11). Written by `pyrealium-content export`;
--- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 11;
+-- Pyrealium content (schema 12). Written by `pyrealium-content export`;
+-- edit content.sqlite (`pyrealium-content build`) or these rows, then export again.
+PRAGMA user_version = 12;
+-- The content database's tables, in dump order (crates/pyrealium/src/content_db.rs). Hex identifiers
+-- are text (`0x4700157d`), as they are written everywhere else; blank optional fields are NULL.
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -179,6 +181,91 @@ CREATE TABLE IF NOT EXISTS quest_item (
   visual TEXT CHECK (visual GLOB '0x1f[0-9a-fA-F]*'),
   stack_limit INTEGER CHECK (stack_limit BETWEEN 1 AND 65535),
   equipment_mask INTEGER CHECK (equipment_mask BETWEEN 0 AND 2047),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS world_pack (
+  name TEXT PRIMARY KEY CHECK (name <> ''),
+  kind TEXT NOT NULL CHECK (kind IN ('base', 'authored', 'capture', 'recovered', 'builder')),
+  report TEXT,
+  manifest_sha256 TEXT,
+  source_sha256 TEXT,
+  native_ground_verified INTEGER CHECK (native_ground_verified IN (0, 1)),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS world_object (
+  iid TEXT PRIMARY KEY CHECK (iid GLOB '0x8140[0-9a-fA-F]*' AND length(iid) = 18),
+  entity TEXT NOT NULL CHECK (entity GLOB '0x47[0-9a-fA-F]*' AND length(entity) = 10),
+  visual TEXT NOT NULL CHECK (visual GLOB '0x1f[0-9a-fA-F]*' AND length(visual) = 10),
+  cell TEXT NOT NULL CHECK (cell GLOB '0x[0-9a-fA-F]*' AND length(cell) = 10),
+  x REAL NOT NULL,
+  y REAL NOT NULL,
+  z REAL NOT NULL,
+  qw REAL NOT NULL,
+  qx REAL NOT NULL,
+  qy REAL NOT NULL,
+  qz REAL NOT NULL,
+  scale REAL CHECK (scale > 0 AND scale <= 100),
+  name TEXT CHECK (length(name) <= 256),
+  pack TEXT NOT NULL REFERENCES world_pack(name) ON UPDATE CASCADE,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT
+);
+CREATE TABLE IF NOT EXISTS creature_stats (
+  target TEXT PRIMARY KEY CHECK (target GLOB '0x47[0-9a-fA-F]*' OR target GLOB '0x8140[0-9a-fA-F]*'),
+  health INTEGER, damage INTEGER, armor INTEGER, level INTEGER, xp INTEGER, gold INTEGER,
+  interval_ms INTEGER, range REAL, leash REAL, respawn_ms INTEGER,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS creature_ai (
+  target TEXT PRIMARY KEY CHECK (target GLOB '0x47[0-9a-fA-F]*' OR target GLOB '0x8140[0-9a-fA-F]*'),
+  perception REAL, homesick REAL, wandering INTEGER CHECK (wandering IN (0, 1)), wander_range REAL,
+  wander_probability REAL, aggressive INTEGER CHECK (aggressive IN (0, 1)), idle_only INTEGER CHECK (idle_only IN (0, 1)),
+  loot_proof INTEGER CHECK (loot_proof IN (0, 1)),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS creature_loot (
+  target TEXT NOT NULL CHECK (target GLOB '0x47[0-9a-fA-F]*' OR target GLOB '0x8140[0-9a-fA-F]*'),
+  ord INTEGER NOT NULL CHECK (ord >= 1),
+  weight INTEGER NOT NULL CHECK (weight >= 1),
+  items TEXT NOT NULL,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (target, ord)
+);
+CREATE TABLE IF NOT EXISTS patrol (
+  actor TEXT PRIMARY KEY CHECK (actor GLOB '0x8140[0-9a-fA-F]*'),
+  pause_ms INTEGER NOT NULL CHECK (pause_ms >= 0),
+  points TEXT NOT NULL CHECK (points <> ''),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS spawn_group (
+  id TEXT PRIMARY KEY CHECK (id GLOB '0x[0-9a-fA-F]*'),
+  capacity INTEGER NOT NULL CHECK (capacity >= 1),
+  regen_ms INTEGER CHECK (regen_ms >= 0),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS spawn_group_member (
+  spawn_group TEXT NOT NULL REFERENCES spawn_group(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  placement TEXT NOT NULL CHECK (placement GLOB '0x8140[0-9a-fA-F]*'),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (spawn_group, placement)
+);
+CREATE TABLE IF NOT EXISTS portal_route (
+  portal TEXT PRIMARY KEY CHECK (portal GLOB '0x8140[0-9a-fA-F]*'),
+  entity TEXT NOT NULL CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
+  cell TEXT NOT NULL CHECK (cell GLOB '0x[0-9a-fA-F]*'),
+  x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL,
+  dest_cell TEXT NOT NULL CHECK (dest_cell GLOB '0x[0-9a-fA-F]*'),
+  dest_x REAL NOT NULL, dest_y REAL NOT NULL, dest_z REAL NOT NULL,
+  heading INTEGER NOT NULL CHECK (heading BETWEEN 0 AND 255),
+  level INTEGER NOT NULL CHECK (level >= 0),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );

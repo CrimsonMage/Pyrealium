@@ -1,6 +1,6 @@
 """The world builder's To place tab: NPCs and creatures that quest rows already name but the
 world does not place yet: the quest database's `placement_hint` rows (the world's
-NAME.quests.sqlite, else the shipped content/quests.sql).
+NAME.quests.sqlite, else the shipped content/content.sql).
 
 Double-click a row to open its cell at the guide's coordinates with the placement tool armed for
 its entity. Click a surface to place it, then save as usual. The quests start working as soon as
@@ -13,7 +13,7 @@ from tkinter import ttk
 
 import editor_quests
 
-SHIPPED = Path(__file__).resolve().parent.parent / "content" / "quests.sql"
+SHIPPED = Path(__file__).resolve().parent.parent / "content" / "content.sql"
 COLUMNS = ("entity", "what", "name", "north", "east", "cell", "x", "y", "quests")
 
 

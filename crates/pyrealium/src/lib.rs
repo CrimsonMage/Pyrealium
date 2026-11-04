@@ -12,6 +12,7 @@ pub mod combat_visual;
 pub mod clock;
 pub mod projectiles;
 pub mod content;
+pub mod content_db;
 pub mod content_prep;
 pub mod crafting;
 pub mod arwic_items;
