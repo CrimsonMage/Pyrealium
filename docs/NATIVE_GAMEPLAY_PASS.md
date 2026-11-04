@@ -46,8 +46,14 @@ These changes do **not** complete generated loot or active skill effects:
 - Native skill training, raising, untraining and cancellation pass the rendered
   test. Most active skill effects remain unsupported; catalog visibility does
   not mean those effects are implemented.
-- Examination reports known server level/health/vigor. A retail chance-to-hit
-  calculation is not yet implemented and is not fabricated in the panel.
+- Examination reports known server level/health/vigor. A living creature's
+  profile ends with the retail "Chance to hit this target: N%" row, byte for byte
+  as the retail servers sent it (28,062 captured creature profiles in the 2017
+  captures: `examination.stt` 0x9E78D75C, then 0xD81912CB with the int variable
+  0xF6620CE8, then a break). Pyrealium policy: retail's formula is not known, so
+  N is this server's own roll for the examiner's basic melee attack
+  (`Encounters::hit_percent`: the rating and defense the swing uses, through
+  `combat::hit_chance`, rounded to a whole percent).
 
 This pass built the editor, game and server. Checks include the rendered
 combat/inventory/mouse flow, self-examination, inventory scroll/drag regression,

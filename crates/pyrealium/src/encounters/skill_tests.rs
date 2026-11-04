@@ -658,3 +658,20 @@ fn a_creature_rests_on_its_lowest_sphere() {
     let floor = Placement { cell: 0x0299_0109, coordinates: [59.06, 242.7, -45.01], heading: 0 };
     assert_eq!(rested(floor, height).coordinates[2], -45.01 + height);
 }
+
+/// The examination's hit chance is the swing's own: the melee rating against the creature's
+/// defense through `combat::hit_chance`, in whole percent; a dead creature has none.
+#[test]
+fn the_examined_hit_chance_is_the_rolled_one() {
+    let (mut runtime, _scene, store, _path, target) = fixture("hit-chance");
+    let caster = &store.characters[&1];
+    let school = crate::combat::School::Melee;
+    let rating = crate::combat::player_attack(caster.progression.level().number, &caster.skills, school);
+    let defense = runtime.actors[&target].rule.level.unwrap_or(1) * 8;
+    let expected = (crate::combat::hit_chance(rating, defense) * 100.0).round() as u32;
+    assert_eq!(runtime.hit_percent(&store, 1, target), Some(expected));
+    assert!((5..=95).contains(&expected));
+    runtime.actors.get_mut(&target).unwrap().health = 0;
+    assert_eq!(runtime.hit_percent(&store, 1, target), None);
+    assert_eq!(runtime.hit_percent(&store, 1, target + 1), None);
+}

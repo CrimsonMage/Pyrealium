@@ -963,6 +963,25 @@ impl Encounters {
     pub fn is_creature(&self, id: u64) -> bool {
         self.actors.contains_key(&id)
     }
+    /// The chance, in whole percent, that `player`'s basic melee attack hits the living creature
+    /// `target`: the attack and defense ratings the swing rolls with (`tick`: the player's
+    /// `combat::player_attack` for melee with their rating effects, against the creature's level
+    /// times eight with its defense effects) through `combat::hit_chance`. Pyrealium policy: the
+    /// retail server's formula is not known, so the number shown is this server's own roll.
+    pub fn hit_percent(&self, store: &Store, player: u64, target: u64) -> Option<u32> {
+        let actor = self.actors.get(&target).filter(|actor| actor.health > 0)?;
+        let caster = store.characters.get(&player)?;
+        let school = crate::combat::School::Melee;
+        let rating = crate::combat::adjusted(
+            crate::combat::player_attack(caster.progression.level().number, &caster.skills, school),
+            self.ratings_for(player).attack(school),
+        );
+        let defense = crate::combat::adjusted(
+            actor.rule.level.unwrap_or(1) * 8,
+            self.ratings_for(target).creature_defense(),
+        );
+        Some((crate::combat::hit_chance(rating, defense) * 100.0).round() as u32)
+    }
     /// Local test navigation to actual runtime actors, never a spawn generator.
     /// Use current positions and exclude dead/despawned actors and all rooms.
     pub fn outdoor_survey(&self, scene: &Scene, origin: Placement) -> Vec<String> {

@@ -212,6 +212,39 @@ impl Names {
 /// 00609140. The matching 7148 profile ends after its node list, unlike newer
 /// retained capture profiles. HeapObject::Pack 006dbb00 adds zero field count.
 pub fn response(target: u64, name: Name, lines: &[String]) -> Result<Vec<u8>, WorldError> {
+    response_with_hit_chance(target, name, lines, None)
+}
+
+/// `examination.stt` (0x25000011) 0x9E78D75C, "Chance to hit this target: ".
+pub const HIT_CHANCE_LABEL: u32 = 0x9e78d75c;
+/// The same table's 0xD81912CB: the value with a percent sign, its number the variable below.
+pub const HIT_CHANCE_VALUE: u32 = 0xd81912cb;
+/// The value string's variable (an int).
+pub const HIT_CHANCE_VARIABLE: u32 = 0xf6620ce8;
+const EXAMINATION_TABLE: u32 = 0x25000011;
+
+/// The hit chance row as the retail servers sent it in every captured creature profile (28,062
+/// in the 2017 captures, e.g. pkt_2017-1-22_1485083221_log.pcap, always the last row): the label
+/// in the plain row style, the value in the name style with its int variable, then a break.
+pub fn hit_chance_nodes(percent: u32) -> Vec<u8> {
+    [
+        0x40000004, 2, 0x33be4035, HIT_CHANCE_LABEL, EXAMINATION_TABLE, 0,
+        0x40000004, 2, 0xbe5b6513, HIT_CHANCE_VALUE, EXAMINATION_TABLE, 1, HIT_CHANCE_VARIABLE, 2, percent,
+        0x40000006, 2,
+    ]
+    .iter()
+    .flat_map(|word: &u32| word.to_le_bytes())
+    .collect()
+}
+
+/// [`response`] with the hit chance row last when `hit_chance` is a percentage (a living
+/// creature the examiner can attack).
+pub fn response_with_hit_chance(
+    target: u64,
+    name: Name,
+    lines: &[String],
+    hit_chance: Option<u32>,
+) -> Result<Vec<u8>, WorldError> {
     if lines.len() > 12
         || lines
             .iter()
@@ -230,7 +263,8 @@ pub fn response(target: u64, name: Name, lines: &[String]) -> Result<Vec<u8>, Wo
     if newer {
         bytes.extend(0x203u32.to_le_bytes());
     }
-    bytes.extend(u32::to_le_bytes(((lines.len() + 1) * 2) as u32));
+    let extra = if hit_chance.is_some() { 3 } else { 0 };
+    bytes.extend(u32::to_le_bytes(((lines.len() + 1) * 2 + extra) as u32));
     let text: Vec<_> = std::iter::once(name)
         .chain(lines.iter().cloned().map(Name::Literal))
         .collect();
@@ -245,6 +279,9 @@ pub fn response(target: u64, name: Name, lines: &[String]) -> Result<Vec<u8>, Wo
         bytes.extend(text.wire()?);
         bytes.extend(0x40000006u32.to_le_bytes()); // Break closes the current row.
         bytes.extend(2u32.to_le_bytes());
+    }
+    if let Some(percent) = hit_chance {
+        bytes.extend(hit_chance_nodes(percent));
     }
     if newer {
         bytes.extend(0x203u32.to_le_bytes());
@@ -274,5 +311,54 @@ mod item_tests {
         let lines=names.item_lines(&item,"In the loot container.");
         assert!(lines.iter().any(|s|s=="Equipment: Feet"));
         assert!(!lines.iter().any(|s|s.starts_with("Armor:")),"Rolled armor cannot be inferred from a boot mesh");
+    }
+}
+
+#[cfg(test)]
+mod hit_chance_tests {
+    use super::*;
+
+    fn hex(text: &str) -> Vec<u8> {
+        (0..text.len())
+            .step_by(2)
+            .map(|i| u8::from_str_radix(&text[i..i + 2], 16).unwrap())
+            .collect()
+    }
+
+    /// The row's bytes as pkt_2017-1-22_1485083221_log.pcap carries them (a 51% target): the
+    /// label node, the value node with its int variable, the break.
+    #[test]
+    fn the_hit_chance_row_is_the_captured_one() {
+        let captured = hex(concat!(
+            "04000040", "02000000", "3540be33", "5cd7789e", "11000025", "00000000",
+            "04000040", "02000000", "13655bbe", "cb1219d8", "11000025", "01000000",
+            "e80c62f6", "02000000", "33000000",
+            "06000040", "02000000",
+        ));
+        assert_eq!(hit_chance_nodes(51), captured);
+    }
+
+    #[test]
+    fn the_row_follows_the_lines_and_counts_as_three_nodes() {
+        let lines = vec!["Level 3".to_owned()];
+        let plain = response(7, Name::Literal("Drudge".into()), &lines).unwrap();
+        let with = response_with_hit_chance(7, Name::Literal("Drudge".into()), &lines, Some(64)).unwrap();
+        // The node count follows the object (7, then 0) and the 7230 tab word when there is one.
+        let target: Vec<u8> = [7u32, 0].iter().flat_map(|w| w.to_le_bytes()).collect();
+        let mut count = plain.windows(8).position(|w| w == target.as_slice()).unwrap() + 8;
+        if plain[count..count + 4] == 0x203u32.to_le_bytes() {
+            count += 4;
+        }
+        // Name and level rows: four nodes, the hit chance adds three after the last break.
+        assert_eq!(plain[count..count + 4], 4u32.to_le_bytes());
+        let breaks = plain.windows(8).rposition(|w| w == hex("0600004002000000").as_slice()).unwrap() + 8;
+        let mut expected = plain[..count].to_vec();
+        expected.extend(7u32.to_le_bytes());
+        expected.extend(&plain[count + 4..breaks]);
+        expected.extend(hit_chance_nodes(64));
+        expected.extend(&plain[breaks..]);
+        // The wrapper's length word grows with the row; compare the profiles after it.
+        assert_eq!(with.len(), plain.len() + 17 * 4);
+        assert_eq!(with[with.len() - expected.len() + count..], expected[count..]);
     }
 }

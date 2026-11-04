@@ -573,6 +573,7 @@ fn examine_target(
     loot: &crate::loot::Loot,
     now: u64,
     effect_lines: &[String],
+    hit_chance: Option<u32>,
 ) -> io::Result<Vec<u8>> {
     use crate::{
         examination::{self, Name},
@@ -682,7 +683,8 @@ fn examine_target(
         }
         let mut name=object.name.clone().map(Name::Literal).unwrap_or_else(||names.get(object.entity, "Object"));
         if dead {name=Name::Corpse(Box::new(name));}
-        return examination::response(target, name, &lines)
+        // A living creature's profile ends with the examiner's chance to hit it, as retail's did.
+        return examination::response_with_hit_chance(target, name, &lines, hit_chance.filter(|_| !dead))
             .map_err(other);
     }
     Err(invalid("That object is not available to examine."))
@@ -4424,6 +4426,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                 &corpse_loot,
                                                 now_ms,
                                                 &effect_lines(&encounters, &abilities, target, now_ms),
+                                                encounters.as_ref().and_then(|e| e.hit_percent(&store, character, target)),
                                             ) {
                                                 Ok(packet) => {
                                                     deliveries.push(crate::scene::Delivery {
@@ -4565,7 +4568,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                 } else if let Some(message)=service_entity.and_then(|id|examination_names.description_chat(id)) {
                                                     peer.queue_ordered_batch(vec![message.map_err(other)?])?;
                                                 } else {
-                                                    peer.queue_ordered_batch(vec![examine_target(character,request.item,&store,&scene,&examination_names,&corpse_loot,now_ms,&effect_lines(&encounters,&abilities,request.item,now_ms))?])?;
+                                                    peer.queue_ordered_batch(vec![examine_target(character,request.item,&store,&scene,&examination_names,&corpse_loot,now_ms,&effect_lines(&encounters,&abilities,request.item,now_ms),encounters.as_ref().and_then(|e|e.hit_percent(&store,character,request.item)))?])?;
                                                 }
                                                 return Ok(replies);
                                             }
@@ -4843,7 +4846,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                         0x6f002ee7=>"Spellbinding workshop: enchantment extraction and totem application are not implemented yet. Materials will not be consumed.",
                                                         _=>"Crafting workshop: open Skills > Craft and choose a profession. Select a recipe and level, fill its ingredients, then craft while within eight meters. Earn crafting XP and use Raise to advance.",
                                                     }).unwrap_or("Examining this object. Additional scripted actions are not available yet.");
-                                                    peer.queue_ordered_batch(vec![examine_target(character,request.item,&store,&scene,&examination_names,&corpse_loot,now_ms,&effect_lines(&encounters,&abilities,request.item,now_ms))?,script::chat(guidance,1).map_err(other)?])?;
+                                                    peer.queue_ordered_batch(vec![examine_target(character,request.item,&store,&scene,&examination_names,&corpse_loot,now_ms,&effect_lines(&encounters,&abilities,request.item,now_ms),encounters.as_ref().and_then(|e|e.hit_percent(&store,character,request.item)))?,script::chat(guidance,1).map_err(other)?])?;
                                                 }
                                                 return Ok(replies);
                                             }
