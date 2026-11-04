@@ -46,14 +46,14 @@ impl Kind {
         match self {
             Kind::Quest => "quest name".into(),
             Kind::Stage => "stage (0-255)".into(),
-            Kind::Counter => "counter (0-255)".into(),
+            Kind::Counter => "counter (0-255, or its quest_counter name)".into(),
             Kind::Range(lo, hi) if hi == u64::from(u32::MAX) || hi == u64::MAX => format!("whole number, at least {lo}"),
             Kind::Range(lo, hi) => format!("whole number {lo}-{hi}"),
-            Kind::Entity => "entity DID (0x47...)".into(),
-            Kind::Effect => "Effect state DID (0x6f...)".into(),
+            Kind::Entity => "entity DID (0x47...) or entity alias".into(),
+            Kind::Effect => "Effect state DID (0x6f...) or effect alias".into(),
             Kind::Set => "set name".into(),
             Kind::Text => "text".into(),
-            Kind::Hex => "hex (0x...)".into(),
+            Kind::Hex => "hex (0x...) or alias".into(),
             Kind::Percent => "percent (up to 2 decimals)".into(),
             Kind::Number => "number".into(),
             Kind::Weights => "0x47...:weight,...".into(),
@@ -149,20 +149,77 @@ impl V {
 
 fn hex(v: &str) -> Option<u32> { u32::from_str_radix(v.strip_prefix("0x").or_else(|| v.strip_prefix("0X"))?, 16).ok() }
 
-/// Names a parse needs to resolve: the registry's quests and every set.
-pub struct Names<'a> { pub quests: &'a BTreeMap<String, u32>, pub sets: &'a BTreeMap<String, String> }
+/// Names a parse needs to resolve: the registry's quests, every set, the aliases and the
+/// quests' named counters.
+pub struct Names<'a> {
+    pub quests: &'a BTreeMap<String, u32>, pub sets: &'a BTreeMap<String, String>,
+    pub aliases: &'a BTreeMap<String, (AliasKind, String)>, pub counters: &'a BTreeMap<(u32, String), u8>,
+}
 
-fn value(kind: Kind, text: &str, names: &Names) -> Result<V, String> {
+/// What an alias (`alias.kind`) stands for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum AliasKind { Entity, Effect, Hex, Placement }
+
+/// The `alias` rows (name, kind, value, source), each value checked for its kind.
+pub fn aliases(rows: &[super::Row]) -> std::io::Result<BTreeMap<String, (AliasKind, String)>> {
+    let mut out = BTreeMap::new();
+    for (at, f) in rows {
+        let bad = |why: &str| std::io::Error::other(format!("{at}: {why}"));
+        let kind = match f[1].as_str() { "entity" => AliasKind::Entity, "effect" => AliasKind::Effect, "hex" => AliasKind::Hex,
+            "placement" => AliasKind::Placement, _ => return Err(bad("kind must be entity, effect, hex or placement")) };
+        let ok = match kind {
+            AliasKind::Entity => hex(&f[2]).is_some_and(|e| e >> 24 == 0x47),
+            AliasKind::Effect => hex(&f[2]).is_some_and(|e| e >> 24 == 0x6f),
+            AliasKind::Hex => hex(&f[2]).is_some(),
+            AliasKind::Placement => placement(&f[2]).is_some(),
+        };
+        if !ok { return Err(bad("value does not fit its kind (entity 0x47..., effect 0x6f..., hex 0x..., placement `cell x y z heading`)")); }
+        out.insert(f[0].clone(), (kind, f[2].clone()));
+    }
+    Ok(out)
+}
+fn placement(text: &str) -> Option<Placement> {
+    let t: Vec<&str> = text.split_whitespace().collect();
+    if t.len() != 5 { return None; }
+    let p = Placement { cell: hex(t[0])?, coordinates: [t[1].parse().ok()?, t[2].parse().ok()?, t[3].parse().ok()?], heading: t[4].parse().ok()? };
+    p.valid().then_some(p)
+}
+
+/// The `quest_counter` rows (quest, name, idx, source): each quest's counter names.
+pub fn counters(rows: &[super::Row], quests: &BTreeMap<String, u32>) -> std::io::Result<BTreeMap<(u32, String), u8>> {
+    let mut out = BTreeMap::new();
+    let mut used = std::collections::BTreeSet::new();
+    for (at, f) in rows {
+        let bad = |why: &str| std::io::Error::other(format!("{at}: {why}"));
+        let quest = *quests.get(&f[0]).ok_or_else(|| bad("quest is not in the registry"))?;
+        let idx: u8 = f[2].parse().map_err(|_| bad("idx must be 0 to 255"))?;
+        if !used.insert((quest, idx)) { return Err(bad("two counters of the quest share an idx")); }
+        out.insert((quest, f[1].clone()), idx);
+    }
+    Ok(out)
+}
+
+/// A hex value, or an alias of one of `kinds` standing for one.
+fn hex_or_alias(text: &str, names: &Names, kinds: &[AliasKind]) -> Option<u32> {
+    hex(text).or_else(|| names.aliases.get(text).filter(|(k, _)| kinds.contains(k)).and_then(|(_, v)| hex(v)))
+}
+
+fn value(kind: Kind, text: &str, names: &Names, quest: Option<u32>) -> Result<V, String> {
     let whole = |lo: u64, hi: u64| text.parse::<u64>().ok().filter(|n| (lo..=hi).contains(n)).map(V::U);
     Ok(match kind {
         Kind::Quest => V::Quest(*names.quests.get(text).ok_or("quest is not in the registry")?),
-        Kind::Stage | Kind::Counter => whole(0, 255).ok_or("must be 0 to 255")?,
+        Kind::Stage => whole(0, 255).ok_or("must be 0 to 255")?,
+        Kind::Counter => match whole(0, 255) {
+            Some(v) => v,
+            None => V::U(u64::from(*quest.and_then(|q| names.counters.get(&(q, text.to_owned())))
+                .ok_or("must be 0 to 255 or one of the quest's counter names (quest_counter)")?)),
+        },
         Kind::Range(lo, hi) => whole(lo, hi).ok_or_else(|| if hi == u64::MAX { format!("must be a whole number, at least {lo}") } else { format!("must be a whole number {lo} to {hi}") })?,
-        Kind::Entity => V::Hex(hex(text).filter(|e| e >> 24 == 0x47).ok_or("must be an EntityDesc DID (0x47...)")?),
-        Kind::Effect => V::Hex(hex(text).filter(|e| e >> 24 == 0x6f).ok_or("must be an Effect state (WState 0x6f) DID")?),
+        Kind::Entity => V::Hex(hex_or_alias(text, names, &[AliasKind::Entity]).filter(|e| e >> 24 == 0x47).ok_or("must be an EntityDesc DID (0x47...) or an entity alias")?),
+        Kind::Effect => V::Hex(hex_or_alias(text, names, &[AliasKind::Effect]).filter(|e| e >> 24 == 0x6f).ok_or("must be an Effect state (WState 0x6f) DID or an effect alias")?),
         Kind::Set => if names.sets.contains_key(text) { V::Set(text.to_owned()) } else { return Err("set is not in emote-sets".into()) },
         Kind::Text => V::Text(text.to_owned()),
-        Kind::Hex => V::Hex(hex(text).ok_or("must be hex (0x...)")?),
+        Kind::Hex => V::Hex(hex_or_alias(text, names, &[AliasKind::Hex, AliasKind::Entity, AliasKind::Effect]).ok_or("must be hex (0x...) or an alias")?),
         Kind::Percent => {
             // The Vault's '2.5% XP': up to two decimals.
             let p = text.parse::<f64>().ok().filter(|v| v.is_finite() && *v > 0.0 && *v <= 100.0 && (v * 100.0).fract().abs() < 1e-9)
@@ -175,7 +232,7 @@ fn value(kind: Kind, text: &str, names: &Names) -> Result<V, String> {
             for part in text.split(',') {
                 let (e, w) = part.split_once(':').ok_or("takes `0x47...:weight,...`")?;
                 let w = w.trim().parse::<u32>().ok().filter(|w| *w > 0).ok_or("weights are positive whole numbers")?;
-                pairs.push((hex(e.trim()).filter(|e| e >> 24 == 0x47).ok_or("items are EntityDesc DIDs (0x47...)")?, w));
+                pairs.push((hex_or_alias(e.trim(), names, &[AliasKind::Entity]).filter(|e| e >> 24 == 0x47).ok_or("items are EntityDesc DIDs (0x47...) or entity aliases")?, w));
             }
             V::Weights(pairs)
         }
@@ -186,17 +243,27 @@ fn value(kind: Kind, text: &str, names: &Names) -> Result<V, String> {
 /// A row's action from its name and p1..p5, or why not (naming the parameter).
 pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
     let spec = spec(name).ok_or_else(|| format!("unknown action `{name}` (`pyrealium-content actions` lists them)"))?;
+    // MoveTo's place may be one placement alias in p1.
+    let spread: Vec<String>;
+    let p: Vec<&str> = match names.aliases.get(p[0]) {
+        Some((AliasKind::Placement, place)) if name == "MoveTo" && p[1..].iter().all(|v| v.is_empty()) => {
+            spread = place.split_whitespace().map(str::to_owned).collect();
+            spread.iter().map(String::as_str).collect()
+        }
+        _ => p.to_vec(),
+    };
     let n = spec.params.len();
     if p[n..].iter().any(|v| !v.is_empty()) {
         return Err(format!("{name} takes {n} parameter{}", if n == 1 { "" } else { "s" }));
     }
-    let mut v = Vec::with_capacity(n);
+    let mut v: Vec<V> = Vec::with_capacity(n);
     for (i, param) in spec.params.iter().enumerate() {
+        let quest = v.iter().find_map(|x| if let V::Quest(q) = x { Some(*q) } else { None });
         v.push(if p[i].is_empty() {
             if !param.optional { return Err(format!("{name} needs its {} (p{})", param.name, i + 1)); }
             V::None
         } else {
-            value(param.kind, p[i], names).map_err(|why| format!("p{} ({}) {why}", i + 1, param.name))?
+            value(param.kind, p[i], names, quest).map_err(|why| format!("p{} ({}) {why}", i + 1, param.name))?
         });
     }
     let quest = |i: usize| v[i].u32();
@@ -263,7 +330,9 @@ pub fn reference() -> String {
         a test keeps it in step. Each `emote_action` row names one action in `action` and its parameters in \
         p1..p5, in this order; an optional parameter (in brackets) may be left empty, and the columns after the \
         last parameter stay empty. `delay_ms` waits that long before the action runs (the rest of the set waits \
-        with it).\n\n| action | parameters | what it does |\n|---|---|---|\n");
+        with it). Where a parameter takes a DID, an `alias` row's name may stand for it; MoveTo takes a \
+        placement alias in p1 alone; a counter may be named by its `quest_counter` row. A `template_use` \
+        fills a template's `$parameters` (`content/README.md`).\n\n| action | parameters | what it does |\n|---|---|---|\n");
     for spec in ACTIONS {
         let params: Vec<String> = spec.params.iter().enumerate().map(|(i, p)| {
             let text = format!("p{} {}: {}", i + 1, p.name, p.kind.describe());

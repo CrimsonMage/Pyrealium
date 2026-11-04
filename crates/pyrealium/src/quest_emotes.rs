@@ -278,6 +278,7 @@ mod items;
 mod load;
 mod run;
 pub mod spec;
+mod templates;
 pub use items::*;
 pub use load::{Row, families};
 pub use run::owned;
@@ -286,6 +287,8 @@ pub use run::owned;
 mod tests;
 #[cfg(test)]
 mod engine_tests;
+#[cfg(test)]
+mod template_tests;
 
 /// A Tell action's line: the StringInfo `table`/`key` as a chat line (display type 1).
 pub fn tell(table: u32, key: u32) -> Result<Vec<u8>, crate::world::WorldError> {

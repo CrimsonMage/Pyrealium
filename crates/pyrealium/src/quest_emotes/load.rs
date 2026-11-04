@@ -57,6 +57,12 @@ impl Tables {
     /// from the TSVs (`parse_files`) or the content database (`db::load`); a bad row's error names
     /// where it came from.
     pub fn parse_rows(tables: [Vec<Row>; 4]) -> io::Result<Self> {
+        Self::parse_all(super::db::QuestRows { tables, ..Default::default() })
+    }
+
+    /// The same, with the database's aliases and named counters (`db::rows`).
+    pub fn parse_all(rows: super::db::QuestRows) -> io::Result<Self> {
+        let tables = rows.tables;
         let mut t = Tables::default();
         for (at, f) in &tables[0] {
             let f: Vec<&str> = f.iter().map(String::as_str).collect();
@@ -88,13 +94,16 @@ impl Tables {
             if f[3].is_empty() || f[4].is_empty() { return Err(bad("journal_text and source must not be empty")); }
             if t.stages.insert((quest, stage), (completed, f[3].to_owned())).is_some() { return Err(bad("duplicate stage")); }
         }
+        let aliases = super::spec::aliases(&rows.aliases)?;
+        let counters = super::spec::counters(&rows.counters, &t.keys)?;
+        let entity_or_alias = |v: &str| hex32(v).or_else(|| aliases.get(v).filter(|(k, _)| *k == super::spec::AliasKind::Entity).and_then(|(_, v)| hex32(v)));
         let mut lines = BTreeMap::new();
         for (at, f) in &tables[2] {
             let f: Vec<&str> = f.iter().map(String::as_str).collect();
             let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             let trigger = Trigger::parse(f[3]).ok_or_else(|| bad(&format!("trigger must be one of {}",
                 Trigger::NAMES.map(|(n, _)| n).join(", "))))?;
-            let owner_entity = if f[1].is_empty() { None } else { Some(hex32(f[1]).filter(|e| e >> 24 == 0x47).ok_or_else(|| bad("owner_entity must be an EntityDesc DID"))?) };
+            let owner_entity = if f[1].is_empty() { None } else { Some(entity_or_alias(f[1]).filter(|e| e >> 24 == 0x47).ok_or_else(|| bad("owner_entity must be an EntityDesc DID or an entity alias"))?) };
             let owner_iid = if f[2].is_empty() { None } else { Some(hex64(f[2]).ok_or_else(|| bad("owner_iid must be hex"))?) };
             if matches!(trigger, Trigger::Crafted | Trigger::EscortLost | Trigger::EscortAbandoned) && (owner_entity.is_none() || owner_iid.is_some()) {
                 return Err(bad("a Crafted, EscortLost or EscortAbandoned set names an EntityDesc in owner_entity (no owner_iid)"));
@@ -109,7 +118,7 @@ impl Tables {
             if trigger.personal() && f[5].is_empty() {
                 return Err(bad("a PlayerDeath, QuestExpired or Logout set names its quest (and the stages it applies to)"));
             }
-            let item = if f[4].is_empty() { None } else { Some(hex32(f[4]).ok_or_else(|| bad("item must be hex"))?) };
+            let item = if f[4].is_empty() { None } else { Some(entity_or_alias(f[4]).ok_or_else(|| bad("item must be hex or an entity alias"))?) };
             let quest = if f[5].is_empty() { None } else { Some(*t.keys.get(f[5]).ok_or_else(|| bad("quest is not in the registry"))?) };
             let stage = |v: &str, d: u8| if v.is_empty() { Ok(d) } else { v.parse::<u8>().map_err(|_| bad("stages are 0 to 255")) };
             let stages = (stage(f[6], 0)?, stage(f[7], 255)?);
@@ -128,7 +137,7 @@ impl Tables {
             let order: u32 = f[1].parse().map_err(|_| bad("order must be a whole number"))?;
             let delay: u32 = if f[3].is_empty() { 0 } else { f[3].parse().ok().filter(|d| *d <= 3_600_000).ok_or_else(|| bad("delay_ms must be 0 to 3600000 (an hour)"))? };
             if f[9].is_empty() { return Err(bad("source must not be empty")); }
-            let names = super::spec::Names { quests: &t.keys, sets: &lines };
+            let names = super::spec::Names { quests: &t.keys, sets: &lines, aliases: &aliases, counters: &counters };
             let action = super::spec::parse(f[2], &f[4..9], &names).map_err(|why| bad(&why))?;
             if let Action::Goto(target) = &action { if target == f[0] { return Err(bad("a set cannot Goto itself")); } }
             orders.entry(f[0].to_owned()).or_default().push((order, at.clone(), (delay, action)));

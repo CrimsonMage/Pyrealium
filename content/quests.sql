@@ -1,6 +1,6 @@
--- Pyrealium quest content (schema 3). Written by `pyrealium-content export`;
+-- Pyrealium quest content (schema 4). Written by `pyrealium-content export`;
 -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 3;
+PRAGMA user_version = 4;
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -28,11 +28,11 @@ CREATE TABLE IF NOT EXISTS quest_stage (
 CREATE TABLE IF NOT EXISTS emote_set (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   priority INTEGER NOT NULL,
-  owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*'),
+  owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*' OR owner_entity GLOB '[a-z]*'),
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
     'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
-  item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*'),
+  item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),
   stage_max INTEGER CHECK (stage_max BETWEEN 0 AND 255),
@@ -54,6 +54,75 @@ CREATE TABLE IF NOT EXISTS emote_action (
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (emote_set, ord)
+);
+CREATE TABLE IF NOT EXISTS alias (
+  name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  kind TEXT NOT NULL CHECK (kind IN ('entity', 'effect', 'hex', 'placement')),
+  value TEXT NOT NULL CHECK (value <> ''),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS quest_counter (
+  quest TEXT NOT NULL REFERENCES quest(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  name TEXT NOT NULL CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  idx INTEGER NOT NULL CHECK (idx BETWEEN 0 AND 255),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (quest, name),
+  UNIQUE (quest, idx)
+);
+CREATE TABLE IF NOT EXISTS template (
+  name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  doc TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS template_param (
+  template TEXT NOT NULL REFERENCES template(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  name TEXT NOT NULL CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  ord INTEGER NOT NULL DEFAULT 0,
+  doc TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (template, name)
+);
+CREATE TABLE IF NOT EXISTS template_set (
+  template TEXT NOT NULL REFERENCES template(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  name TEXT NOT NULL CHECK (name <> '' AND name NOT GLOB '*.*'),
+  priority INTEGER NOT NULL DEFAULT 0,
+  owner_entity TEXT, owner_iid TEXT, trigger TEXT NOT NULL, item TEXT, quest TEXT,
+  stage_min TEXT, stage_max TEXT, range TEXT, probability TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (template, name)
+);
+CREATE TABLE IF NOT EXISTS template_action (
+  template TEXT NOT NULL,
+  emote_set TEXT NOT NULL,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  action TEXT NOT NULL CHECK (action <> ''),
+  delay_ms TEXT NOT NULL DEFAULT '0',
+  p1 TEXT NOT NULL DEFAULT '', p2 TEXT NOT NULL DEFAULT '', p3 TEXT NOT NULL DEFAULT '',
+  p4 TEXT NOT NULL DEFAULT '', p5 TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (template, emote_set, ord),
+  FOREIGN KEY (template, emote_set) REFERENCES template_set(template, name) ON UPDATE CASCADE ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS template_use (
+  name TEXT PRIMARY KEY CHECK (name <> '' AND name NOT GLOB '*.*'),
+  template TEXT NOT NULL REFERENCES template(name) ON UPDATE CASCADE,
+  priority INTEGER NOT NULL DEFAULT 0,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS template_arg (
+  use_name TEXT NOT NULL REFERENCES template_use(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  param TEXT NOT NULL,
+  value TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (use_name, param)
 );
 
 INSERT INTO quest (name, journal_id, title_table, title_key, title, goal, credit, min_level, time_limit_seconds, max_solves, repeat_seconds, source, family) VALUES ('shelter', '0x4000ff05', '0x25021616', '0xa8607cec', 'Rescue the Shelter Hold', NULL, 'killer', NULL, NULL, NULL, NULL, 'Title: DAT 0x25021616 ''Rescue the Shelter Hold''; journal id 0x4000ff05 is Pyrealium''s (the retail id is not recovered); kill credit to the killer as Pyrealium''s other quests (no AC2 Vault or AC2Hero text on fellowship credit)', 'hand');

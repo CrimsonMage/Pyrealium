@@ -178,6 +178,23 @@ off), it gives up (EscortAbandoned). The player hears when the escort waits, los
 sees them again and gives up. The distances and the time are Pyrealium policy
 (`encounters/escort.rs`).
 
+Names instead of numbers, and shapes written once:
+
+- `alias`: name, kind (`entity`, `effect`, `hex`, `placement`), value, source. Wherever a row
+  takes a DID (an action's item, creature, effect, table or key; a set's `owner_entity` or
+  `item`), an alias's name may stand for it: `frenzy_potion` for `0x4700326F`. A `placement`
+  alias (`cell x y z heading`) fills MoveTo from p1 alone.
+- `quest_counter`: quest, name, idx (0-255), source. A counter parameter (IncrementCounter,
+  SetCounter, InqCounter, ...) may name the quest's counter instead of its number.
+- `template` (name, doc), `template_param` (template, name, ord, doc), `template_set` and
+  `template_action` (an `emote_set` / `emote_action` row with its template first; any field may
+  hold `$name` for a parameter): a quest shape written once. `template_use` (name, template,
+  priority) and `template_arg` (use_name, param, value) use it: at load each use becomes ordinary
+  sets named `<use>.<set>`, the parameters filled in, a branch or Goto naming one of the
+  template's sets naming the use's copy, each set at the use's priority plus its own. A missing
+  or unknown argument, an unknown `$name`, or a filled-in row that does not check names the use
+  and the template row. A quest with a shape of its own is plain rows.
+
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that
 family's rows and puts new sets after every existing one.
