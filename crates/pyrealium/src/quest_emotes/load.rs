@@ -96,8 +96,8 @@ impl Tables {
                 Trigger::NAMES.map(|(n, _)| n).join(", "))))?;
             let owner_entity = if f[1].is_empty() { None } else { Some(hex32(f[1]).filter(|e| e >> 24 == 0x47).ok_or_else(|| bad("owner_entity must be an EntityDesc DID"))?) };
             let owner_iid = if f[2].is_empty() { None } else { Some(hex64(f[2]).ok_or_else(|| bad("owner_iid must be hex"))?) };
-            if matches!(trigger, Trigger::Crafted | Trigger::EscortLost) && (owner_entity.is_none() || owner_iid.is_some()) {
-                return Err(bad("a Crafted or EscortLost set names an EntityDesc in owner_entity (no owner_iid)"));
+            if matches!(trigger, Trigger::Crafted | Trigger::EscortLost | Trigger::EscortAbandoned) && (owner_entity.is_none() || owner_iid.is_some()) {
+                return Err(bad("a Crafted, EscortLost or EscortAbandoned set names an EntityDesc in owner_entity (no owner_iid)"));
             }
             if trigger == Trigger::Enter && f[2].is_empty() {
                 return Err(bad("an Enter set names its point: owner_iid, the world object it is around (range: the radius)"));

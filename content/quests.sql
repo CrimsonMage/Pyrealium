@@ -1,6 +1,6 @@
--- Pyrealium quest content (schema 2). Written by `pyrealium-content export`;
+-- Pyrealium quest content (schema 3). Written by `pyrealium-content export`;
 -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 2;
+PRAGMA user_version = 3;
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS emote_set (
   owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*'),
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
-    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout')),
+    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*'),
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),

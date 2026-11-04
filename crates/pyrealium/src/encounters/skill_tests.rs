@@ -610,38 +610,44 @@ fn quest_effects_follow_the_quest_book_and_outlive_a_death() {
 }
 
 #[test]
-fn an_escort_follows_its_player_rejoins_from_afar_and_is_lost_on_death() {
+fn an_escort_waits_for_its_player_gives_up_out_of_radar_and_is_lost_on_death() {
     let (mut runtime, mut scene, mut store, _path, creature) = fixture("escort");
     runtime.actors.get_mut(&creature).unwrap().target = None;
     let entity = runtime.actors[&creature].entity;
     assert_eq!(runtime.start_escort(1, entity, &scene), Some(creature));
     assert_eq!(runtime.escorting(1), [creature]);
-    let moves = |events: &[Event]| events.iter().filter_map(|e| match e { Event::Move { actor, placement } if *actor == creature => Some(*placement), _ => None }).collect::<Vec<_>>();
+    let moves = |events: &[Event]| events.iter().filter(|e| matches!(e, Event::Move { actor, .. } if *actor == creature)).count();
+    let notes = |events: &[Event]| events.iter().filter_map(|e| match e { Event::Note { player: 1, text } => Some(text.clone()), _ => None }).collect::<Vec<_>>();
     // Close by (2 m): it stays.
     let events = runtime.tick(0, &scene, &mut store, [1].into_iter(), None).unwrap();
-    assert!(moves(&events).is_empty());
-    // Left far behind (a portal): it rejoins beside the player.
-    let mut far = Placement::HUMAN_START;
-    far.coordinates[0] += 50.0;
-    far.coordinates[1] += 50.0;
+    assert_eq!(moves(&events), 0);
+    // Left far behind (past the radar): it waits where it is and says so, then gives up after
+    // three minutes (`escort::ESCORT_ABANDON_MS`).
+    let start = scene.content_placement(creature).unwrap();
+    let mut far = start;
+    far.coordinates[0] += 100.0;
+    far.coordinates[1] += 100.0;
     scene.warp_creature(creature, far, 0).unwrap();
     let events = runtime.tick(1000, &scene, &mut store, [1].into_iter(), None).unwrap();
-    assert!(moves(&events).is_empty());
-    assert!(!events.iter().any(|e| matches!(e, Event::Warp { .. })), "it waits for the player to arrive");
-    let events = runtime.tick(4000, &scene, &mut store, [1].into_iter(), None).unwrap();
-    let to = events.iter().filter_map(|e| match e { Event::Warp { actor, placement } if *actor == creature => Some(*placement), _ => None }).collect::<Vec<_>>();
-    assert_eq!(to.len(), 1);
-    scene.warp_creature(creature, to[0], 1000).unwrap();
+    assert_eq!(moves(&events), 0);
+    assert!(notes(&events).iter().any(|n| n.starts_with("Your escort can no longer see you")), "{:?}", notes(&events));
+    let events = runtime.tick(1000 + 179_800, &scene, &mut store, [1].into_iter(), None).unwrap();
+    assert!(!events.iter().any(|e| matches!(e, Event::EscortAbandoned { .. })));
+    // (Ticks run every 100 ms.)
+    let events = runtime.tick(1000 + 180_000, &scene, &mut store, [1].into_iter(), None).unwrap();
+    assert!(events.iter().any(|e| matches!(e, Event::EscortAbandoned { player: 1, entity: e2 } if *e2 == entity)));
+    assert!(runtime.escorting(1).is_empty());
     // (Walking after the player needs the walkable ground, which no unit fixture loads: the
     // live escort check covers it.)
-    // Its death tells the quest; ending the escort releases the others.
+    // Escorted again, its death tells the quest.
+    scene.warp_creature(creature, start, 182_000).unwrap();
+    assert_eq!(runtime.start_escort(1, entity, &scene), Some(creature));
     runtime.actors.get_mut(&creature).unwrap().health = 0;
-    let events = runtime.tick(5000, &scene, &mut store, [1].into_iter(), None).unwrap();
+    let events = runtime.tick(183_000, &scene, &mut store, [1].into_iter(), None).unwrap();
     assert!(events.iter().any(|e| matches!(e, Event::EscortLost { player: 1, entity: e2 } if *e2 == entity)));
     assert!(runtime.escorting(1).is_empty());
     runtime.end_escort(1);
     drop(store);
-
 }
 
 

@@ -608,6 +608,9 @@ STEP_GRAMMAR = [
 # The radius of an `arrive` step's Enter set when the step names none (Pyrealium policy: no source
 # gives the retail radius).
 ARRIVE_RANGE = 10.0
+ESCORT_ABANDONED = ("You left your escort behind too long. The quest has failed; you may start it again.",
+                    "Pyrealium text and policy: an escort out of its player's radar for three minutes gives up "
+                    "and the quest fails as for its death (the server's escort rule, encounters/escort.rs)")
 ESCORT_LOST = ("Your escort has fallen. The quest has failed; you may start it again.",
                "Pyrealium text and policy: the escort's death fails the quest and it may start over at once "
                "(as the AC2 Vault's Mosswart Rescue walkthrough, id 87, says of its escort)")
@@ -1960,6 +1963,11 @@ def spec_steps(d, data, catalog=None):
                      f"{vsrc}: escort {run['name']}"])
         acts.append([lost, 1, "Message", 0, ESCORT_LOST[0], "", "", "", "", ESCORT_LOST[1]])
         acts.append([lost, 2, "SetStage", 0, q, 0, "", "", "", ESCORT_LOST[1]])
+        left = f"{q}_escort_abandoned{n}"
+        sets.append([left, run["entity"], "", "EscortAbandoned", "", q, stage_of(run["from"]), stage_of(run["to"]), "", "",
+                     f"{vsrc}: escort {run['name']} left behind"])
+        acts.append([left, 1, "Message", 0, ESCORT_ABANDONED[0], "", "", "", "", ESCORT_ABANDONED[1]])
+        acts.append([left, 2, "SetStage", 0, q, 0, "", "", "", ESCORT_ABANDONED[1]])
     stages.append([q, st + 1, 1, f"{d['title']} complete.", f"Pyrealium journal text (no retail completed line is recovered); {vsrc}"])
     if st + 1 > 250:
         return fail("Write steps", "too many stages")

@@ -218,6 +218,7 @@ pub struct Strike {
     pub effects: [(u32, u64); 2],
 }
 mod creature_skills;
+mod escort;
 mod ledger;
 pub use ledger::Applied;
 /// A vital change applied every `period_ms` for `duration_ms`.
@@ -269,8 +270,6 @@ pub enum Event {
     Fx { target: u64, fx: u32 },
     Loot { actor:u64, player:u64, entity:u32, ai:crate::creature_ai::Profile },
     Move { actor: u64, placement: Placement },
-    /// An unbounded relocation: an escort rejoining its player from afar.
-    Warp { actor: u64, placement: Placement },
     IdolVisual(u64, crate::combat_visual::IdolAction),
     Swing(u64),
     Projectile { player: u64, target: u64, profile: crate::projectiles::Profile, flight_ms: u64 },
@@ -297,6 +296,9 @@ pub enum Event {
     KillXp { player: u64, xp: u64 },
     /// A creature a player escorted died or left the world (`quest_emotes` EscortLost sets).
     EscortLost { player: u64, entity: u32 },
+    /// An escort whose player stayed out of its radar too long gave up (`quest_emotes`
+    /// EscortAbandoned sets, else EscortLost).
+    EscortAbandoned { player: u64, entity: u32 },
     Health {
         actor: u64,
         health: u32,
@@ -335,10 +337,8 @@ pub struct Encounters {
     ratings: Vec<(u64,u32,crate::combat::Ratings,u64)>,
     /// The timed effects on players and creatures, as the client lists them.
     ledger: Vec<ledger::Entry>,
-    /// Escorted creatures (`quest_emotes` StartEscort): actor -> the player it follows.
-    escorts: BTreeMap<u64, u64>,
-    /// When each escort was first left past ESCORT_WARP (its rejoin waits ESCORT_REJOIN_MS).
-    escort_far: BTreeMap<u64, u64>,
+    /// Escorted creatures (`quest_emotes` StartEscort) and their players (`escort`).
+    escorts: escort::Escorts,
     /// The harmful abilities of each creature entity.
     abilities: BTreeMap<u32, Vec<crate::abilities::CreatureAbility>>,
     drains: Vec<creature_skills::Drain>,
@@ -367,11 +367,7 @@ pub struct Encounters {
 fn in_range(a: Option<Placement>, b: Option<Placement>, range: f32) -> bool {
     a.zip(b).and_then(|(a,b)|a.distance(b)).is_some_and(|d|d<=range)
 }
-/// An escort's following distance, the distance past which it rejoins the player, and how
-/// long the player stands there first (Pyrealium policy: no source gives any of them).
-const ESCORT_DISTANCE: f32 = 2.5;
-const ESCORT_WARP: f32 = 60.0;
-const ESCORT_REJOIN_MS: u64 = 3000;
+use escort::ESCORT_DISTANCE;
 
 impl Encounters {
     /// The players in an experience-sharing fellowship, set before each tick.
@@ -382,20 +378,18 @@ impl Encounters {
     /// the actor, or None when there is none (Pyrealium policy: the search radius).
     pub fn start_escort(&mut self, player: u64, entity: u32, scene: &Scene) -> Option<u64> {
         let id = self.actors.iter()
-            .filter(|(id, a)| a.entity == entity && a.health > 0 && a.target.is_none() && !self.escorts.contains_key(id))
+            .filter(|(id, a)| a.entity == entity && a.health > 0 && a.target.is_none() && !self.escorts.has(**id))
             .filter_map(|(id, _)| scene.combat_distance(player, *id).filter(|d| *d <= 30.0).map(|d| (*id, d)))
             .min_by(|a, b| a.1.total_cmp(&b.1))?.0;
-        self.escorts.insert(id, player);
+        self.escorts.start(id, player);
         Some(id)
     }
     /// The player's escorts stop following (where they stand).
     pub fn end_escort(&mut self, player: u64) {
-        self.escorts.retain(|_, p| *p != player);
-        let escorts = &self.escorts;
-        self.escort_far.retain(|a, _| escorts.contains_key(a));
+        self.escorts.end_for(player);
     }
     pub fn escorting(&self, player: u64) -> Vec<u64> {
-        self.escorts.iter().filter(|(_, p)| **p == player).map(|(a, _)| *a).collect()
+        self.escorts.of(player)
     }
 }
 

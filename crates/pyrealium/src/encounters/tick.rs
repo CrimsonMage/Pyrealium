@@ -324,35 +324,40 @@ impl Encounters {
             }
             if actor.health == 0 {
                 actor.velocity=0.;
-                if let Some(player)=self.escorts.remove(&id) {events.push(Event::EscortLost{player,entity:actor.entity});}
+                if let Some(player)=self.escorts.remove(id) {events.push(Event::EscortLost{player,entity:actor.entity});}
                 continue;
             }
-            // An escorted creature follows its player at ESCORT_DISTANCE through the creature
-            // motion's peace speed and the walkable ground; one left far behind (a portal, a
-            // recall) comes along beside the player. It still fights what attacks it.
-            if let Some(&player)=self.escorts.get(&id).filter(|_|actor.target.is_none()) {
-                if let (Some(from),Some(to))=(scene.content_placement(id),scene.player_placement(player)) {
-                    if from.distance(to).is_none_or(|d|d>ESCORT_WARP) {
-                        // Once the player has stood ESCORT_REJOIN_MS at the far end (its client has
-                        // entered the new place and can be shown the creature arriving).
-                        let since=*self.escort_far.entry(id).or_insert(now);
-                        if now.saturating_sub(since)>=ESCORT_REJOIN_MS {
-                            self.escort_far.remove(&id);
-                            if let Some(beside)=to.translated([ESCORT_DISTANCE,0.,0.]) {events.push(Event::Warp{actor:id,placement:beside});}
-                        }
-                    } else {
-                        self.escort_far.remove(&id);
-                        let budget=actor.movement.peace.distance(&mut actor.velocity,elapsed);
-                        match advance(from,to,ESCORT_DISTANCE,budget,&mut actor.route,|from,to|
-                            geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35))) {
-                            Some(next)=>events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)}),
-                            None=>actor.velocity=0.,
-                        }
+            // An escorted creature walks after its player while the player is near, waits
+            // when the player is not, fights what attacks it, and gives up on a player out of
+            // its radar too long (`escort`).
+            if let Some(player)=self.escorts.player(id) {
+                let from=scene.content_placement(id);
+                let mut notes=Vec::new();
+                let step=self.escorts.step(id,from,scene.player_placement(player),actor.target.is_some(),now,&mut notes);
+                events.extend(notes.into_iter().map(|text|Event::Note{player,text:text.into()}));
+                match step {
+                    escort::Step::Abandoned => {
+                        self.escorts.remove(id);
+                        events.push(Event::Note{player,text:"Your escort gave up waiting for you.".into()});
+                        events.push(Event::EscortAbandoned{player,entity:actor.entity});
                     }
-                    // A follower does not walk back to its spawn along the way it came.
-                    actor.route.clear();
+                    escort::Step::Follow(to) => {
+                        if let Some(from)=from {
+                            let budget=actor.movement.peace.distance(&mut actor.velocity,elapsed);
+                            match advance(from,to,ESCORT_DISTANCE,budget,&mut actor.route,|from,to|
+                                geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35))) {
+                                Some(next)=>events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)}),
+                                None=>actor.velocity=0.,
+                            }
+                        }
+                        // A follower does not walk back to its spawn along the way it came.
+                        actor.route.clear();
+                        continue;
+                    }
+                    escort::Step::Wait => {
+                        if actor.target.is_none() { actor.velocity=0.; actor.route.clear(); continue; }
+                    }
                 }
-                continue;
             }
             if actor.target.is_none() && !actor.evading && now>=actor.next_idle {
                 // Native detection radius, with a staggered 1s scan. Do not

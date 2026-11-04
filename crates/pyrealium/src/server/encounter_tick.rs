@@ -71,9 +71,6 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     // pursuit scheduling above remains on process monotonic time.
                     updates.extend(srv.scene.move_creature(actor,placement,(srv.world_clock.seconds()*1000.0) as u64)?);
                 }
-                crate::encounters::Event::Warp {actor,placement} => {
-                    updates.extend(srv.scene.warp_creature(actor,placement,(srv.world_clock.seconds()*1000.0) as u64)?);
-                }
                 crate::encounters::Event::Projectile { player, target, profile, flight_ms } => {
                     // A saturated cosmetic pool must never terminate the world server.
                     match srv.projectiles.fire(&srv.scene, player, target, profile, flight_ms, srv.now_ms) {
@@ -177,31 +174,16 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     });
                 }
                 crate::encounters::Event::EscortLost { player, entity } => {
-                    // The escort falls in a fight, so this is not an item service (those wait for
-                    // a player out of combat): only quest progress, lines and tells, as a
-                    // fellow's kill credit is applied.
-                    let unix = crate::recovered_quests::now();
-                    if let Some((tables, c)) = crate::quest_emotes::tables().zip(srv.store.characters.get(&player).filter(|c| !c.deleted)) {
-                        if let Some(outcome) = tables.run(crate::quest_emotes::Trigger::EscortLost, entity, 0, None, &c.quests, &c.inventory,
-                            &c.progression, 0, 0., unix, &crate::quest_emotes::item).ok().flatten()
-                            .filter(|o| o.items.is_empty() && o.changes.is_empty())
-                        {
-                            let previous = c.quests.clone();
-                            let account = c.account.clone();
-                            if srv.store.emote_transaction(&account, player, &outcome).is_ok() {
-                                crate::quest_emotes::pending::defer_outcome(player, &outcome);
-                                for line in &outcome.lines {
-                                    updates.push(crate::scene::Delivery { recipient: player, data: script::chat(line, 1).map_err(other)?.into() });
-                                }
-                                for (table, key) in &outcome.tells {
-                                    updates.push(crate::scene::Delivery { recipient: player, data: crate::quest_emotes::tell(*table, *key).map_err(other)?.into() });
-                                }
-                                for event in srv.store.characters[&player].quests.updates_since(&previous).map_err(other)? {
-                                    updates.push(crate::scene::Delivery { recipient: player, data: event.into() });
-                                }
-                            }
-                        }
-                    }
+                    updates.extend(escort_quest(&mut srv.store, player, entity, crate::quest_emotes::Trigger::EscortLost)?);
+                }
+                crate::encounters::Event::EscortAbandoned { player, entity } => {
+                    // A quest with no EscortAbandoned set fails as for a lost escort.
+                    let tables = crate::quest_emotes::tables();
+                    let answers = |t: crate::quest_emotes::Trigger| tables.as_ref().zip(srv.store.characters.get(&player))
+                        .is_some_and(|(tables, c)| tables.answers(t, entity, 0, None, &c.quests, crate::recovered_quests::now()));
+                    let trigger = if answers(crate::quest_emotes::Trigger::EscortAbandoned) { crate::quest_emotes::Trigger::EscortAbandoned }
+                        else { crate::quest_emotes::Trigger::EscortLost };
+                    updates.extend(escort_quest(&mut srv.store, player, entity, trigger)?);
                 }
                 crate::encounters::Event::Kill { actor, player, entity } => {
                     // The corpse's examination names its killer ("Killed by").
@@ -402,4 +384,19 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
         )?;
     }
     Ok(())
+}
+
+/// A lost or abandoned escort's quest sets for its player. The escort is lost in a fight, or
+/// given up on far away, so this is not an item service (those wait for a player out of combat):
+/// only quest progress, lines and tells, as a fellow's kill credit is applied.
+fn escort_quest(store: &mut Store, player: u64, entity: u32, trigger: crate::quest_emotes::Trigger) -> io::Result<Vec<crate::scene::Delivery>> {
+    let mut updates = Vec::new();
+    let unix = crate::recovered_quests::now();
+    let Some((tables, c)) = crate::quest_emotes::tables().zip(store.characters.get(&player).filter(|c| !c.deleted)) else { return Ok(updates) };
+    let Some(outcome) = tables.run(trigger, entity, 0, None, &c.quests, &c.inventory, &c.progression, 0, 0., unix, &crate::quest_emotes::item)
+        .ok().flatten().filter(|o| o.items.is_empty() && o.changes.is_empty()) else { return Ok(updates) };
+    for event in commit_quest_outcome(store, player, &outcome)? {
+        updates.push(crate::scene::Delivery { recipient: player, data: event.into() });
+    }
+    Ok(updates)
 }

@@ -157,7 +157,9 @@ reads `quests.sql` from beside the world table (`--content`; content preparation
   set names in owner_entity or owner_iid; an Enter set names the world object it is around in
   owner_iid and fires when a player comes within its range), Kill (the creature's entity; credited
   to the killer, or the killer's fellows too when the quest's credit is `fellowship`), Crafted and
-  EscortLost (the crafted item's or the escort's entity), QuestSuccess, QuestFailure and Goto
+  EscortLost and EscortAbandoned (the crafted item's or the escort's entity: an escort that died,
+  or that gave up on a player out of its radar for three minutes; a quest with no EscortAbandoned
+  set runs its EscortLost sets then), QuestSuccess, QuestFailure and Goto
   (no owner: reached from another set), and PlayerDeath, QuestExpired and Logout (no owner; they
   name their quest and stages: a death, a run past its time limit, or leaving the world). The
   last three change quests and talk only: the check refuses one that reaches a reward or a move.
@@ -167,6 +169,14 @@ reads `quests.sql` from beside the world table (`--content`; content preparation
   action and the rest of the set, as ACE's Delay: the server's tick carries the set on, through
   any branch or Goto it was in. A wait lives in memory only (a restart or a logout drops it); a
   part that gives, takes, awards or moves waits on until the player is alive and out of combat.
+
+An escort (StartEscort) walks after its player while the player is within 15 m outdoors or 10 m
+indoors, and waits where it is when the player is farther; a fight comes first. The player keeps
+it while within the radar's range of it (75 m outdoors, 50 m indoors, the client's
+`gRadarControl::InqRadarRanges`), fighting or not; out of that range for three minutes (or logged
+off), it gives up (EscortAbandoned). The player hears when the escort waits, loses sight of them,
+sees them again and gives up. The distances and the time are Pyrealium policy
+(`encounters/escort.rs`).
 
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that

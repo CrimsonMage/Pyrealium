@@ -54,14 +54,18 @@ pub enum Trigger {
     QuestExpired,
     /// The player left the world.
     Logout,
+    /// An escort gave up on a player who stayed out of its radar too long (owner_entity: the
+    /// escorted entity; a quest without one fails by its EscortLost sets).
+    EscortAbandoned,
 }
 
 impl Trigger {
-    pub const NAMES: [(&'static str, Trigger); 13] = [
+    pub const NAMES: [(&'static str, Trigger); 14] = [
         ("Use", Trigger::Use), ("Give", Trigger::Give), ("Kill", Trigger::Kill), ("ItemUsedOn", Trigger::ItemUsedOn),
         ("Enter", Trigger::Enter), ("Crafted", Trigger::Crafted), ("EscortLost", Trigger::EscortLost),
         ("QuestSuccess", Trigger::QuestSuccess), ("QuestFailure", Trigger::QuestFailure), ("Goto", Trigger::Goto),
         ("PlayerDeath", Trigger::PlayerDeath), ("QuestExpired", Trigger::QuestExpired), ("Logout", Trigger::Logout),
+        ("EscortAbandoned", Trigger::EscortAbandoned),
     ];
     pub fn parse(name: &str) -> Option<Self> { Self::NAMES.iter().find(|(n, _)| *n == name).map(|(_, t)| *t) }
     /// A set with no owner: reached from another set (a branch or Goto).

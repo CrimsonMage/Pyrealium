@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 2;
+pub const SCHEMA_VERSION: i32 = 3;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS emote_set (
   owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*'),
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
-    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout')),
+    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*'),
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),
