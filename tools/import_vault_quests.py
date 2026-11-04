@@ -175,6 +175,23 @@ def number(s):
     return int(s.replace(",", ""))
 
 
+# A reward line that describes the item above it ('AR45, CD15, Value 5000', 'Adds 8% to critical
+# strike.', 'Lvl 35 509,319'), or the reward in prose: not an item name.
+STAT_LINE = re.compile(r"^(AR|CD|CR|Value|Lvl|Level)\b|\b(AR|CD)\s?\d|^(Adds|Absorbs|Reduces|Increases|Grants|Gives|You |The |A choice|Choice)\b|"
+                       r"[.!]$|\d+%|\bvaries\b|\bability to\b", re.I)
+
+
+def name_words(text):
+    """A name's words as a set, articles and 'of' dropped (word order does not matter)."""
+    return frozenset(w for w in re.findall(r"[a-z0-9']+", text.lower()) if w not in ("of", "the", "a", "an"))
+
+
+def item_name(text):
+    """The item a reward line names: 'Tiofor Green Ring +10% armorcrafting' -> 'Tiofor Green Ring',
+    'Burun Summoner Gem (Destroyed on use)' -> 'Burun Summoner Gem'."""
+    return re.split(r"\s+[-(+]|\s+x\d|,", text, maxsplit=1)[0].strip()
+
+
 def parse_reward(text):
     r = {"xp": None, "xp_percent": None, "xp_cap": None, "qp": None, "kp": None, "gold": None,
          "items": [], "other": [], "raw": text or ""}
@@ -348,6 +365,11 @@ class Data:
                     self.entity_marker[did] = "".join(re.findall(r"\[([^\]]*)\]", n)).lower()
         for e, n in self.entity_name.items():
             self.by_name[key(n)].add(e)
+        self.name_keys = sorted(self.by_name)
+        self.by_words = defaultdict(set)
+        for e, n in self.entity_name.items():
+            if len(name_words(n)) >= 2:
+                self.by_words[name_words(n)].add(e)
         # effects: eff_<x>.stt's name string, and the WSTATE eff_<x>.wc it belongs to
         wstate = {name: did for did, name in dat.execute("SELECT did, name FROM names WHERE kind='WSTATE'")}
         self.effects = defaultdict(list)
@@ -448,11 +470,57 @@ class Data:
         if os.path.exists(p):
             db = sqlite3.connect(":memory:")
             db.executescript(open(p, encoding="utf-8").read())
+            # An owner is a DID or an alias of one or several (`entity` / `entities`).
+            aliases = {n: v for n, v in db.execute("SELECT name, value FROM alias WHERE kind IN ('entity', 'entities')")}
             for (owner,) in db.execute("SELECT owner_entity FROM emote_set WHERE family <> 'vault' AND owner_entity IS NOT NULL"):
-                self.base_owners.add(int(owner, 16))
+                for did in aliases.get(owner, owner).split(","):
+                    if did.strip().startswith("0x"):
+                        self.base_owners.add(int(did, 16))
+            # Quests the database already runs outside the vault family (hand rows, once the
+            # hand-coded catalogs): the vault rows must not run them twice.
+            for name, journal, title in db.execute("SELECT name, journal_id, title FROM quest WHERE family <> 'vault'"):
+                self.catalog_quest[int(journal, 16)].append(f"quests.sql {name}")
+                self.catalog_title[key(title)].append(f"quests.sql {name}")
             db.close()
 
     # --- lookups -----------------------------------------------------------------------------
+    def spawnable(self, ents):
+        """The one world-spawn NPC entity (wsl_*.entity, with its own string table) among `ents`, for
+        a quest NPC Pyrealium's world does not place yet: its rows name the entity, and they run as
+        soon as the world builder places it."""
+        w = [e for e in ents if self.entity_file.get(e, "").startswith("wsl_") and e in self.table_of_entity]
+        return w[0] if len(w) == 1 else None
+
+    def ae_pick(self, ents, near):
+        """The one entity among `ents` (with its own string table) that AC2e's world places within
+        one map unit of `near`: the variant a guide's coordinates mean (AC2e ranks last; it only
+        picks among names the DAT already gives)."""
+        if not near:
+            return None
+        hit = {e for e, n, east in self.ae_places if e in ents and e in self.table_of_entity and dist((n, east), near) <= 1.0}
+        return hit.pop() if len(hit) == 1 else None
+
+    def item_entities(self, name):
+        """Entities a reward line names when its exact name does not: the item name without its
+        description, then the one closest DAT name (a Vault typo: 'Souldbound', 'Rouge')."""
+        n = item_name(name)
+        if not n or STAT_LINE.search(name):
+            return set()
+        ents = self.entities(n)
+        if ents:
+            return ents
+        # The same words in another order: 'Osteth Soulbound Sword' is 'Soulbound Sword of Osteth'.
+        ents = self.by_words.get(name_words(n), set())
+        if ents:
+            return set(ents)
+        k = key(n)
+        if len(k) < 8:
+            return set()
+        best = difflib.get_close_matches(k, self.name_keys, n=2, cutoff=0.9)
+        if len(best) == 1 or (len(best) == 2 and difflib.SequenceMatcher(None, k, best[0]).ratio() > difflib.SequenceMatcher(None, k, best[1]).ratio() + 0.03):
+            return set(self.by_name[best[0]])
+        return set()
+
     def entities(self, name):
         out = set()
         for k in plural_keys(name):
@@ -805,8 +873,21 @@ def draft(row, data, links):
     if npc_name:
         npc_name = re.sub(r"\s+(in|at|near|located|outside|inside|from|who|on)$", "", npc_name)
         npc_name = re.split(r",", npc_name)[0].strip()
+    start_source = src_v + " 'Starting the Quest'"
+    # AC2Hero's quest guide (below the Vault) fills a start the Vault leaves out or shortens:
+    # 'Eli Spinekeeper (14.6S, 3.1W), ...' where the Vault says 'Eli' with no coordinates.
+    hero = data.hero_start.get(key(title), "")
+    hm = re.match(r"\s*([A-Z][\w'\- ]+?)\s*\((\d[^)]*[NS][^)]*[EW])\)", hero)
+    if hm:
+        hname, hcoords = hm.group(1).strip(), coords(hm.group(2))
+        if not npc_name or (key(hname).startswith(key(npc_name)) and key(hname) != key(npc_name)):
+            npc_name = hname
+            start_source += f"; the name from AC2Hero's quest guide ('{hname}')"
+        if not start_coords and hcoords and key(hname).startswith(key(npc_name or "")):
+            start_coords = hcoords
+            start_source += f"; the coordinates from AC2Hero's quest guide ({hm.group(2)})"
     F["start_npc"] = {"name": npc_name, "coords": start_coords[0] if start_coords else None,
-                      "text": start_text[:300], "source": src_v + " 'Starting the Quest'"}
+                      "text": start_text[:300], "source": start_source}
 
     # --- steps, quotes, monsters, items
     d["_walk"], d["_desc"] = walk, desc
@@ -937,6 +1018,13 @@ def draft(row, data, links):
                    "source": f"Pyrealium world {os.path.basename(data.world_path)} placement of an entity named "
                              f"'{data.entity_name.get(p['entity'])}' (definitions.tsv / DAT name)"
                              + (f", {p.get('_d')} map units from the Vault's {start_coords[0]['text']}" if near else "") + note}
+        elif ents and (data.spawnable(ents) or data.ae_pick(ents, near)):
+            e, how = (data.spawnable(ents), "the one world-spawn entity") if data.spawnable(ents) else \
+                (data.ae_pick(ents, near), "the entity AC2e places at the guide's coordinates")
+            npc = {"name": data.entity_name.get(e, npc_name), "entity": f"0x{e:08x}", "iid": None, "placed": True, "pending": True,
+                   "map": list(near) if near else None, "table": f"0x{data.table_of_entity[e]:08x}", "confidence": "medium",
+                   "source": f"{how} named '{npc_name}' ({data.entity_file.get(e)}); not placed yet"}
+            to_place(d, "start NPC", npc["name"], e, near)
         elif ents:
             d["missing"].append(f"start NPC '{npc_name}' placement (entity known: "
                                 + ", ".join(f"0x{e:08x}" for e in sorted(ents)[:4]) + "; none placed in Pyrealium's world near the Vault coordinates)")
@@ -1020,7 +1108,7 @@ def draft(row, data, links):
         if len(n) < 50 and ":" not in n and re.match(r"^[A-Z]", n):
             item_names.add(n.strip())
     for n in sorted(item_names):
-        ents = data.entities(n)
+        ents = data.entities(n) or data.item_entities(n)
         if ents:
             items[n] = {"entities": [f"0x{e:08x}" for e in sorted(ents)][:6], "confidence": "medium" if len(ents) == 1 else "low",
                         "source": "definitions.tsv / DAT entity name"}
@@ -1035,7 +1123,8 @@ def draft(row, data, links):
     R["reward_counts"] = counts
     R["items"] = items
     reward_items = [n for n in rw["other"] if n in items]
-    unresolved_reward = [n for n in rw["other"] if len(n) < 50 and ":" not in n and re.match(r"^[A-Z]", n) and n not in items]
+    unresolved_reward = [n for n in rw["other"] if len(n) < 50 and ":" not in n and re.match(r"^[A-Z]", n) and n not in items
+                         and not STAT_LINE.search(n)]
 
     # effects (curses, buffs) named anywhere in the prose
     effects = {}
@@ -1128,7 +1217,19 @@ def draft(row, data, links):
     if rw["xp_percent"]:
         pass  # AwardLevelProportionalXP covers it
     if rw.get("xp_percent_unknown") and not rw.get("xp_percent"):
-        d["missing"].append("experience percentage (the Vault records only an observed amount)")
+        # AC2Hero's quest guide (below the Vault) states the rule where the Vault records only an
+        # observation: '% based XP - 3% needed to level', 'Max Cap 60,000,000 XP'.
+        hr = data.hero_reward.get(key(title), "")
+        hp = re.search(r"(\d*\.?\d+)\s*%\s*(?:xp\s*)?needed to level", hr, re.I)
+        if hp:
+            rw["xp_percent"] = float(hp.group(1))
+            hc = re.search(r"max(?:imum)?\s*cap\s*([\d,]{4,})", hr, re.I)
+            if hc and not rw.get("xp_cap"):
+                rw["xp_cap"] = number(hc.group(1))
+            rw["xp_source"] = f"AC2Hero's quest guide reward ('{hr[:80]}'): the Vault records only an observed amount"
+            d["notes"].append("experience rule from AC2Hero (the Vault gives only an observation)")
+        else:
+            d["missing"].append("experience percentage (the Vault records only an observed amount)")
     if rw.get("xp_percent") and rw.get("xp"):
         d["notes"].append("absolute XP beside a percentage: read as an observation at one level")
     if not F["steps"] and not quotes:
@@ -1142,7 +1243,8 @@ def draft(row, data, links):
             d["missing"].append(f"kill target '{s['target']}' entity")
     for n, t in targets.items():
         if not t["spawned"]:
-            d["missing"].append(f"kill target '{n}' placement (its entities are not placed by any Pyrealium world table or camp)")
+            # A Kill set on a creature nothing spawns yet runs once the world builder spawns it.
+            to_place(d, "creature to spawn", n, int(t["entities"][0], 16), None, t["entities"])
     if npc and npc.get("placed") and npc["confidence"] == "low":
         d["missing"].append("start NPC placement (several same-named placements and no Vault coordinates)")
 
@@ -1469,7 +1571,9 @@ def classify(d, data):
                 d["blocks"].append(("Supply values", "you", "the reward is drawn at random: a `random_reward` override with the "
                                     "items and their weights (or `ignore random`)"))
         elif g == "fellowship credit":
-            if not overrides(qid, "credit"):
+            # Pyrealium policy (user, 2026-11-04): a Vault kill quest credits the killer's fellows
+            # in range too, unless a `credit` override says `killer`.
+            if False:
                 d["blocks"].append(("Decide", "decision", "fellowship credit: a `credit` override, `fellowship` (the killer's "
                                     "fellows count too) or `killer` (or `ignore fellowship`)"))
         elif g == "summoned pet reward":
@@ -1478,13 +1582,17 @@ def classify(d, data):
                                     "the pet's summoning item (or `ignore pet`)"))
         elif g == "kingdom points":
             pass  # AwardKingdomPoints carries it; the quest waits on the kingdom decision row
+        elif g == "quest points":
+            pass  # AwardQuestPoints carries it (a server-side counter, user 2026-11-04)
         elif g in ("quest points", "kingdom points"):
             k = "qp" if g == "quest points" else "kp"
             if not any(o["key"] == k for o in overrides(qid, "drop_reward")):
                 d["blocks"].append(("Decide", "decision", f"{g}: neither the client nor the DATs define a stat Pyrealium could award; "
                                     f"drop it (`drop_reward {k} yes`) or ask for a Pyrealium counter"))
         elif g == "kingdom/faction/hero status":
-            d["blocks"].append(("Decide", "decision", KINGDOM_TRACE))
+            # Pyrealium policy (user, 2026-11-04): the giver gives the quest only to members of the
+            # kingdom the guide names (any kingdom where it names none): InqStat kingdom.
+            pass
         elif g == "escort/protect":
             if "escort" not in kinds:
                 d["blocks"].append(("Write steps", "you", "an escorted NPC or creature: write the steps with `escort NAME` (a "
@@ -1513,6 +1621,15 @@ def placement_of(data, value, source):
     return None
 
 
+def to_place(d, what, name, entity, near, entities=None):
+    """Notes an NPC or creature the quest's rows name but Pyrealium's world does not place yet
+    (the world builder's placement list, `--to-place`)."""
+    row = {"what": what, "name": name, "entity": f"0x{entity:08x}", "entities": entities or [f"0x{entity:08x}"],
+           "near": list(near) if near else None}
+    if row not in d.setdefault("to_place", []):
+        d["to_place"].append(row)
+
+
 def resolve_named(d, data, name, field):
     """An NPC or world object the steps name: (entity, iid or None, table, source), or None."""
     qid = d["vault_id"]
@@ -1539,6 +1656,11 @@ def resolve_named(d, data, name, field):
             dist((x["north"], x["east"]), (y["north"], y["east"])) for x in places for y in places) <= 1.5:
         e = places[0]["entity"]
         return (f"0x{e:08x}", None, data.table_of_entity.get(e), f"{src}, {len(places)} nearby placements of one entity")
+    e = None if places else data.spawnable(ents)
+    if e is not None:
+        to_place(d, "step NPC", name, e, None)
+        return (f"0x{e:08x}", None, data.table_of_entity.get(e), f"the one world-spawn entity named '{name}' "
+                f"({data.entity_file.get(e)}); not placed yet")
     return None
 
 
@@ -1597,6 +1719,9 @@ def reward_actions(d, vsrc):
                     xp_source(rw, vsrc, f"{rw['xp_percent']:g}% XP" + (f", capped at {cap}" if cap else " (the Vault states no cap)"))))
     if rw.get("gold"):
         out.append(("AwardGold", [str(rw["gold"])], f"AC2 Vault reward: {rw['gold']} gold"))
+    if rw.get("qp") and not any(o["key"] == "qp" for o in overrides(qid, "drop_reward")):
+        out.append(("AwardQuestPoints", [str(rw["qp"])], f"AC2 Vault reward: {rw['qp']} Quest Points (kept by the server, "
+                    "user 2026-11-04: no client shows them yet)"))
     if rw.get("kp") and not any(o["key"] == "kp" for o in overrides(qid, "drop_reward")):
         out.append(("AwardKingdomPoints", [str(rw["kp"]), ""], f"AC2 Vault reward: {rw['kp']} Kingdom Points (no cap is stated)"))
     for ent, cnt, gsrc in reward_gives(d) or []:
@@ -1721,8 +1846,6 @@ def spec_steps(d, data, catalog=None):
                           source=f"the DAT NPC tables' death effects for this hunt (as {catalog[0]} cites them; DAT over Vault)")
             if not kt:
                 return fail("Identify entity", f"the creature '{s['target']}' (a `kill_target` override)")
-            if not kt.get("spawned"):
-                return fail("Place in the world", f"the creature '{s['target']}' is not placed")
             if beats and beats[-1]["kind"] == "kill" and not beats[-1].get("drop"):
                 beats[-1]["kills"].append((s["target"], kt["entities"], s["count"], kt["source"]))
             else:
@@ -1974,14 +2097,15 @@ def spec_steps(d, data, catalog=None):
     jid, jsrc = journal_id(d)
     if catalog:
         jid, jsrc = catalog[1]["id"], f"the id of the {catalog[0]} hunt this quest replaces (kept: its journal entries and progress carry over)"
-    credit = next((o["value"] for o in overrides(qid, "credit")), "killer")
+    credit = next((o["value"] for o in overrides(qid, "credit")), "fellowship")
     level, tl, rs = F["level"]["value"] or 0, F["time_limit_seconds"]["value"], F["repeat_seconds"]["value"]
     ttab = title.get("table") or "0x00000000"
     tkey = title.get("key") or "0x00000000"
     reg = [[q, f"0x{jid:08x}", ttab, tkey, re.sub(r"\[[^\]]*\]", "", title.get("text") or d["title"]).strip(), "", credit,
             level or "", tl or "", "", rs or "",
             f"Title: {title.get('source', 'the Vault')}; journal id: {jsrc}; level, time limit and repeat: {vsrc}"
-            + (f"; credit: user override" if overrides(qid, "credit") else "")]]
+            + (f"; credit: user override" if overrides(qid, "credit") else
+               "; credit: fellowship (Pyrealium policy, user 2026-11-04: fellows in range share quest kills)")]]
     ns = table_strings(data, gtab) if gtab else {}
     weak, wait = giver_lines(q, gtab, ns, level, F, vsrc)
     for a, params, src in offer_extra:
@@ -2032,7 +2156,16 @@ def front_door(specs):
         else:
             A(f"{q}_ask", 1, "InqLevel", 0, q, f"{q}_able", f"{q}_next_weak", "", "", f"{vsrc} requirements")
         A(f"{q}_gate", 1, "InqLevel", 0, q, f"{q}_able", f"{q}_next_weak", "", "", f"{vsrc} requirements")
-        A(f"{q}_able", 1, "InqQuestReady", 0, q, f"{q}_start", f"{q}_next_wait", "", "", f"{vsrc} reset timer")
+        kingdom = (sp.get("d") or {}).get("fields", {}).get("kingdom")
+        if kingdom:
+            # Members only: the kingdom the guide names (1 Order, 2 Dominion, 3 Shadow), else any.
+            k = {"Order": 1, "Dominion": 2, "Shadow": 3}.get(kingdom.get("value"))
+            S(f"{q}_member", "", "", "QuestSuccess", "", "", "", "", "", "", "a kingdom member")
+            A(f"{q}_able", 1, "InqStat", 0, "kingdom", k or 1, k or 3, f"{q}_member", f"{q}_next_wait",
+              f"{kingdom['source']}: {kingdom.get('value') or 'any kingdom'} members only (Pyrealium policy, user 2026-11-04)")
+            A(f"{q}_member", 1, "InqQuestReady", 0, q, f"{q}_start", f"{q}_next_wait", "", "", f"{vsrc} reset timer")
+        else:
+            A(f"{q}_able", 1, "InqQuestReady", 0, q, f"{q}_start", f"{q}_next_wait", "", "", f"{vsrc} reset timer")
         order = 1
         if sp.get("offer"):
             A(f"{q}_start", order, "Tell", 0, sp["offer"][0], sp["offer"][1], "", "", "", sp["offer"][2])
@@ -2498,12 +2631,19 @@ def main():
     p.add_argument("--ship")
     p.add_argument("--overrides", help="the hand-edited overrides (default: content/vault-quest-overrides.tsv)")
     p.add_argument("--gaps", help="write the per-quest gap list (TSV: quest, vault_id, gap, who, detail, draft, link)")
+    p.add_argument("--to-place", help="write the world builder's placement list (TSV: what, name, entity, entities, "
+                                      "north, east, cell, x, y, quests): NPCs and creatures quest rows name that "
+                                      "Pyrealium's world does not place yet, at the guide's coordinates where it gives them")
     a = p.parse_args()
     a.content = os.path.abspath(a.content)
     data = Data(a)
     v = sqlite3.connect(f"file:{a.vault}?mode=ro", uri=True)
     v.row_factory = sqlite3.Row
     data.vault_titles = {i: t.strip().rstrip(":").strip() for i, t in v.execute("SELECT id, title FROM quests")}
+    data.hero_reward = {key(n): r for n, r in v.execute("SELECT name, reward FROM hero_quests WHERE name <> '' AND reward <> ''")}
+    data.hero_start = {key(n): s for n, s in v.execute("SELECT name, start FROM hero_quests WHERE name <> '' AND start <> ''")}
+    data.ae_places = [(int(e, 16), n, east) for e, n, east in v.execute(
+        "SELECT entity, north, east FROM ae_objects WHERE entity LIKE '47%' AND north IS NOT NULL")]
     n = load_overrides(a.overrides or os.path.join(a.content, "vault-quest-overrides.tsv"), set(data.vault_titles))
     if n:
         print(f"{n} user overrides", file=sys.stderr)
@@ -2534,6 +2674,22 @@ def main():
             for r in rows:
                 f.write("\t".join(re.sub(r"\s+", " ", str(x)) for x in r) + "\n")
         print(f"{len(rows)} gaps in {len({r[1] for r in rows})} quests", file=sys.stderr)
+    if a.to_place:
+        rows = {}
+        for d in drafts:
+            for t in d.get("to_place", []):
+                r = rows.setdefault((t["what"], t["entity"]), dict(t, quests=[]))
+                r["near"] = r["near"] or t["near"]
+                r["quests"].append(d["title"] + (" (shipped)" if d.get("shipped") else ""))
+        with open(a.to_place, "w", encoding="utf-8") as f:
+            f.write("what\tname\tentity\tentities\tnorth\teast\tcell\tx\ty\tquests\n")
+            for r in sorted(rows.values(), key=lambda r: (r["what"], -len(r["quests"]), r["name"])):
+                n, e = r["near"] or (None, None)
+                c = map_to_cell(n, e) if r["near"] else {}
+                f.write("\t".join(str(x) for x in (r["what"], r["name"], r["entity"], ",".join(r["entities"]),
+                        "" if n is None else n, "" if e is None else e, c.get("cell", ""), c.get("x", ""), c.get("y", ""),
+                        "; ".join(sorted(set(r["quests"]))))) + "\n")
+        print(f"{len(rows)} NPCs and creatures to place", file=sys.stderr)
     c = Counter(d["status"] for d in drafts)
     print(f"{len(drafts)} quests: {len(shipped)} shipped, {c['resolved']} resolved, {c['partial']} partial, {c['blocked']} blocked",
           file=sys.stderr)

@@ -286,6 +286,7 @@ impl Tables {
                         Stat::Level => u32::from(s.progression.level().number), Stat::Gold => s.progression.gold,
                         Stat::Health => s.progression.health, Stat::Vigor => s.progression.vigor,
                         Stat::Kingdom => u32::from(s.book.kingdom().0), Stat::KingdomPoints => s.book.kingdom().1,
+                        Stat::QuestPoints => s.book.quest_points(),
                     };
                     if let Some(next) = branch(value >= *min && max.is_none_or(|m| value <= m), success, failure) { if let Some(frames) = self.descend(&next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
                 }
@@ -448,6 +449,10 @@ impl Tables {
                     let have = s.book.kingdom().1;
                     let next = if *max == 0 { have.saturating_add(*points) } else { have.saturating_add(*points).min((*max).max(have)) };
                     if next != have { s.quest(Q::KingdomPoints(next))?; }
+                }
+                Action::AwardQuestPoints(points) => {
+                    let have = s.book.quest_points();
+                    s.quest(Q::QuestPoints(have.saturating_add(*points)))?;
                 }
                 Action::InqKingdomPoints { points, success, failure } => {
                     if let Some(next) = branch(s.book.kingdom().1 >= *points, success, failure) { if let Some(frames) = self.descend(&next, set, i, s, make, depth)? { return Ok(Some(frames)); } }

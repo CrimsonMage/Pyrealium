@@ -49,6 +49,9 @@ pub struct Book {
     /// the quest tables (`quest_emotes` SetKingdom, AwardKingdomPoints).
     kingdom: u8,
     kingdom_points: u32,
+    /// Quest Points: the 2002-2003 quest rewards the AC2 Vault records (AwardQuestPoints). No
+    /// client in hand shows them; the server keeps them for later use.
+    quest_points: u32,
     /// The quest tables' timed effects on the character (`quest_emotes` ApplyEffect): the
     /// `Effect` state, when it was put on and when it runs out (Unix seconds).
     effects: std::collections::BTreeMap<u32, (u64, u64)>,
@@ -117,6 +120,8 @@ pub enum Command {
     Kingdom(u8),
     /// The character's Kingdom Points set to a value.
     KingdomPoints(u32),
+    /// The character's Quest Points set to a value.
+    QuestPoints(u32),
 }
 /// Rescue the Shelter Hold's journal id (`quest-registry.tsv`), which the legacy `Shelter*`
 /// records advanced before the quest became data.
@@ -173,6 +178,7 @@ impl Command {
             Self::SubCount { quest, counter, count } => format!("subcount,{quest:08x},{counter},{count}"),
             Self::Kingdom(k) => format!("kingdom,{k}"),
             Self::KingdomPoints(p) => format!("kp,{p}"),
+            Self::QuestPoints(p) => format!("qp,{p}"),
             Self::ShelterAdvance => "shelter.advance".into(),
             Self::ShelterComplete => "shelter.complete".into(),
             Self::ShelterGuard => "shelter.guard".into(),
@@ -195,6 +201,7 @@ impl Command {
                 Ok(Self::Kingdom(k))
             }
             _ if text.starts_with("kp,") => Ok(Self::KingdomPoints(text[3..].parse().map_err(|_| QuestError::InvalidRecord)?)),
+            _ if text.starts_with("qp,") => Ok(Self::QuestPoints(text[3..].parse().map_err(|_| QuestError::InvalidRecord)?)),
             _ if text.starts_with("subcount,") => {
                 let f: Vec<&str> = text.split(',').collect();
                 if f.len() != 4 || f[1].len() != 8 { return Err(QuestError::InvalidRecord); }
@@ -291,6 +298,8 @@ impl Book {
     pub fn count(&self, quest: u32) -> u16 { self.counts.get(&quest).copied().unwrap_or(0) }
     /// The character's kingdom (0 none) and Kingdom Points.
     pub fn kingdom(&self) -> (u8, u32) { (self.kingdom, self.kingdom_points) }
+    /// The character's Quest Points.
+    pub fn quest_points(&self) -> u32 { self.quest_points }
     /// A data-driven quest's further counter `counter`.
     pub fn subcount(&self, quest: u32, counter: u8) -> u16 { self.subcounts.get(&(quest, counter)).copied().unwrap_or(0) }
     /// The quest effects still running at `now` (Unix seconds): each `Effect` state and its end.
@@ -346,6 +355,7 @@ impl Book {
             Command::SubCount { quest, counter, count } => { next.subcounts.insert((*quest, *counter), *count); }
             Command::Kingdom(k) => { next.kingdom = *k; }
             Command::KingdomPoints(p) => { next.kingdom_points = *p; }
+            Command::QuestPoints(p) => { next.quest_points = *p; }
             Command::Solved { quest, at } => {
                 let t = next.timers.entry(*quest).or_default();
                 t.completed = *at;

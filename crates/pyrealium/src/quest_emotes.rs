@@ -91,12 +91,12 @@ impl Trigger {
 
 /// A player stat an InqStat row reads.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Stat { Level, Gold, Health, Vigor, Kingdom, KingdomPoints }
+pub enum Stat { Level, Gold, Health, Vigor, Kingdom, KingdomPoints, QuestPoints }
 impl Stat {
-    pub const NAMES: [&'static str; 6] = ["level", "gold", "health", "vigor", "kingdom", "kingdom_points"];
+    pub const NAMES: [&'static str; 7] = ["level", "gold", "health", "vigor", "kingdom", "kingdom_points", "quest_points"];
     pub fn parse(name: &str) -> Option<Self> {
         Some(match name { "level" => Stat::Level, "gold" => Stat::Gold, "health" => Stat::Health, "vigor" => Stat::Vigor,
-            "kingdom" => Stat::Kingdom, "kingdom_points" => Stat::KingdomPoints, _ => return None })
+            "kingdom" => Stat::Kingdom, "kingdom_points" => Stat::KingdomPoints, "quest_points" => Stat::QuestPoints, _ => return None })
     }
 }
 
@@ -225,6 +225,7 @@ pub enum Action {
     InqKingdom { kingdom: u8, success: Option<String>, failure: Option<String> },
     /// Adds Kingdom Points, up to `max` (0: no cap).
     AwardKingdomPoints { points: u32, max: u32 },
+    AwardQuestPoints(u32),
     /// Whether the player has at least `points` Kingdom Points.
     InqKingdomPoints { points: u32, success: Option<String>, failure: Option<String> },
 }

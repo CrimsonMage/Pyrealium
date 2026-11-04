@@ -20,6 +20,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `GrantScene` | p1 scene: hex (0x...) or alias | Grants a story scene (the Quest panel's Story page). |
 | `LearnRecipe` | p1 recipe: hex (0x...) or alias | Teaches a recipe: a recipe any quest teaches can be crafted only once learned. |
 | `AwardKingdomPoints` | p1 points: whole number, at least 1<br>[p2 max: whole number, at least 0] | Adds Kingdom Points, up to max (empty or 0: no cap). |
+| `AwardQuestPoints` | p1 points: whole number, at least 1 | Adds Quest Points (the 2002-2003 quest reward the AC2 Vault records): kept by the server for later use; no client shows them. InqStat quest_points reads them. |
 | `SetKingdom` | p1 kingdom: whole number 0-3 | Sets the player's kingdom: 1 Order, 2 Dominion, 3 Shadow, 0 none. |
 | `ApplyEffect` | p1 effect: Effect state DID (0x6f...) or effect alias<br>p2 seconds: whole number 1-31536000 | Puts an Effect state on the player for a time (a quest's curse or blessing); it shows on the effect strip. |
 | `RemoveEffect` | p1 effect: Effect state DID (0x6f...) or effect alias | Takes an Effect state off the player. |
@@ -39,7 +40,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `InqQuestReady` | p1 quest: quest name<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether a new run of the quest may start now (its repeat delay and solve limit). |
 | `InqSolved` | p1 quest: quest name<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether the quest was ever solved (a prerequisite). |
 | `InqQuestSolves` | p1 quest: quest name<br>p2 min: whole number 0-65535<br>[p3 max: whole number 0-65535]<br>[p4 success set: set name]<br>[p5 failure set: set name] | Whether the quest's solve count is in min..max (empty max: no upper bound). |
-| `InqStat` | p1 stat: stat (level, gold, health, vigor, kingdom, kingdom_points)<br>p2 min: whole number, at least 0<br>[p3 max: whole number, at least 0]<br>[p4 success set: set name]<br>[p5 failure set: set name] | Whether a player stat is in min..max (empty max: no upper bound). |
+| `InqStat` | p1 stat: stat (level, gold, health, vigor, kingdom, kingdom_points, quest_points)<br>p2 min: whole number, at least 0<br>[p3 max: whole number, at least 0]<br>[p4 success set: set name]<br>[p5 failure set: set name] | Whether a player stat is in min..max (empty max: no upper bound). |
 | `InqKingdom` | p1 kingdom: whole number 0-3<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether the player is in the kingdom (0: in any). |
 | `InqKingdomPoints` | p1 points: whole number, at least 0<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether the player has at least points Kingdom Points. |
 | `Goto` | p1 set: set name | Runs another set's actions, then carries on with this one's. |

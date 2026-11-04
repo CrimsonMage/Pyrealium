@@ -566,6 +566,25 @@ fn kingdom_membership_and_points() {
     assert!(Q::decode("kingdom,4").is_err());
 }
 
+/// Quest Points: AwardQuestPoints adds, InqStat quest_points reads; the record round-trips.
+#[test]
+fn quest_points_are_kept() {
+    let reg = HEADERS[0].to_owned() + "\n";
+    let sets = HEADERS[2].to_owned() + "\npay\t0x47000002\t\tUse\t\t\t\t\t\t\tsrc\nask\t0x47000003\t\tUse\t\t\t\t\t\t\tsrc\n\
+        yes\t\t\tQuestSuccess\t\t\t\t\t\t\tsrc\nno\t\t\tQuestFailure\t\t\t\t\t\t\tsrc\n";
+    let acts = HEADERS[3].to_owned() + "\npay\t1\tAwardQuestPoints\t0\t3000\t\t\t\t\tsrc\n\
+        ask\t1\tInqStat\t0\tquest_points\t5000\t\tyes\tno\tsrc\nyes\t1\tMessage\t0\tyes\t\t\t\t\tsrc\nno\t1\tMessage\t0\tno\t\t\t\t\tsrc\n";
+    let t = Tables::parse([&reg, &(HEADERS[1].to_owned() + "\n"), &sets, &acts], ["r", "s", "e", "a"]).unwrap();
+    let none = Inventory::default();
+    let go = |e: u32, b: &Book| t.run(Trigger::Use, e, 0, None, b, &none, &Progression::default(), first(&none), 0.0, 1, &item).unwrap().unwrap();
+    let b = commit(&Book::default(), &go(0x47000002, &Book::default()));
+    assert_eq!(b.quest_points(), 3000);
+    assert_eq!(go(0x47000003, &b).lines, ["no"]);
+    let b = commit(&b, &go(0x47000002, &b));
+    assert_eq!((b.quest_points(), go(0x47000003, &b).lines), (6000, vec!["yes".to_owned()]));
+    assert_eq!(Q::decode(&Q::QuestPoints(600).encode()).unwrap(), Q::QuestPoints(600));
+}
+
 /// StartEscort / EndEscort mark the outcome; an EscortLost set names the escorted entity.
 #[test]
 fn escort_actions_and_the_escort_lost_trigger() {
