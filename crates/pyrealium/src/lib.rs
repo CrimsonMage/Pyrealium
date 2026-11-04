@@ -42,6 +42,7 @@ pub mod licensing;
 pub mod merchants;
 pub mod money;
 pub mod room_chat;
+pub mod trade;
 pub mod movement;
 pub mod map_travel;
 pub mod player_transaction;

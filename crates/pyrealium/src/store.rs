@@ -846,6 +846,36 @@ impl Store {
         character.quests = quests;
         Ok(())
     }
+    /// A trade's swap (`trade`): both characters' item commands checked first, then both
+    /// applied, so neither changes alone; the next save writes both in one transaction.
+    /// `first` is the first new item id, used by `a`'s grants and then `b`'s.
+    pub fn swap_items(
+        &mut self,
+        a: u64,
+        a_items: &[crate::inventory::Command],
+        b: u64,
+        b_items: &[crate::inventory::Command],
+        first: u64,
+    ) -> io::Result<()> {
+        if a == b {
+            return Err(invalid("a swap needs two characters"));
+        }
+        let granted = a_items.iter().filter(|c| c.allocated_id().is_some()).count() as u64;
+        let mut next = Vec::new();
+        for (id, items, start) in [(a, a_items, first), (b, b_items, first + granted)] {
+            let character = self.characters.get(&id).filter(|c| !c.deleted).ok_or_else(|| invalid("swap character missing"))?;
+            if items.is_empty() {
+                continue;
+            }
+            let (inventory, _) = crate::player_transaction::candidate(&character.inventory, &character.progression, items, &[], Some(start))?;
+            next.push((id, inventory));
+        }
+        for (id, inventory) in next {
+            self.touch(id);
+            self.characters.get_mut(&id).unwrap().inventory = inventory;
+        }
+        Ok(())
+    }
     /// Inventory, lesson entitlement, quest journal and XP change together.
     pub fn arwic_transaction(&mut self,account:&str,id:u64,action:crate::arwic_mines::Action,time:u64)->io::Result<()> {
         let first=self.next_item_id()?;
@@ -1798,6 +1828,27 @@ mod tests {
         }
         let s=Store::open(&dir).unwrap();
         assert_eq!(s.characters[&1].chat_options.as_ref(),Some(&chat));
+    }
+    #[test]
+    fn a_trade_swap_changes_both_packs_or_neither() {
+        use crate::inventory::{Command, Item, Location, ITEM_NAMESPACE};
+        let dir=crate::db::testdb::fresh();
+        let item=|id:u64,quantity:u32|Item{roll:None,id,definition:0x4700_1108,visual:0x1f00_01cf,quantity,stack_limit:1000,equipment_mask:0,location:Location::Bag(0)};
+        let mut s=Store::open(&dir).unwrap();
+        s.create("a","Giver").unwrap();
+        s.create("b","Taker").unwrap();
+        let given=ITEM_NAMESPACE+1;
+        s.player_transaction("a",1,&[Command::GrantFront(item(given,10))],&[]).unwrap();
+        let first=s.next_item_id().unwrap();
+        // Part of the stack to the other side.
+        s.swap_items(1,&[Command::ConsumePart{item:given,quantity:4}],2,&[Command::GrantFront(item(first,4))],first).unwrap();
+        assert_eq!(s.characters[&1].inventory.items().next().unwrap().quantity,6);
+        assert_eq!(s.characters[&2].inventory.items().map(|i|(i.id,i.quantity)).collect::<Vec<_>>(),vec![(first,4)]);
+        // The giver no longer has 7: neither pack changes.
+        let next=s.next_item_id().unwrap();
+        let before=(s.characters[&1].inventory.clone(),s.characters[&2].inventory.clone());
+        assert!(s.swap_items(2,&[Command::GrantFront(item(next,7))],1,&[Command::ConsumePart{item:given,quantity:7}],next).is_err());
+        assert_eq!((s.characters[&1].inventory.clone(),s.characters[&2].inventory.clone()),before);
     }
     #[test]
     fn avatar_lifetimes_survive_restart() {

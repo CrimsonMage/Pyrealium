@@ -20,6 +20,7 @@ pub enum Request {
     Loot(crate::loot::Request),
     Allegiance(crate::allegiance::Query),
     Group(crate::groups::Request),
+    Trade(crate::trade::Request),
     MerchantSell(crate::merchants::SellRequest),
     MoneyWithdraw(crate::money::WithdrawRequest),
     MerchantBuy(crate::merchants::BuyRequest),
@@ -132,6 +133,11 @@ pub fn decode(function: u32, bytes: &[u8]) -> Result<Request, WorldError> {
             let request = crate::equipment::EquipRequest::decode(bytes)?;
             r.pos = bytes.len();
             Request::Equip(request)
+        }
+        function if crate::trade::handles(function) => {
+            let request = crate::trade::decode(function, bytes)?;
+            r.pos = bytes.len();
+            Request::Trade(request)
         }
         function if crate::groups::handles(function) => {
             let request = crate::groups::decode(function, bytes)?;
