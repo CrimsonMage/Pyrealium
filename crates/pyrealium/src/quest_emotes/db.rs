@@ -399,10 +399,17 @@ pub fn import_tsv(db: &mut Connection, files: [Vec<(String, String)>; 4], family
         super::load::all_rows(&files[2], HEADERS[2], 11)?, super::load::all_rows(&files[3], HEADERS[3], 10)?,
     ];
     let tx = db.transaction().map_err(sql)?;
+    // A family imported again keeps its place among the others (its sets numbered in file order
+    // from where its block began), so a re-import never moves it behind rows added since; a new
+    // family goes after every set.
+    let was: Option<i64> = tx.query_row("SELECT MIN(priority) FROM emote_set WHERE family = ?1", [family], |r| r.get(0)).map_err(sql)?;
     for shape in SHAPES[..TSV].iter().rev() {
         tx.execute(&format!("DELETE FROM {} WHERE family = ?1", shape.table), [family]).map_err(sql)?;
     }
-    let mut priority: i64 = tx.query_row("SELECT COALESCE(MAX(priority), 0) FROM emote_set", [], |r| r.get(0)).map_err(sql)?;
+    let mut priority: i64 = match was {
+        Some(first) => first - 10,
+        None => tx.query_row("SELECT COALESCE(MAX(priority), 0) FROM emote_set", [], |r| r.get(0)).map_err(sql)?,
+    };
     for (shape, list) in SHAPES[..TSV].iter().zip(&tables) {
         let set = shape.table == "emote_set";
         let mut columns = shape.columns.to_vec();

@@ -395,7 +395,8 @@ fn a_vault_chain_offers_its_links_in_order() {
     assert_eq!(o.quests[1], Q::Stage { quest: ulu, stage: 1 });
 }
 
-/// Journey to Linvak (Vault 64), a talk chain: Akkilea, Pelloran, Kanten, Akkilea.
+/// Journey to Linvak (Vault 64), a talk chain: Akkilea, Pelloran, Kanten, Akkilea. Akkilea gives
+/// her quests in turn (Mimbu Negotiations and Vault 62 first), so those are underway here.
 #[test]
 fn the_vault_talk_chain_journey_to_linvak_plays_through() {
     let t = &shipped();
@@ -406,8 +407,10 @@ fn the_vault_talk_chain_journey_to_linvak_plays_through() {
     let pelloran = (0x47001c29u32, 0x814089d05d3b1b1eu64);
     let kanten = (0x47001a3cu32, 0x8140ab125e91fb5bu64);
     let talk = |who: (u32, u64), book: &Book, now: u64| t.run(Trigger::Use, who.0, who.1, None, book, &none, &p, first(&none), 0.0, now, &item).unwrap();
-    assert!(talk(pelloran, &Book::default(), 1).is_none(), "Pelloran has nothing before the offer");
-    let mut book = commit(&Book::default(), &talk(akkilea, &Book::default(), 10).unwrap());
+    let busy = ["v57", "v62"].iter().fold(Book::default(), |b, q| b.apply(&Q::Stage { quest: t.quest(q).unwrap().journal_id, stage: 1 }).unwrap());
+    assert!(talk(pelloran, &busy, 1).is_none(), "Pelloran has nothing before the offer");
+    let mut book = commit(&busy, &talk(akkilea, &busy, 10).unwrap());
+    assert_eq!(book.stage(quest), 1, "Akkilea offers Journey to Linvak once her earlier quests are underway");
     // Kanten waits for Pelloran (what he answers is his own delivery job, not this chain).
     assert!(talk(kanten, &book, 20).is_none_or(|o| !o.quests.iter().any(|q| matches!(q, Q::Stage { quest: x, .. } if *x == quest))), "Kanten waits for Pelloran");
     for (who, line, stage) in [(pelloran, (0x2500707b, 0x8f8dca2a), 2), (kanten, (0x25006f84, 0x8f8dca2a), 3)] {
@@ -419,7 +422,7 @@ fn the_vault_talk_chain_journey_to_linvak_plays_through() {
     assert!(matches!(o.changes.as_slice(), [P::AwardXp(10_000)]));
     assert_eq!(o.quests.last(), Some(&Q::Solved { quest, at: 40 }));
     // The two-hour time limit: a run left at Pelloran's stage expires.
-    let stale = commit(&Book::default(), &talk(akkilea, &Book::default(), 10).unwrap());
+    let stale = commit(&busy, &talk(akkilea, &busy, 10).unwrap());
     assert_eq!(t.stage_now(&stale, quest, 10 + 7201), 0);
 }
 
