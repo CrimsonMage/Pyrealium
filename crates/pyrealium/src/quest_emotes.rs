@@ -1,8 +1,10 @@
 //! Scripted quests as data, in the shape of ACEmulator's emote tables (`weenie_properties_emote`
-//! and `weenie_properties_emote_action`): four tab-separated tables beside the world table the
-//! server loads (`--content`), read at start, so a spreadsheet edit and a restart change a quest.
+//! and `weenie_properties_emote_action`): four tables of the quest content database (`db`,
+//! checked in as `content/quests.sql`), read at start, so an edited row and a restart change a
+//! quest. The columns below are each table's, in the order `parse_rows` takes them (the TSV
+//! order a generator still writes, `db::import_tsv`).
 //!
-//! - `quest-registry.tsv`: quest, journal_id, title_table, title_key, title, goal, credit,
+//! - `quest` (`quest-registry.tsv`): quest, journal_id, title_table, title_key, title, goal, credit,
 //!   min_level, time_limit_seconds, max_solves, repeat_seconds, source. One row per quest: its
 //!   journal entry, kill goal and rules. A run starts when SetStage leaves stage 0 (or a
 //!   completed stage) for an underway stage: below `min_level`, before `repeat_seconds` have
@@ -10,18 +12,16 @@
 //!   first with InqLevel / InqQuestReady to say why). An underway run older than
 //!   `time_limit_seconds` counts as stage 0 again (it can be started anew). The run's start and
 //!   solve times are durable (`quests::Command::Started` / `Solved`).
-//! - `quest-stages.tsv`: quest, stage, completed, journal_text, source. What the journal (and the
+//! - `quest_stage` (`quest-stages.tsv`): quest, stage, completed, journal_text, source. What the journal (and the
 //!   chat line a stage change prints) says at each stage.
-//! - `emote-sets.tsv`: set, owner_entity, owner_iid, trigger, item, quest, stage_min, stage_max,
+//! - `emote_set` (`emote-sets.tsv`): set, owner_entity, owner_iid, trigger, item, quest, stage_min, stage_max,
 //!   range, probability, source. Who reacts to what: Use, Give, Kill, ItemUsedOn, Enter (a player
 //!   coming within `range` of the world object `owner_iid`), and the QuestSuccess / QuestFailure
 //!   branch targets of the Inq actions.
-//! - `emote-actions.tsv`: set, order, action, delay_ms, p1..p5, source. What a set does, in order.
+//! - `emote_action` (`emote-actions.tsv`): set, order, action, delay_ms, p1..p5, source. What a set does, in order.
 //!
-//! Each table may also be split into families: every `<table>-<family>.tsv` beside the base file
-//! (`quest-registry-vault.tsv`, `emote-sets-vault.tsv`, ...) is read after it, in name order, with
-//! the same header; the families share one namespace of quests and sets. A bad row stops the load
-//! naming its file and line. `run` interprets one trigger for one
+//! Rows of every family (`hand`, `vault`) share one namespace of quests and sets. A bad row stops
+//! the load naming its table and key (or a TSV's file and line). `run` interprets one trigger for one
 //! player and returns the outcome; the caller (`server.rs`, `store.rs`) commits it as one
 //! durable record and sends its lines.
 use std::collections::BTreeMap;
@@ -172,12 +172,16 @@ fn hex32(v: &str) -> Option<u32> { u32::from_str_radix(v.trim_start_matches("0x"
 fn hex64(v: &str) -> Option<u64> { u64::from_str_radix(v.trim_start_matches("0x").trim_start_matches("0X"), 16).ok() }
 fn opt(v: &str) -> Option<String> { (!v.is_empty()).then(|| v.to_owned()) }
 
-/// Every file's rows of one table, each row with its file name.
-fn all_rows<'a>(files: &'a [(String, String)], header: &str, columns: usize)
-    -> io::Result<Vec<(&'a str, usize, Vec<&'a str>)>> {
+/// A table row: where it came from (`file:line`, or the database row) and its fields in the
+/// TSV column order.
+pub type Row = (String, Vec<String>);
+
+/// Every file's rows of one table, each named `file:line`.
+fn all_rows(files: &[(String, String)], header: &str, columns: usize) -> io::Result<Vec<Row>> {
     let mut out = Vec::new();
     for (name, text) in files {
-        out.extend(rows(text, name, header, columns)?.into_iter().map(|(line, f)| (name.as_str(), line, f)));
+        out.extend(rows(text, name, header, columns)?.into_iter()
+            .map(|(line, f)| (format!("{name}:{line}"), f.into_iter().map(str::to_owned).collect())));
     }
     Ok(out)
 }
@@ -190,9 +194,20 @@ impl Tables {
 
     /// Parses the four tables, each from one or more files `(name, text)` (`FILES` order).
     pub fn parse_files(files: [Vec<(String, String)>; 4]) -> io::Result<Self> {
+        Self::parse_rows([
+            all_rows(&files[0], HEADERS[0], 12)?, all_rows(&files[1], HEADERS[1], 5)?,
+            all_rows(&files[2], HEADERS[2], 11)?, all_rows(&files[3], HEADERS[3], 10)?,
+        ])
+    }
+
+    /// Checks and builds the tables from their rows (`FILES` order, TSV column order). Rows come
+    /// from the TSVs (`parse_files`) or the content database (`db::load`); a bad row's error names
+    /// where it came from.
+    pub fn parse_rows(tables: [Vec<Row>; 4]) -> io::Result<Self> {
         let mut t = Tables::default();
-        for (name, line, f) in all_rows(&files[0], HEADERS[0], 12)? {
-            let bad = |why: &str| io::Error::other(format!("{name}:{line}: {why}"));
+        for (at, f) in &tables[0] {
+            let f: Vec<&str> = f.iter().map(String::as_str).collect();
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             let id = hex32(f[1]).ok_or_else(|| bad("journal_id must be hex"))?;
             let title = (hex32(f[2]).ok_or_else(|| bad("title_table must be hex"))?, hex32(f[3]).ok_or_else(|| bad("title_key must be hex"))?);
             let goal = if f[5].is_empty() { 0 } else { f[5].parse().map_err(|_| bad("goal must be a whole number"))? };
@@ -211,8 +226,9 @@ impl Tables {
                 return Err(bad("duplicate quest"));
             }
         }
-        for (name, line, f) in all_rows(&files[1], HEADERS[1], 5)? {
-            let bad = |why: &str| io::Error::other(format!("{name}:{line}: {why}"));
+        for (at, f) in &tables[1] {
+            let f: Vec<&str> = f.iter().map(String::as_str).collect();
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             let quest = *t.keys.get(f[0]).ok_or_else(|| bad("quest is not in the registry"))?;
             let stage: u8 = f[1].parse().map_err(|_| bad("stage must be 0 to 255"))?;
             let completed = match f[2] { "0" => false, "1" => true, _ => return Err(bad("completed must be 0 or 1")) };
@@ -220,8 +236,9 @@ impl Tables {
             if t.stages.insert((quest, stage), (completed, f[3].to_owned())).is_some() { return Err(bad("duplicate stage")); }
         }
         let mut lines = BTreeMap::new();
-        for (name, line, f) in all_rows(&files[2], HEADERS[2], 11)? {
-            let bad = |why: &str| io::Error::other(format!("{name}:{line}: {why}"));
+        for (at, f) in &tables[2] {
+            let f: Vec<&str> = f.iter().map(String::as_str).collect();
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             let trigger = match f[3] {
                 "Use" => Trigger::Use, "Give" => Trigger::Give, "Kill" => Trigger::Kill, "ItemUsedOn" => Trigger::ItemUsedOn,
                 "Enter" => Trigger::Enter, "QuestSuccess" => Trigger::QuestSuccess, "QuestFailure" => Trigger::QuestFailure,
@@ -248,12 +265,13 @@ impl Tables {
             let range = if f[8].is_empty() { 4.0 } else { f[8].parse().ok().filter(|r: &f32| *r > 0.0).ok_or_else(|| bad("range must be positive metres"))? };
             let probability = if f[9].is_empty() { 1.0 } else { f[9].parse().ok().filter(|p: &f32| (0.0..=1.0).contains(p) && *p > 0.0).ok_or_else(|| bad("probability must be in (0, 1]"))? };
             if f[0].is_empty() || f[10].is_empty() { return Err(bad("set and source must not be empty")); }
-            if lines.insert(f[0].to_owned(), line).is_some() { return Err(bad("duplicate set")); }
+            if lines.insert(f[0].to_owned(), at.clone()).is_some() { return Err(bad("duplicate set")); }
             t.sets.push(Set { id: f[0].to_owned(), owner_entity, owner_iid, trigger, item, quest, stages, range, probability });
         }
         let mut orders = BTreeMap::<String, Vec<(u32, String, Action)>>::new();
-        for (name, line, f) in all_rows(&files[3], HEADERS[3], 10)? {
-            let bad = |why: &str| io::Error::other(format!("{name}:{line}: {why}"));
+        for (at, f) in &tables[3] {
+            let f: Vec<&str> = f.iter().map(String::as_str).collect();
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
             if !lines.contains_key(f[0]) { return Err(bad("set is not in emote-sets")); }
             let order: u32 = f[1].parse().map_err(|_| bad("order must be a whole number"))?;
             if !matches!(f[3], "" | "0") { return Err(bad("delay_ms is not scheduled yet; leave it 0")); }
@@ -340,7 +358,7 @@ impl Tables {
                 }
                 other => return Err(bad(&format!("unknown action `{other}`"))),
             };
-            orders.entry(f[0].to_owned()).or_default().push((order, format!("{name}:{line}"), action));
+            orders.entry(f[0].to_owned()).or_default().push((order, at.clone(), action));
         }
         for (set, mut list) in orders {
             list.sort_by_key(|(order, _, _)| *order);
@@ -350,18 +368,6 @@ impl Tables {
             t.actions.insert(set, list.into_iter().map(|(_, _, a)| a).collect());
         }
         Ok(t)
-    }
-
-    /// Reads the four tables from `directory`: each base file, then its families.
-    pub fn load(directory: &Path) -> io::Result<Self> {
-        let mut files: [Vec<(String, String)>; 4] = Default::default();
-        for (table, list) in FILES.iter().zip(files.iter_mut()) {
-            for path in std::iter::once(directory.join(table)).chain(families(directory, table)?) {
-                let text = std::fs::read_to_string(&path).map_err(|e| io::Error::other(format!("{}: {e}", path.display())))?;
-                list.push((path.display().to_string(), text));
-            }
-        }
-        Self::parse_files(files)
     }
 
     /// Every TakeItem's set and entity.
@@ -626,7 +632,7 @@ pub fn install(tables: Tables) -> io::Result<()> {
     Ok(())
 }
 pub fn installed() -> io::Result<&'static Tables> {
-    INSTALLED.get().ok_or_else(|| io::Error::other("the quest tables (quest-registry.tsv and the others) are not loaded"))
+    INSTALLED.get().ok_or_else(|| io::Error::other("the quest tables (quests.sql) are not loaded"))
 }
 /// The tables if loaded (journal views tolerate their absence).
 pub fn tables() -> Option<&'static Tables> { INSTALLED.get() }
@@ -709,6 +715,8 @@ pub fn shipped() -> &'static Tables {
     install(tables).unwrap();
     installed().unwrap()
 }
+
+pub mod db;
 
 #[cfg(test)]
 mod tests;

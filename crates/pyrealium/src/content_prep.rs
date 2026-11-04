@@ -16,10 +16,13 @@ use std::{
 };
 
 /// Bumped whenever the preparation's output for the same inputs changes.
-pub const VERSION: i32 = 1;
+pub const VERSION: i32 = 2;
 
-/// The four scripted-quest tables served beside the world table, each with its families.
-pub const TABLES: [&str; 4] = ["quest-registry.tsv", "quest-stages.tsv", "emote-sets.tsv", "emote-actions.tsv"];
+/// The scripted-quest content served beside the world table: the quest database's dump
+/// (`quest_emotes::db`).
+pub const TABLES: [&str; 1] = [crate::quest_emotes::db::DUMP];
+/// The table files the quest database replaced, removed from an output directory.
+const RETIRED_TABLES: [&str; 4] = ["quest-registry.tsv", "quest-stages.tsv", "emote-sets.tsv", "emote-actions.tsv"];
 
 const QUICK_EXIT_ENTITY: &str = "47001451"; // wsl_genericportal_pink, the Shelter's quick-exit portal
 const QUICK_EXIT_NAME: &str = "Quick Exit to the Arwic Outlands";
@@ -713,19 +716,7 @@ fn prepare_with(
     world.push('\n');
     let mut tables = Vec::new();
     for name in TABLES {
-        let stem = name.trim_end_matches(".tsv");
         tables.push((name.to_owned(), read(&content.join(name))?));
-        let mut family: Vec<PathBuf> = std::fs::read_dir(content)?
-            .filter_map(|e| e.ok().map(|e| e.path()))
-            .filter(|p| {
-                p.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with(&format!("{stem}-")) && n.ends_with(".tsv"))
-            })
-            .collect();
-        family.sort();
-        for path in family {
-            let file = path.file_name().unwrap().to_string_lossy().into_owned();
-            tables.push((file, read(&path)?));
-        }
     }
     let mut counts = BTreeMap::new();
     for kind in ["entity", "visual", "cell"] {
@@ -793,7 +784,8 @@ pub fn write_files(prepared: &Prepared, output: &Path) -> io::Result<()> {
     let directory = output.parent().filter(|p| !p.as_os_str().is_empty()).unwrap_or(Path::new("."));
     std::fs::create_dir_all(directory)?;
     std::fs::write(output, &prepared.world)?;
-    for name in TABLES {
+    for name in RETIRED_TABLES {
+        let _ = std::fs::remove_file(directory.join(name));
         let prefix = format!("{}-", name.trim_end_matches(".tsv"));
         for entry in std::fs::read_dir(directory)? {
             let path = entry?.path();
@@ -872,18 +864,9 @@ pub struct World {
 }
 
 impl World {
-    /// The quest tables grouped as `quest_emotes::Tables::parse_files` takes them: each base
-    /// table first, then its families in name order.
-    pub fn quest_files(&self) -> [Vec<(String, String)>; 4] {
-        let mut files: [Vec<(String, String)>; 4] = Default::default();
-        for (base, list) in TABLES.iter().zip(files.iter_mut()) {
-            let prefix = format!("{}-", base.trim_end_matches(".tsv"));
-            let mut family: Vec<&(String, String)> = self.tables.iter().filter(|(n, _)| n.starts_with(&prefix)).collect();
-            family.sort_by(|a, b| a.0.cmp(&b.0));
-            list.extend(self.tables.iter().filter(|(n, _)| n == base).cloned());
-            list.extend(family.into_iter().cloned());
-        }
-        files
+    /// The quest database's dump (`quest_emotes::Tables::from_sql`), if prepared.
+    pub fn quest_sql(&self) -> Option<&str> {
+        self.tables.iter().find(|(n, _)| n == crate::quest_emotes::db::DUMP).map(|(_, t)| t.as_str())
     }
 }
 

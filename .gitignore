@@ -146,3 +146,6 @@ Thumbs.db
 
 # An operator's own settings
 /pyrealium.toml
+
+# The quest database built from content/quests.sql for editing (pyrealium-content build).
+content/quests.sqlite

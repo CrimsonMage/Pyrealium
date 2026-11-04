@@ -55,7 +55,8 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     // The scripted quests' tables (`quest_emotes`) beside the world table, before the journal
     // replays; a bad row refuses the start.
     let quest_tables = if let Some(prepared) = &config.prepared {
-        Some((crate::quest_emotes::Tables::parse_files(prepared.quest_files())?, "the database".to_owned()))
+        let text = prepared.quest_sql().ok_or_else(|| invalid("the prepared content has no quest database (quests.sql)"))?;
+        Some((crate::quest_emotes::Tables::from_sql(text)?, "the database".to_owned()))
     } else if let Some(world) = config.content.as_deref().filter(|p| p.is_file()) {
         let directory = world.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(std::path::Path::new("."));
         Some((crate::quest_emotes::Tables::load(directory)?, directory.display().to_string()))
@@ -78,7 +79,7 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     // and each character's state of them moves onto those rows' quests.
     if let Some(tables) = crate::quest_emotes::tables() {
         if let Some(id) = crate::hunting_quests::retired_hunts().iter().find(|id| !tables.quests().any(|q| q.journal_id == **id)) {
-            return Err(invalid(&format!("retired hunt {id:08x} has no quest in the loaded quest tables (quest-registry-vault.tsv)")));
+            return Err(invalid(&format!("retired hunt {id:08x} has no quest in the loaded quest tables (the vault family of quests.sql)")));
         }
         let moved = store.migrate_retired_hunts()?;
         if moved > 0 { println!("Retired hunts moved onto their AC2 Vault quests for {moved} characters."); }

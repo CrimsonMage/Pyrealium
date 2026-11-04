@@ -29,50 +29,56 @@ fn the_shipped_tables_load() {
 }
 
 #[test]
-fn every_shipped_table_family_loads() {
-    let content = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
-    // The generated AC2 Vault family (tools/import_vault_quests.py) is there for each table.
-    for table in FILES {
-        let names: Vec<String> = families(&content, table).unwrap().iter()
-            .map(|p| p.file_name().unwrap().to_string_lossy().into_owned()).collect();
-        assert!(names.contains(&table.replace(".tsv", "-vault.tsv")), "{table}: {names:?}");
-    }
-    let t = Tables::load(&content).unwrap();
+fn the_shipped_dump_is_its_own_export() {
+    // quests.sql is exactly what `pyrealium-content export` writes for its rows, so an edit made
+    // in quests.sqlite and exported shows only the rows it changed.
+    let text = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content").join(db::DUMP)).unwrap();
+    assert_eq!(db::export(&db::open_dump(&text).unwrap()).unwrap(), text);
+    let t = Tables::from_sql(&text).unwrap();
     assert_eq!(t, *shipped());
     assert!(t.gives().all(|(_, e)| crate::shelter::item(e, ITEM_NAMESPACE + 1, 0).is_some()));
 }
 
+fn family_tables(family: &str, quest: &str, journal: &str, set: &str) -> [Vec<(String, String)>; 4] {
+    let file = |i: usize, rows: &str| vec![(format!("{}-{family}.tsv", FILES[i].trim_end_matches(".tsv")), HEADERS[i].to_owned() + "\n" + rows)];
+    [
+        file(0, &format!("{quest}\t{journal}\t0x25000001\t0x1\tT\t\tkiller\t\t\t\t\tsrc\n")),
+        file(1, &format!("{quest}\t1\t1\tDone.\tsrc\n")),
+        file(2, &format!("{set}\t0x47000001\t\tUse\t\t{quest}\t0\t0\t\t\tsrc\n")),
+        file(3, &format!("{set}\t1\tSetStage\t0\t{quest}\t1\t\t\t\tsrc\n")),
+    ]
+}
+
 #[test]
-fn a_family_file_adds_to_its_table_and_names_its_own_lines() {
-    let dir = std::env::temp_dir().join(format!("pyrealium-quest-families-{}", std::process::id()));
-    let _ = std::fs::remove_dir_all(&dir);
-    std::fs::create_dir_all(&dir).unwrap();
-    let write = |name: &str, body: &str| std::fs::write(dir.join(name), body).unwrap();
-    write("quest-registry.tsv", &(HEADERS[0].to_owned() + "\nbase\t0x40000001\t0x25000001\t0x1\tBase\t\tkiller\t\t\t\t\tsrc\n"));
-    write("quest-registry-extra.tsv", &(HEADERS[0].to_owned() + "\n# generated\nextra\t0x40000002\t0x25000001\t0x1\tExtra\t\tkiller\t\t\t\t\tsrc\n"));
-    write("quest-stages.tsv", &(HEADERS[1].to_owned() + "\n"));
-    // a family's stage may name a quest from the base registry, and the reverse
-    write("quest-stages-extra.tsv", &(HEADERS[1].to_owned() + "\nbase\t1\t1\tDone.\tsrc\nextra\t1\t1\tDone.\tsrc\n"));
-    write("emote-sets.tsv", &(HEADERS[2].to_owned() + "\ns\t0x47000001\t\tUse\t\textra\t0\t0\t\t\tsrc\n"));
-    write("emote-sets-extra.tsv", &(HEADERS[2].to_owned() + "\n"));
-    write("emote-actions.tsv", &(HEADERS[3].to_owned() + "\n"));
-    write("emote-actions-extra.tsv", &(HEADERS[3].to_owned() + "\ns\t1\tSetStage\t0\textra\t1\t\t\t\tsrc\n"));
-    write("emote-actions-extra.txt", "not a table");
-    let t = Tables::load(&dir).unwrap();
-    assert_eq!(t.quest("extra").map(|q| q.journal_id), Some(0x40000002));
-    assert_eq!(t.stage(0x40000001, 1), Some((true, "Done.")));
+fn an_import_replaces_only_its_own_family_and_keeps_set_order() {
+    let mut d = db::empty().unwrap();
+    db::import_tsv(&mut d, family_tables("hand", "base", "0x40000001", "first"), "hand").unwrap();
+    db::import_tsv(&mut d, family_tables("gen", "old", "0x40000002", "second"), "gen").unwrap();
+    db::import_tsv(&mut d, family_tables("gen", "new", "0x40000003", "third"), "gen").unwrap();
+    let t = Tables::from_db(&d).unwrap();
+    assert!(t.quest("base").is_some() && t.quest("old").is_none() && t.quest("new").is_some());
+    // Both sets answer the same Use; the hand-written one, imported first, comes first.
     let o = t.run(Trigger::Use, 0x47000001, 9, None, &Book::default(), &Inventory::default(), &Progression::default(),
         ITEM_NAMESPACE + 1, 0.0, 0, &|_, _, _| None).unwrap().unwrap();
-    assert_eq!(o.quests, [Q::Stage { quest: 0x40000002, stage: 1 }, Q::Solved { quest: 0x40000002, at: 0 }]);
-    // A quest or set defined twice across files is refused; errors name the family file and line.
-    write("quest-registry-more.tsv", &(HEADERS[0].to_owned() + "\nbase\t0x40000003\t0x25000001\t0x1\tAgain\t\tkiller\t\t\t\t\tsrc\n"));
-    let err = Tables::load(&dir).unwrap_err().to_string();
-    assert!(err.contains("quest-registry-more.tsv:2: duplicate quest"), "{err}");
-    std::fs::remove_file(dir.join("quest-registry-more.tsv")).unwrap();
-    write("emote-actions-extra.tsv", &(HEADERS[3].to_owned() + "\ns\t1\tSetStage\t0\textra\t1\t\t\t\tsrc\ns\t1\tTell\t0\t0x25000001\t0x2\t\t\t\tsrc\n"));
-    let err = Tables::load(&dir).unwrap_err().to_string();
-    assert!(err.contains("emote-actions-extra.tsv:3: duplicate order in set s"), "{err}");
-    let _ = std::fs::remove_dir_all(&dir);
+    assert_eq!(o.set, "first");
+    // The dump rebuilds the same tables.
+    assert_eq!(Tables::from_sql(&db::export(&d).unwrap()).unwrap(), t);
+}
+
+#[test]
+fn a_bad_database_row_names_its_table_and_key() {
+    let mut d = db::empty().unwrap();
+    db::import_tsv(&mut d, family_tables("hand", "base", "0x40000001", "s"), "hand").unwrap();
+    d.execute("UPDATE emote_action SET p2 = '999' WHERE emote_set = 's'", []).unwrap();
+    let err = Tables::from_db(&d).unwrap_err().to_string();
+    assert!(err.starts_with("quests emote_action s/1: "), "{err}");
+    // The schema refuses what it can as the row is written.
+    assert!(d.execute("UPDATE emote_set SET trigger = 'Wave' WHERE name = 's'", []).is_err());
+    assert!(d.execute("INSERT INTO quest_stage (quest, stage, journal_text, source) VALUES ('nobody', 1, 'x', 'y')", []).is_err());
+    // A renamed quest takes its stages and sets along (action parameters are text to edit).
+    d.execute("UPDATE quest SET name = 'renamed' WHERE name = 'base'", []).unwrap();
+    d.execute("UPDATE emote_action SET p1 = 'renamed', p2 = '1' WHERE emote_set = 's'", []).unwrap();
+    assert!(Tables::from_db(&d).unwrap().quest("renamed").is_some());
 }
 
 #[test]

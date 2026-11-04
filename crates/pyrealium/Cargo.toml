@@ -11,6 +11,10 @@ repository = "https://github.com/CrimsonMage/Pyrealium"
 name = "pyrealium"
 path = "src/main.rs"
 
+[[bin]]
+name = "pyrealium-content"
+path = "src/bin/pyrealium-content.rs"
+
 [dependencies]
 ac2-assets = { path = "../ac2-assets" }
 ac2-physics = { path = "../ac2-physics" }
