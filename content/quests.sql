@@ -1,6 +1,6 @@
--- Pyrealium quest content (schema 10). Written by `pyrealium-content export`;
+-- Pyrealium quest content (schema 11). Written by `pyrealium-content export`;
 -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 10;
+PRAGMA user_version = 11;
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -158,6 +158,19 @@ CREATE TABLE IF NOT EXISTS quest_recipe (
   ingredient TEXT NOT NULL,
   quantity INTEGER NOT NULL CHECK (quantity BETWEEN 1 AND 65535),
   output TEXT NOT NULL,
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS placement_hint (
+  entity TEXT PRIMARY KEY CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
+  what TEXT NOT NULL CHECK (what <> ''),
+  name TEXT NOT NULL,
+  north REAL,
+  east REAL,
+  cell TEXT CHECK (cell GLOB '0x[0-9a-fA-F]*'),
+  x REAL,
+  y REAL,
+  quests TEXT NOT NULL,
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
 );
