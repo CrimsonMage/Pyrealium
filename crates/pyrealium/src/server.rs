@@ -156,7 +156,11 @@ impl Peer {
             if !self.transport.send_available(data.len()).map_err(other)? {
                 break;
             }
-            let packets = self.send_world_event(&data, ordered, now)?;
+            let packets = if crate::room_chat::is_chat(&data) {
+                self.send_chat_event(&data, now)?
+            } else {
+                self.send_world_event(&data, ordered, now)?
+            };
             self.scene_outbox.pop_front();
             self.scene_bytes -= data.len();
             for packet in packets {
@@ -225,6 +229,19 @@ impl Peer {
         let packets = self.transport.send(id, 1, bytes, now).map_err(other)?;
         self.blob = blob;
         self.ordered_stamp = ordered_stamp;
+        Ok(packets)
+    }
+    /// Turbine chat (`room_chat`): queue 4, the unordered `0x23` id space retail's chat blobs
+    /// used (2005 `group.chat.elog`: `0x23DD....`), addressed to this connection.
+    fn send_chat_event(&mut self, bytes: &[u8], now: Instant) -> io::Result<Vec<Vec<u8>>> {
+        let blob = self
+            .blob
+            .checked_add(1)
+            .ok_or_else(|| invalid("blob sequence exhausted"))?;
+        let id = (u64::from(0x2300_0000 | (blob & 0xffff)) << 32) | u64::from(blob);
+        let data = crate::room_chat::addressed(bytes, u32::from(self.id));
+        let packets = self.transport.send(id, 4, &data, now).map_err(other)?;
+        self.blob = blob;
         Ok(packets)
     }
     fn send_event(&mut self, bytes: &[u8], now: Instant) -> io::Result<Vec<Vec<u8>>> {
@@ -5768,6 +5785,26 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                         .extend(scene.look_at(character, target).map_err(other)?);
                                     return Ok(replies);
                                 }
+                                world::ClientEvent::RoomChat(request) => {
+                                    // `room_chat`: the line to every member of the room, the
+                                    // sender too, then the sender's response.
+                                    let Phase::InWorld { character } = peer.session.phase else {
+                                        return Err(invalid("room chat outside the world"));
+                                    };
+                                    if peer.last_chat_ms.is_some_and(|last| now_ms.saturating_sub(last) < 500) {
+                                        return Err(invalid("chat rate limit"));
+                                    }
+                                    let speaker = store.characters.get(&character).map(|c| c.name.clone()).ok_or_else(|| invalid("unknown speaker"))?;
+                                    let online: Vec<u64> = active_characters.keys().copied().collect();
+                                    match crate::room_chat::relay(character, &speaker, &request, &groups, &online).map_err(other)? {
+                                        Some(out) => {
+                                            peer.last_chat_ms = Some(now_ms);
+                                            deliveries.extend(out.into_iter().map(|(recipient, data)| crate::scene::Delivery { recipient, data: data.into() }));
+                                        }
+                                        None => eprintln!("Room chat from {character} to room {} dropped.", request.room),
+                                    }
+                                    return Ok(replies);
+                                }
                                 world::ClientEvent::ForceCreate { target } => {
                                     // Answered only in the world; see `Scene::force_create`.
                                     if let Phase::InWorld { character } = peer.session.phase {
@@ -6286,6 +6323,13 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                 data: script::chat(&crate::licensing::notice(), 1)
                                                     .map_err(other)?
                                                     .into(),
+                                            });
+                                        }
+                                        if first && config.initialize_ui {
+                                            // The channel table, as retail sent it at login (`room_chat::channel_table`).
+                                            deliveries.push(crate::scene::Delivery {
+                                                recipient: character,
+                                                data: crate::room_chat::channel_table(crate::room_chat::WORLD).map_err(other)?.into(),
                                             });
                                         }
                                         if first && config.map_travel {

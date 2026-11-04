@@ -282,6 +282,8 @@ struct Group {
     leader: u64,
     members: BTreeSet<u64>,
     flags: u32,
+    /// The fellowship's chat room (`room_chat`), field 3 of the `Fellowship` package.
+    room: u32,
 }
 #[derive(Clone, Debug)]
 struct Invitation {
@@ -450,6 +452,17 @@ impl Runtime {
             .map(|(player, _)| *player)
             .collect()
     }
+    /// `player`'s fellowship room.
+    pub fn room(&self, player: u64) -> Option<u32> {
+        self.groups.get(self.membership.get(&player)?).map(|group| group.room)
+    }
+    /// The members of the fellowship whose room is `room`.
+    pub fn room_members(&self, room: u32) -> Option<Vec<u64>> {
+        self.groups
+            .values()
+            .find(|group| group.room == room)
+            .map(|group| group.members.iter().copied().collect())
+    }
     pub fn member_ids(&self) -> Vec<u64> {
         self.membership.keys().copied().collect()
     }
@@ -507,6 +520,12 @@ impl Runtime {
                     .filter(|id| id >> 48 == NAMESPACE >> 48)
                     .ok_or(GroupError::Capacity)?;
                 let id = next.next;
+                // One room per fellowship, numbered as retail numbered them: one counter
+                // (`room_chat`), here the fellowship's own.
+                let room = u32::try_from(id - NAMESPACE)
+                    .ok()
+                    .and_then(|n| n.checked_add(crate::room_chat::FIRST_DYNAMIC_ROOM - 1))
+                    .ok_or(GroupError::Capacity)?;
                 next.groups.insert(
                     id,
                     Group {
@@ -514,6 +533,7 @@ impl Runtime {
                         leader: actor,
                         members: BTreeSet::from([actor]),
                         flags: flags(*looting, *social),
+                        room,
                     },
                 );
                 next.membership.insert(actor, id);
@@ -761,7 +781,7 @@ impl Runtime {
             .iter()
             .map(|id| online.get(id).filter(|m| m.valid()).cloned().ok_or(WorldError::InvalidValue))
             .collect::<Result<Vec<_>, _>>()?;
-        snapshot(&group.name, group.leader, group.flags, &members)
+        snapshot(&group.name, group.leader, group.flags, group.room, &members)
     }
     pub fn commit(&mut self, plan: Plan) -> Result<Vec<Delivery>, GroupError> {
         if self.revision != plan.base_revision {
@@ -872,20 +892,20 @@ fn invitation(inviter: &str, name: &str, owner: u64) -> Result<Vec<u8>, WorldErr
     script::private_call(INVITATION, &arguments)
 }
 
-struct Object {
+pub(crate) struct Object {
     kind: u32,
     native: Vec<u8>,
     fields: Vec<(u32, u8)>,
 }
 impl Object {
-    fn native(kind: u16, bytes: Vec<u8>) -> Self {
+    pub(crate) fn native(kind: u16, bytes: Vec<u8>) -> Self {
         Self {
             kind: 0xffff0000 | u32::from(kind),
             native: bytes,
             fields: Vec::new(),
         }
     }
-    fn interpreted(package: u16, fields: Vec<(u32, u8)>) -> Self {
+    pub(crate) fn interpreted(package: u16, fields: Vec<(u32, u8)>) -> Self {
         Self {
             kind: u32::from(package) << 16,
             native: Vec::new(),
@@ -896,7 +916,7 @@ impl Object {
 fn word(bytes: &mut Vec<u8>, value: u32) {
     bytes.extend(value.to_le_bytes());
 }
-fn graph(objects: &[Object]) -> Vec<u8> {
+pub(crate) fn graph(objects: &[Object]) -> Vec<u8> {
     let mut bytes = Vec::new();
     word(&mut bytes, 5);
     word(&mut bytes, objects.len() as u32);
@@ -944,7 +964,7 @@ fn add(member: &Member) -> Result<Vec<u8>, WorldError> {
     bytes.extend(script::identity(member.id));
     script::private_call(ADD, &bytes)
 }
-fn snapshot(name: &str, leader: u64, flags: u32, members: &[Member]) -> Result<Vec<u8>, WorldError> {
+fn snapshot(name: &str, leader: u64, flags: u32, room: u32, members: &[Member]) -> Result<Vec<u8>, WorldError> {
     if !valid_name(name)
         || members.is_empty()
         || members.len() > MAX_MEMBERS
@@ -955,15 +975,16 @@ fn snapshot(name: &str, leader: u64, flags: u32, members: &[Member]) -> Result<V
     let name_id = 3 + members.len() as u32 * 3;
     // Pinned 7148 WLib: 81f1003d -> 01f00002 constructs the native
     // FellowshipAdaptor from fields 7, 5/6, 2 and 4. Fields 0/1 and 3 are
-    // retained at their native 01f0001e constructor defaults (the captures carry a per-server
-    // counter in 3 and a changing word in 4); field 2 is the flags word ([`flags`]).
+    // retained at their native 01f0001e constructor defaults (the captures carry a changing word
+    // in 4); field 2 is the flags word ([`flags`]) and field 3 the chat room (`Fellowship` 0xF,
+    // the per-server counter of the captures, `room_chat`).
     let mut objects = vec![Object::interpreted(
         0x1f0,
         vec![
             (0, 0x82),
             (0, 0xcd),
             (flags, 2),
-            (0, 2),
+            (room, 2),
             (2, 1),
             (leader as u32, 0x84),
             ((leader >> 32) as u32, 0xcd),

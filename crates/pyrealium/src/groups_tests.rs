@@ -216,3 +216,28 @@ fn the_wire_forms_match_the_captured_layouts() {
     assert_eq!(name, "Wanderers");
     assert_eq!(&joined[joined.len() - 12..], &[0u8, 0, 0, 0, 1, 0, 0, 0, 8, 0, 0, 0]);
 }
+
+#[test]
+fn each_fellowship_has_its_room_in_field_3() {
+    // Captured (getting.invitation.to.group.1.elog): the Fellowship package's eight fields
+    // 0, 0, 3 (flags), 0x3F (the room), ...
+    let mut runtime = Runtime::default();
+    let created = create(&mut runtime, 1, false);
+    let room = runtime.room(LEADER).unwrap();
+    assert_eq!(room, crate::room_chat::FIRST_DYNAMIC_ROOM);
+    let fields: Vec<u8> = [8u32, 0, 0, flags(1, false), room].into_iter().flat_map(u32::to_le_bytes).collect();
+    assert!(created[0].data.windows(fields.len()).any(|w| w == fields));
+    assert_eq!(runtime.room_members(room), Some(vec![LEADER]));
+    run(&mut runtime, LEADER, Request::Invite(RECRUIT), 0);
+    run(&mut runtime, RECRUIT, Request::Accept(LEADER), 0);
+    assert_eq!(runtime.room(RECRUIT), Some(room));
+    assert_eq!(runtime.room_members(room).unwrap().len(), 2);
+    // Another fellowship, another room.
+    let plan = runtime
+        .prepare(THIRD, &Request::Create { name: "Others".into(), looting: 1, social: false }, 0, &online())
+        .unwrap();
+    runtime.commit(plan).unwrap();
+    assert_eq!(runtime.room(THIRD), Some(room + 1));
+    run(&mut runtime, LEADER, Request::Disband, 0);
+    assert_eq!(runtime.room_members(room), None);
+}

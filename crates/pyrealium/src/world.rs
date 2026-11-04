@@ -17,6 +17,12 @@ pub const CLIENT_SCRIPT_EVENT: u32 = 0x10053;
 /// `ECM_Physics::SendEvt_CForceCreate`, queue 3.
 pub const CLIENT_FORCE_CREATE: u32 = 0x1008f;
 pub const MAX_STRING_BYTES: usize = 4096;
+/// `CharacterSet::m_fUseTurbineChat`: retail's value in every Legions-era character set of the
+/// captures (2005 and 2017-02-12). `gmClient::RecvNotice_CharacterSet` then sets
+/// `S_fUseTurbineChatInsteadOfGUN` and starts the shipped `chatclient.dll`
+/// (`Turbine::Client::StartupTurbineChat`), so room chat comes as `0x100D3` (`room_chat`); tells
+/// stay on GUN.
+pub const TURBINE_CHAT: u32 = 1;
 pub const MAX_CHARACTERS: usize = 64;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -57,6 +63,8 @@ pub enum ClientEvent {
     ForceCreate {
         target: u64,
     },
+    /// Turbine chat (0x100D3, queue 4): a line to a chat room (`room_chat`).
+    RoomChat(crate::room_chat::RoomRequest),
     CreateCharacter {
         account: Vec<u8>,
         request: CharacterCreationRequest,
@@ -214,6 +222,14 @@ pub fn decode_client_event(bytes: &[u8]) -> Result<ClientEvent, WorldError> {
         CLIENT_FORCE_CREATE => ClientEvent::ForceCreate {
             target: reader.u64()?,
         },
+        // `ChatInterfaceProvider::SendData`: the length, then the chat packet.
+        crate::room_chat::EVENT => {
+            let length = reader.u32()? as usize;
+            if length > crate::script::MAX_ARGUMENT_BYTES {
+                return Err(WorldError::LimitExceeded);
+            }
+            ClientEvent::RoomChat(crate::room_chat::RoomRequest::decode(reader.take(length)?)?)
+        }
         CREATE_CHARACTER => {
             let account = reader.string()?;
             let mut request = CharacterCreationRequest {
@@ -277,7 +293,7 @@ pub fn empty_character_set(account: &[u8], allowed_slots: u32) -> Result<Vec<u8>
         bytes.extend(value.to_le_bytes());
     }
     pack_string(&mut bytes, account, account.len())?;
-    bytes.extend(0_u32.to_le_bytes());
+    bytes.extend(TURBINE_CHAT.to_le_bytes());
     Ok(bytes)
 }
 
@@ -336,7 +352,7 @@ pub fn character_set(
         bytes.extend(value.to_le_bytes());
     }
     pack_string(&mut bytes, account, account.len())?;
-    bytes.extend(0_u32.to_le_bytes());
+    bytes.extend(TURBINE_CHAT.to_le_bytes());
     Ok(bytes)
 }
 
@@ -967,7 +983,7 @@ mod tests {
         assert_eq!(
             empty_character_set(b"", 5).unwrap(),
             [
-                0x55, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0x55, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
                 0
             ]
         );
@@ -1015,7 +1031,7 @@ mod tests {
         );
         assert_eq!(
             &bytes[32..],
-            &[0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            &[0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
         );
     }
 }
