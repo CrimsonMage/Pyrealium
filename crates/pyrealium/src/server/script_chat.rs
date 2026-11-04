@@ -287,7 +287,7 @@ pub(super) fn on_chat(
                     if peer.combat || !saved.progression.alive() { return Err(invalid("Speak to a mentor while alive and out of combat.")); }
                     let mentor = srv.scene.nearby_service(character, TRAINING_MENTOR_ENTITY, None).ok_or_else(|| invalid("Move within four metres of a training mentor."))?;
                     let race = saved.creation.as_ref().map_or(1, |request| request.race);
-                    let text = crate::training_dialogue::topic(&words[1..].join(" "), race, &saved.quests).ok_or_else(|| invalid("Ask @mentor help, gear, combat, healing, supplies, crafting, travel or quests."))?;
+                    let text = crate::training_dialogue::topic(&words[1..].join(" "), race).ok_or_else(|| invalid("Ask @mentor help, gear, combat, healing, supplies, crafting, travel or quests."))?;
                     peer.admit_npc_dialogue(srv.now_ms)?;
                     let events = mentor_interaction_events(character, mentor, &srv.scene, &text)?;
                     peer.queue_ordered_batch(events)?;
@@ -301,33 +301,8 @@ pub(super) fn on_chat(
             }) && srv.config.initialize_ui
             {
                 peer.last_chat_ms = Some(srv.now_ms);
-                if !srv.training_quest_enabled
-                    && srv.store.characters[&character]
-                        .quests
-                        .get()
-                        .is_none()
-                {
-                    replies.extend(peer.send_event(&script::chat("The training quest is not enabled on this server.",1).map_err(other)?,srv.now)?);
-                    return Ok(replies);
-                }
-                let action = words[1..].join(" ");
-                match quest_action(
-                    peer, character, &action, &mut srv.store,
-                    &mut srv.scene, None,
-                ) {
-                    Ok(updates) => {
-                        outbox.deliveries.extend(updates)
-                    }
-                    Err(error) => replies.extend(
-                        peer.send_event(
-                            &script::chat(
-                                &error.to_string(),
-                                1,
-                            )
-                            .map_err(other)?,
-                            srv.now,
-                        )?,
-                    ),
+                if let Err(error) = quest_status(peer, character, &srv.store) {
+                    replies.extend(peer.send_event(&script::chat(&error.to_string(), 1).map_err(other)?, srv.now)?);
                 }
                 return Ok(replies);
             }

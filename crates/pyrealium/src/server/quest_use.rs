@@ -104,73 +104,15 @@ pub(super) fn use_training_potion(
     Ok(updates)
 }
 
-pub(super) fn quest_action(
-    peer: &mut Peer,
-    character: u64,
-    action: &str,
-    store: &mut Store,
-    scene: &mut crate::scene::Scene,
-    speaker: Option<u64>,
-) -> io::Result<Vec<crate::scene::Delivery>> {
-    if !scene.can_observe(character, character) {
-        return Err(invalid("Player is not ready."));
-    }
-    let saved = &store.characters[&character];
-    if action.trim().eq_ignore_ascii_case("shelter") {
-        let quest=crate::quest_emotes::installed()?.quest("shelter").ok_or_else(||invalid("no shelter quest"))?.journal_id;
-        let tables=crate::quest_emotes::installed()?;
-        let text=tables.stage(quest,saved.quests.stage(quest)).map_or("",|(_,t)|t);
-        peer.queue_ordered_batch(vec![script::chat(text,1).map_err(other)?])?;
-        return Ok(Vec::new());
-    }
-    let command = match action.trim().to_ascii_lowercase().as_str() {
-        "" | "status" => None,
-        "start" => Some(crate::quests::Command::Accept),
-        "supplies" => Some(crate::quests::Command::AcceptSupplies),
-        "potion" => Some(crate::quests::Command::AcceptPotion),
-        "potion claim" => Some(crate::quests::Command::ClaimPotion),
-        "journey" => Some(crate::quests::Command::AcceptJourney),
-        "journey claim" => Some(crate::quests::Command::ClaimJourney),
-        "claim" => Some(crate::quests::Command::Claim),
-        _ => return Err(invalid("Use @quest for status; start, claim, supplies, potion, potion claim, journey or journey claim for lessons.")),
-    };
-    if command.is_some() && (!saved.progression.alive() || peer.combat) {
-        return Err(invalid(
-            "Quest acceptance and rewards require a living player out of combat.",
-        ));
-    }
-    let quests = match command.as_ref() {
-        Some(command) => saved.quests.apply(command).map_err(io::Error::other)?,
-        None => saved.quests.clone(),
-    };
-    let mut state = saved.progression.clone();
-    if let Some(command) = &command {
-        for reward in crate::quests::rewards(command) {
-            state = state.apply(&reward).map_err(io::Error::other)?;
-        }
-    }
-    let text = quests.guidance();
-    let mut events = match speaker {
-        Some(speaker) => {
-            let race = saved.creation.as_ref().map_or(1, |request| request.race);
-            mentor_interaction_events(character, speaker, scene, &crate::training_dialogue::greeting(race, &quests))?
-        }
-        None => vec![script::chat(&text, 1).map_err(other)?],
-    };
-    if quests.get().is_some() {
-        events.extend(quests.updates_since(&saved.quests).map_err(other)?);
-    }
-    events.extend(state.private_changes(&saved.progression));
-    if saved.skills.available_credits(&state) != saved.skills.available_credits(&saved.progression)
-    {
-        events
-            .push(crate::ui::skills_state(&saved.skills, &state, &saved.skill_used).map_err(other)?);
-    }
-    peer.validate_scene_batch(&events)?;
-    if let Some(command) = command {
-        store.quest_command(&peer.session.account, character, command)?;
-    }
-    let updates = scene.player_stats(character, &state);
-    peer.queue_ordered_batch(events)?;
-    Ok(updates)
+/// `@quest`: the player's underway quests, each with its journal line (the quest tables).
+pub(super) fn quest_status(peer: &mut Peer, character: u64, store: &Store) -> io::Result<()> {
+    let book = &store.characters[&character].quests;
+    let tables = crate::quest_emotes::installed()?;
+    let lines: Vec<String> = tables.quests().filter_map(|q| {
+        let stage = book.stage(q.journal_id);
+        let (done, text) = tables.stage(q.journal_id, stage)?;
+        (stage != 0 && !done).then(|| format!("{}: {}", q.title_text, text.replace("{count}", &book.count(q.journal_id).to_string()).replace("{goal}", &q.goal.to_string())))
+    }).collect();
+    let text = if lines.is_empty() { "You have no quest underway.".to_owned() } else { lines.join("\n") };
+    peer.queue_ordered_batch(vec![script::chat(&text, 1).map_err(other)?])
 }

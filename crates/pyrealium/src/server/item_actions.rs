@@ -239,8 +239,7 @@ pub(super) fn craft_item(
         crate::crafting::completed(request.recipe, true).map_err(other)?,
         script::chat(&format!("Crafted one {name} potion."), 1).map_err(other)?,
     ];
-    let practice = saved.quests.potion_phase() == 1;
-    let updates = item_service_transaction_quest(peer, character, &items, &[], events, store, scene, metadata, false, practice)?;
+    let updates = item_service_transaction(peer, character, &items, &[], events, store, scene, metadata)?;
     peer.last_inventory_ms = Some(now);
     Ok(updates)
 }

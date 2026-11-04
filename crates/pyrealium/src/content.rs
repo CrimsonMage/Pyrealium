@@ -40,7 +40,7 @@ mod motion_tests {
     use super::*;
     fn spawn(point: Placement, instance:u16) -> Vec<u8> {
         world::create_stationary_object(&StationaryObject {character_id:NAMESPACE+1,
-            parent_visual_did:0x1f0003d1,entity_did:crate::quests::TARGET_ENTITY,
+            parent_visual_did:0x1f0003d1,entity_did:crate::content::IDOL_SPAWN,
             cell_id:point.cell,position:point.coordinates,orientation:point.orientation(),
             instance_stamp:instance,visual_ordering_stamp:0,timestamps:[0;4]}).unwrap()
     }
@@ -49,7 +49,7 @@ mod motion_tests {
         let home=Placement::HUMAN_START;
         let id=NAMESPACE+1;
         let mut content=Content::default();
-        content.objects.insert(id,Object {id,entity:crate::quests::TARGET_ENTITY,visual:0x1f0003d1,scale:1.,placement:home,home,home_orientation:home.orientation(),
+        content.objects.insert(id,Object {id,entity:crate::content::IDOL_SPAWN,visual:0x1f0003d1,scale:1.,placement:home,home,home_orientation:home.orientation(),
             spawn:spawn(home,1).into(),destroy:vec![0;16].into(),active:true,instance:1,
             visual_stamp:0,position_stamp:0,stats:BTreeMap::new(),service:None,name:None,corpse_name:None,door_open:false,door_mode:None});
         content.set_stat(id,0x107,60).unwrap();
@@ -106,6 +106,8 @@ mod motion_tests {
     }
 }
 
+/// The training Idol Spawn entity (the test fixtures' creature).
+pub const IDOL_SPAWN: u32 = 0x4700_07d1;
 pub const NAMESPACE: u64 = 0x8140000000000000;
 impl Object {
     /// A stationary world object created while the server runs (a prospected deposit): the same
@@ -214,10 +216,10 @@ impl Content {
     #[cfg(test)]
     pub(crate) fn fixture(id:u64,point:Placement,service:Option<crate::services::Service>)->Self {
         let spawn=world::create_stationary_object(&StationaryObject {character_id:id,parent_visual_did:0x1f0003d1,
-            entity_did:crate::quests::TARGET_ENTITY,cell_id:point.cell,position:point.coordinates,orientation:point.orientation(),
+            entity_did:crate::content::IDOL_SPAWN,cell_id:point.cell,position:point.coordinates,orientation:point.orientation(),
             instance_stamp:1,visual_ordering_stamp:0,timestamps:[0;4]}).unwrap();
         let mut result=Self::default();
-        result.objects.insert(id,Object{id,entity:crate::quests::TARGET_ENTITY,visual:0x1f0003d1,scale:1.,name:None,corpse_name:None,service,door_open:false,door_mode:None,
+        result.objects.insert(id,Object{id,entity:crate::content::IDOL_SPAWN,visual:0x1f0003d1,scale:1.,name:None,corpse_name:None,service,door_open:false,door_mode:None,
             placement:point,home:point,home_orientation:point.orientation(),spawn:spawn.into(),destroy:world::destroy_inventory_item(id,1).into(),active:true,
             instance:1,visual_stamp:0,position_stamp:0,stats:BTreeMap::new()});
         result.cells.insert(point.cell,vec![id]);

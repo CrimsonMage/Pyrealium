@@ -84,17 +84,14 @@ pub(super) fn use_portal(
         return Err(invalid("Move within four meters of the portal."));
     }
     let prepared = prepare_forced_move(peer, character, route.destination, scene, bootstrap)?;
-    let mut events = vec![
+    let events = vec![
         crate::ui::portal_used(character, target, route.destination, distance.sqrt() as f32)
             .map_err(other)?,
         prepared.wire,
         script::private_call(script::COMBAT_STATE, &script::integer(0)).map_err(other)?,
     ];
-    if saved.quests.journey_phase() == 2 && crate::quests::is_training_portal(target) {
-        events.extend(saved.quests.apply(&crate::quests::Command::Travelled).map_err(other)?.updates_since(&saved.quests).map_err(other)?);
-    }
     peer.validate_scene_batch(&events)?;
-    store.relocate_training_portal(&peer.session.account, character, route.destination, target)?;
+    store.relocate(&peer.session.account, character, route.destination)?;
     // The quests' Travel sets (`quest_emotes`).
     let travelled = object_quests(store, character, crate::quest_emotes::Trigger::Travel, portal_entity, target);
     if let Some(runtime) = encounters {

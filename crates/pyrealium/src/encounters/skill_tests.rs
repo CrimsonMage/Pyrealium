@@ -8,9 +8,6 @@ fn fixture(_label: &str) -> (Encounters, Scene, Store, crate::db::testdb::TestDa
     store
         .progression_command("local", 1, Command::AwardXp(1000))
         .unwrap();
-    store
-        .quest_command("local", 1, crate::quests::Command::Accept)
-        .unwrap();
     let id = crate::content::NAMESPACE + 7;
     let position = Placement::HUMAN_START;
     let mut target = position;
@@ -130,7 +127,6 @@ fn burn_kill_uses_normal_quest_reward_loot_and_spawner_transaction_once() {
             .count(),
         1
     );
-    assert_eq!(store.characters[&1].quests.get().unwrap().killed, 1);
     assert_eq!(store.characters[&1].progression.xp, before.xp + 40);
     assert_eq!(store.characters[&1].progression.gold, before.gold + 2);
     assert_eq!(store.characters[&1].progression.vigor, before.vigor - 32);
@@ -150,7 +146,6 @@ fn burn_kill_uses_normal_quest_reward_loot_and_spawner_transaction_once() {
     assert_eq!(runtime.actors[&target].health, 60);
     drop(store);
     let reopened = Store::open(&path).unwrap();
-    assert_eq!(reopened.characters[&1].quests.get().unwrap().killed, 1);
     assert_eq!(reopened.characters[&1].progression.xp, before.xp + 40);
     assert_eq!(reopened.characters[&1].progression.vigor, before.vigor - 32);
     drop(reopened);

@@ -210,9 +210,6 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                     for event in book.updates_since(&previous).map_err(other)? {
                         updates.push(crate::scene::Delivery {recipient:player,data:event.into()});
                     }
-                    if book.ready() {
-                        updates.push(crate::scene::Delivery {recipient:player,data:script::chat(&book.guidance(),1).map_err(other)?.into()});
-                    }
                 }
                 crate::encounters::Event::Vigor { actor, vigor } => {
                     updates.extend(srv.scene.content_stat(actor, 0x103, vigor)?);

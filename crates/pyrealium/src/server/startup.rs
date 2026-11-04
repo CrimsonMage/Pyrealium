@@ -469,10 +469,6 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
         runtime.initialize_spawners(&mut scene,0)?;
         println!("Managed creature point spawners: {total}; outdoors: {outdoor} in {} blocks; {} capacity-limited groups. One lifetime per point; inferred camp capacities and regeneration are authored Pyrealium policy.",blocks.len(),runtime.spawners().group_count());
     }
-    let training_quest_enabled = starter_equipment
-        && encounters
-            .as_ref()
-            .is_some_and(|runtime| runtime.includes_entity(crate::quests::TARGET_ENTITY));
     let abilities = if starter_equipment {
         let runtime = crate::abilities::Runtime::load().map_err(io::Error::other)?;
         println!("Loaded {} executable DAT skill-effect profiles; specialized effects and recall entitlements remain incomplete.", runtime.supported());
@@ -536,7 +532,6 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
         world_clock,
         active_characters,
         scene,
-        training_quest_enabled,
         abilities,
         failed_peers,
         next_offer,

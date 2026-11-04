@@ -34,7 +34,6 @@ pub(super) struct Server {
     pub(super) next_offer: u64,
     pub(super) failed_peers: BTreeSet<SocketAddr>,
     pub(super) abilities: Option<crate::abilities::Runtime>,
-    pub(super) training_quest_enabled: bool,
     pub(super) scene: crate::scene::Scene,
     pub(super) active_characters: BTreeMap<u64, SocketAddr>,
     pub(super) world_clock: crate::clock::WorldClock,

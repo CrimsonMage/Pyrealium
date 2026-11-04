@@ -129,11 +129,13 @@ impl Tables {
             let owner_slots = f.get(11).filter(|v| !v.is_empty()).map(|v| v.to_string());
             if owner_slots.as_ref().is_some_and(|g| !t.groups.contains_key(g)) { return Err(bad("owner_slots is not an instance_group")); }
             let ownerless = trigger.branch() || trigger.personal();
-            if ownerless == (!owner_entities.is_empty() || !owner_iids.is_empty() || owner_slots.is_some()) {
+            // A Bind or Travel set may name its lifestone or portal, or answer for any.
+            let either = matches!(trigger, Trigger::Bind | Trigger::Travel);
+            if !either && ownerless == (!owner_entities.is_empty() || !owner_iids.is_empty() || owner_slots.is_some()) {
                 return Err(bad("a branch, Goto, PlayerDeath, QuestExpired, Logout or EnterWorld set has no owner; every other set names owner_entity, owner_iid or owner_slots"));
             }
-            if trigger.personal() && f[5].is_empty() {
-                return Err(bad("a PlayerDeath, QuestExpired, Logout or EnterWorld set names its quest (and the stages it applies to)"));
+            if trigger.personal() && trigger != Trigger::EnterWorld && f[5].is_empty() {
+                return Err(bad("a PlayerDeath, QuestExpired or Logout set names its quest (and the stages it applies to)"));
             }
             let item = if f[4].is_empty() { None } else { Some(entity_or_alias(f[4]).ok_or_else(|| bad("item must be hex or an entity alias"))?) };
             let quest = if f[5].is_empty() { None } else { Some(*t.keys.get(f[5]).ok_or_else(|| bad("quest is not in the registry"))?) };

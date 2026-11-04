@@ -27,10 +27,12 @@ pub const HEALTH_RESULT: u32 = 0x40000008;
 
 /// Presentation grace, not combat authority or a loot lifetime. Native Legions
 /// death graphs: Idol 03000072 = 2.375s; Drudge 0300002a variants <= 4.375s.
+/// The training Idol Spawn (its death clip is short).
+const IDOL_SPAWN: u32 = 0x4700_07d1;
 /// Uncatalogued profiles receive room for the 10s humanoid death/hold clips.
 pub fn death_presentation_ms(entity: u32) -> u64 {
     match entity {
-        crate::quests::TARGET_ENTITY => 3500,
+        IDOL_SPAWN => 3500,
         crate::shelter::DIGGER | crate::shelter::SENTINEL => 5500,
         _ => 12000,
     }

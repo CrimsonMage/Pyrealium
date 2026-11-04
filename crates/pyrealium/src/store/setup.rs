@@ -159,9 +159,7 @@ impl Store {
                     .map_or(1, |request| request.race),
             )
             .map_err(io::Error::other)?;
-        let quests = if character.quests.journey_phase() == 1 {
-            character.quests.apply(&crate::quests::Command::BoundLifestone).map_err(io::Error::other)?
-        } else { character.quests.clone() };
+        let quests = character.quests.clone();
         if quests == character.quests && character.binding == Some(placement)
             && character
                 .skills
@@ -220,18 +218,6 @@ impl Store {
         self.touch(id);
         self.positions.insert(id, placement);
         self.dirty.insert(id);
-        Ok(())
-    }
-    pub fn relocate_training_portal(&mut self, account: &str, id: u64, placement: Placement, portal: u64) -> io::Result<()> {
-        let character = self.characters.get(&id).filter(|c| c.account == account && !c.deleted && c.progression.alive()).ok_or_else(|| invalid("Travel requires an owned living character"))?;
-        if character.quests.journey_phase() != 2 || !crate::quests::is_training_portal(portal) {
-            return self.relocate(account, id, placement);
-        }
-        if !placement.valid() { return Err(invalid("Invalid training portal destination")); }
-        let quests = character.quests.apply(&crate::quests::Command::Travelled).map_err(io::Error::other)?;
-        self.touch(id);
-        self.characters.get_mut(&id).unwrap().quests = quests;
-        self.positions.insert(id, placement); self.dirty.insert(id);
         Ok(())
     }
     /// Binding must have passed world/cell validation before this transaction.

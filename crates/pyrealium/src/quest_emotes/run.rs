@@ -121,7 +121,8 @@ impl Tables {
         let mut done = std::collections::BTreeSet::new();
         let mut out = Vec::new();
         let picked: Vec<&Set> = self.sets.iter().filter(|s| s.trigger == trigger).filter(|s| {
-            let Some(q) = s.quest else { return false };
+            // A set with no quest (an EnterWorld set for everyone) runs every time.
+            let Some(q) = s.quest else { return true };
             let stage = if trigger == Trigger::QuestExpired {
                 if !self.expired(&book, q, now) { return false; }
                 book.stage(q)

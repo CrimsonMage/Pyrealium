@@ -90,5 +90,22 @@ pub fn commands(book: &Book, tables: &crate::quest_emotes::Tables) -> Vec<Q> {
         if lesson.learned { out.push(Q::Recipe(LESSON_RECIPE)); }
         out.push(Q::RetireLesson);
     }
+    // The training lessons: Training Grounds (3 kills, then claimed), Field Supplies, Potion
+    // Practice and A Safe Journey, by their saved phases (no times were kept: started at 0).
+    if book.training.is_some() || book.supplies.is_some() || book.potion != 0 || book.journey != 0 {
+        let lesson = |out: &mut Vec<Q>, quest: u32, stage: u8, done: bool| {
+            if stage == 0 || !tables.quests().any(|q| q.journal_id == quest) { return; }
+            out.extend([Q::Started { quest, at: 0 }, Q::Stage { quest, stage }]);
+            if done { out.push(Q::Solved { quest, at: 0 }); }
+        };
+        if let Some(t) = book.training {
+            lesson(&mut out, 0x4000_ff01, if t.claimed { 3 } else if t.killed >= 3 { 2 } else { 1 }, t.claimed);
+            if !t.claimed && t.killed < 3 { out.push(Q::Count { quest: 0x4000_ff01, count: u16::from(t.killed) }); }
+        }
+        if let Some(claimed) = book.supplies { lesson(&mut out, 0x4000_ff02, if claimed { 2 } else { 1 }, claimed); }
+        lesson(&mut out, 0x4000_ff03, book.potion.min(3), book.potion >= 3);
+        lesson(&mut out, 0x4000_ff04, book.journey.min(4), book.journey >= 4);
+        out.push(Q::RetireTraining);
+    }
     out
 }

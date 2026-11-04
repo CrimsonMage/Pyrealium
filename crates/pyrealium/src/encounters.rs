@@ -93,7 +93,7 @@ mod spawner_tests {
         let id=crate::content::NAMESPACE+7;let home=Placement::HUMAN_START;
         let content=Content::fixture(id,home,None);
         let text=format!("{}\nspawner\t{:08x}\t2000\t5000\n",
-            include_str!("../../../content/development-encounters.tsv"),crate::quests::TARGET_ENTITY);
+            include_str!("../../../content/development-encounters.tsv"),crate::content::IDOL_SPAWN);
         let mut runtime=Encounters::parse(&text,&content).unwrap();
         let mut scene=Scene::with_content(content);
         runtime.initialize_spawners(&mut scene,100).unwrap();

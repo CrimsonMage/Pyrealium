@@ -113,7 +113,7 @@ impl Store {
         id: u64,
         command: crate::quests::Command,
     ) -> io::Result<bool> {
-        if legacy_shelter_set(command).is_some() || matches!(command, crate::quests::Command::Stage{..} | crate::quests::Command::Count{..} | crate::quests::Command::Kill(_) | crate::quests::Command::ClaimSupplies | crate::quests::Command::CraftedPotion | crate::quests::Command::BoundLifestone | crate::quests::Command::Travelled) {
+        if legacy_shelter_set(command).is_some() || matches!(command, crate::quests::Command::Stage{..} | crate::quests::Command::Count{..}) {
             return Err(invalid("quest completion requires its authoritative reward transaction"));
         }
         let character = self
@@ -125,10 +125,7 @@ impl Store {
         if quests == character.quests {
             return Ok(false);
         }
-        let mut progression = character.progression.clone();
-        for reward in crate::quests::rewards(&command) {
-            progression = progression.apply(&reward).map_err(io::Error::other)?;
-        }
+        let progression = character.progression.clone();
         self.touch(id);
         let character = self.characters.get_mut(&id).unwrap();
         character.quests = quests;
@@ -198,7 +195,7 @@ impl Store {
             .ok_or_else(|| invalid("encounter reward character unavailable"))?;
         let time=crate::clock::now();
         let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
-        let mut quests=character.quests.record_kill(entity);
+        let mut quests=character.quests.clone();
         for command in &kill_quests {quests=quests.apply(command).map_err(io::Error::other)?;}
         let mut progression=character.progression.clone();
         for command in commands.iter().chain(&kill_xp) {progression=progression.apply(command).map_err(io::Error::other)?;}
@@ -241,7 +238,7 @@ impl Store {
         let time=crate::clock::now();
         let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
         let progression=kill_xp.iter().try_fold(progression,|p,c|p.apply(c)).map_err(io::Error::other)?;
-        let quests=kill_quests.iter().try_fold(character.quests.record_kill(entity),|b,c|b.apply(c)).map_err(io::Error::other)?;
+        let quests=kill_quests.iter().try_fold(character.quests.clone(),|b,c|b.apply(c)).map_err(io::Error::other)?;
         self.touch(id);
         let character = self.characters.get_mut(&id).unwrap();
         character.inventory = inventory;
@@ -285,13 +282,8 @@ impl Store {
         if inventory == character.inventory && progression == character.progression {
             return Ok(());
         }
-        let quests = if supplies {
-            if !character.progression.alive() { return Err(invalid("Supply exchange requires a living player")); }
-            crate::quests::validate_supplies_exchange(&character.quests, &character.inventory, items, changes, first.ok_or_else(|| invalid("Missing supply output identity"))?)?
-        } else if practice {
-            if !character.progression.alive() { return Err(invalid("Crafting requires a living owner")); }
-            crate::quests::validate_practice_craft(&character.quests, &character.inventory, items, changes, first.ok_or_else(|| invalid("Missing craft output identity"))?)?
-        } else { character.quests.clone() };
+        let _ = (supplies, practice);
+        let quests = character.quests.clone();
         self.touch(id);
         let character = self.characters.get_mut(&id).unwrap();
         character.inventory = inventory;

@@ -112,34 +112,6 @@ pub(super) fn on_use_object(
         match result {Ok(updates)=>outbox.deliveries.extend(updates),Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,}
         return Ok(replies);
     }
-    if service_entity == Some(TRAINING_MENTOR_ENTITY)
-        && srv.training_quest_enabled
-    {
-        if request.owner != character {
-            return Err(invalid(
-                "Mentor use owner mismatch.",
-            ));
-        }
-        match use_training_mentor(
-            peer,
-            character,
-            request.item,
-            &mut srv.store,
-            &mut srv.scene,
-            &srv.inventory_metadata,
-            srv.now_ms,
-        ) {
-            Ok(updates) => outbox.deliveries.extend(updates),
-            Err(error) => replies.extend(
-                peer.send_event(
-                    &script::chat(&error.to_string(), 1)
-                        .map_err(other)?,
-                    srv.now,
-                )?,
-            ),
-        }
-        return Ok(replies);
-    }
     if srv.scene.examination_content(character,request.item).is_some_and(|o|o.service==Some(crate::services::Service::Vendor))
         && srv.merchant_catalog.is_some()
     {
@@ -334,10 +306,7 @@ pub(super) fn on_use_object(
                         .map_or(1, |request| request.race),
                 )
                 .map_err(other)?;
-            let mut events = vec![crate::ui::skill_update(crate::skills::LIFESTONE_RECALL,&skills,saved.skill_used.get(&crate::skills::LIFESTONE_RECALL).copied()).map_err(other)?,crate::ui::lifestone_bound(character,request.item,player).map_err(other)?,script::chat("You are bound to this lifestone. Recall is available in your skill list; @recall also returns under development travel rules.",1).map_err(other)?];
-            if saved.quests.journey_phase() == 1 {
-                events.extend(saved.quests.apply(&crate::quests::Command::BoundLifestone).map_err(other)?.updates_since(&saved.quests).map_err(other)?);
-            }
+            let events = vec![crate::ui::skill_update(crate::skills::LIFESTONE_RECALL,&skills,saved.skill_used.get(&crate::skills::LIFESTONE_RECALL).copied()).map_err(other)?,crate::ui::lifestone_bound(character,request.item,player).map_err(other)?,script::chat("You are bound to this lifestone. Recall is available in your skill list; @recall also returns under development travel rules.",1).map_err(other)?];
             let lifestone = srv.scene.examination_content(character, request.item).map_or(0, |o| o.entity);
             peer.validate_scene_batch(&events)?;
             srv.store.bind_lifestone(

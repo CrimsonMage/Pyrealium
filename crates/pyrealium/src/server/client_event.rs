@@ -502,21 +502,6 @@ pub(super) fn client_event(
                                 )?;
                             }
                         }
-                        if srv.training_quest_enabled
-                            && srv.store.characters[&character_id]
-                                .quests
-                                .get()
-                                .is_none()
-                            && srv.store.characters[&character_id]
-                                .progression
-                                .alive()
-                        {
-                            srv.store.quest_command(
-                                &peer.session.account,
-                                character_id,
-                                crate::quests::Command::Accept,
-                            )?;
-                        }
                         let instance = srv.store.begin_instance(
                             &peer.session.account,
                             character_id,
@@ -645,7 +630,7 @@ pub(super) fn client_event(
                                     || c.inventory.items().next().is_some()
                                     || c.progression != crate::progression::Progression::default()
                                     || !c.skills.is_empty()
-                                    || c.quests.get().is_some()
+                                    || c.quests != crate::quests::Book::default()
                                     || c.quests.scenes().next().is_some()
                             })
                         }

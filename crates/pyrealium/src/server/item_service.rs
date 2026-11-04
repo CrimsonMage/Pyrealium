@@ -112,15 +112,6 @@ pub(super) fn item_service_transaction_profile(
         events.push(crate::ui::skills_state(&saved.skills, &state, &saved.skill_used).map_err(other)?);
     }
     events.append(&mut completion);
-    if supplies {
-        let next = crate::quests::validate_supplies_exchange(&saved.quests, &saved.inventory, items, changes, first.ok_or_else(|| invalid("Missing supply reward identity"))?)?;
-        events.extend(next.updates_since(&saved.quests).map_err(other)?);
-    }
-    if practice {
-        let next = crate::quests::validate_practice_craft(&saved.quests, &saved.inventory, items, changes, first.ok_or_else(|| invalid("Missing practice craft output identity"))?)?;
-        events.extend(next.updates_since(&saved.quests).map_err(other)?);
-        events.push(script::chat(&next.potion_guidance(), 1).map_err(other)?);
-    }
     if let Some(outcome)=emote {
         if crate::player_transaction::encode_items(items)!=crate::player_transaction::encode_items(&outcome.items) || crate::player_transaction::encode_changes(changes)!=crate::player_transaction::encode_changes(&outcome.changes) {return Err(invalid("Quest exchange differs from its emote outcome"));}
         let next=outcome.quests.iter().try_fold(saved.quests.clone(),|book,c|book.apply(c)).map_err(other)?;
