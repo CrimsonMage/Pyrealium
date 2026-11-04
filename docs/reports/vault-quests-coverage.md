@@ -8,18 +8,18 @@ Evidence ranking: client/DAT, then AC2 Vault, then AC2Hero, then Pyrealium polic
 
 | Status | Quests |
 |---|---|
-| Shipped (rows in `content/*-vault.tsv`) | 59 |
-| Fully resolved, not shipped | 21 |
-| Partially resolved (no engine gap; data missing) | 59 |
-| Blocked by an engine gap | 103 |
-| ...of which every parsed field also resolves and no catalog overlaps | 5 |
+| Shipped (rows in `content/*-vault.tsv`) | 65 |
+| Fully resolved, not shipped | 23 |
+| Partially resolved (no engine gap; data missing) | 56 |
+| Blocked by an engine gap | 98 |
+| ...of which every parsed field also resolves and no catalog overlaps | 4 |
 | **All** | 242 |
 
 Phase 2 gave the engine the registry's level, time limit, repeat delay and solve limit, GiveItem of any item entity, AwardGold, InqSolved (prerequisites), InqLevel and InqQuestReady (refusal lines). A gap the engine now has no longer blocks; the rest do (`remaining_gaps` in the drafts). A quest ships only when its rows can also be generated: so far the hunt shape (one NPC, N kills of one creature, the journal phases and NPC lines from the DAT, an experience reward).
 
 | Gap closed (Phase 2, in order) | Quests shipped by it |
 |---|---|
-| level requirement + time limit + repeat timer | 59 (every shipped quest needs all three) |
+| level requirement + time limit + repeat timer | 65 (every shipped quest needs all three) |
 | item grants (any item entity) | 0 (no generated shape grants items yet) |
 | gold reward, prerequisite quests | 0 (no generated shape uses them yet) |
 
@@ -27,15 +27,16 @@ Why the hunt generator passed over the rest:
 
 | Reason | Quests |
 |---|---|
-| not one kill target | 140 |
-| no DAT quest table (quest*.stt) holds the title | 24 |
+| not one kill target | 137 |
+| no DAT quest table (quest*.stt) holds the title | 25 |
 |  | 23 |
-| the quest table's phase lines are not 1..1 and a report line | 17 |
+| the quest table's phase lines are not 1..1 and a report line | 18 |
 | generated | 16 |
 | the NPC table has no single offer/reward pair whose offer is the quest's summary | 7 |
 | the quest table's phase lines are not 1..10 and a report line | 6 |
 | the quest table's phase lines are not 1..30 and a report line | 4 |
 | the quest table's phase lines are not 1..15 and a report line | 4 |
+| the quest table's phase lines are not 1..3 and a report line | 1 |
 | no placed start NPC with a string table | 1 |
 
 ### Resolution
@@ -45,13 +46,13 @@ Why the hunt generator passed over the rest:
 | journal id (DAT quest) | 44 |
 | start coordinates | 179 |
 | start NPC named | 203 |
-| start NPC placed in Pyrealium's world | 168 |
-| ...high confidence | 130 |
+| start NPC placed in Pyrealium's world | 171 |
+| ...high confidence | 133 |
 | has quoted dialogue | 62 |
 | every quote matched to a DAT string | 44 |
-| has kill steps | 135 |
-| every kill target resolved | 116 |
-| kill targets from the DAT's death effects | 29 |
+| has kill steps | 138 |
+| every kill target resolved | 119 |
+| kill targets from the DAT's death effects | 33 |
 | named effects (eff_*.wc) | 27 |
 | quoted lines matched / all quoted lines | 133 / 168 (131 high confidence) |
 
@@ -60,13 +61,13 @@ Why the hunt generator passed over the rest:
 | Missing | Quests |
 |---|---|
 | journal id and title string | 57 |
-| reward item entity | 39 |
-| other | 35 |
+| other | 36 |
 | start NPC not named | 35 |
-| start NPC placement | 22 |
-| start NPC entity | 20 |
+| reward item entity | 33 |
+| start NPC placement | 23 |
 | kill target entity | 19 |
 | quoted lines without a DAT match | 18 |
+| start NPC entity | 16 |
 | experience percentage | 13 |
 | no parseable steps | 12 |
 
@@ -79,14 +80,14 @@ Why the hunt generator passed over the rest:
 | 1 | level requirement | 236 | has | 0 |
 | 2 | time limit | 214 | has | 0 |
 | 3 | repeat timer | 197 | has | 0 |
-| 4 | item grants beyond the Shelter's item profiles | 75 | has | 0 |
+| 4 | item grants beyond the Shelter's item profiles | 83 | has | 0 |
 | 5 | chest/door/lever interaction | 47 | 47 | 27 |
 | 6 | ApplyEffect | 45 | has | 0 |
-| 7 | crafting step | 35 | 35 | 17 |
-| 8 | prerequisite quests | 35 | has | 0 |
-| 9 | Enter hook (arrive at a place) | 29 | has | 0 |
-| 10 | random reward choice | 27 | 27 | 8 |
-| 11 | fellowship credit | 25 | 25 | 4 |
+| 7 | prerequisite quests | 36 | has | 0 |
+| 8 | crafting step | 35 | 35 | 17 |
+| 9 | random reward choice | 27 | 27 | 8 |
+| 10 | fellowship credit | 25 | 25 | 4 |
+| 11 | Enter hook (arrive at a place) | 25 | has | 0 |
 | 12 | summoned pet reward | 15 | 15 | 2 |
 | 13 | kingdom/faction/hero status | 12 | 12 | 4 |
 | 14 | quest points | 10 | 10 | 5 |
@@ -98,7 +99,7 @@ Why the hunt generator passed over the rest:
 
 Detected for no quest: Kill-set Tell (a line on a kill); delays (delay_ms) (delays: the Vault's prose gives no timed beats; a kill-time chat line is quoted by no walkthrough).
 
-Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 82 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
+Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 84 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
 
 ### Build order
 
@@ -122,18 +123,18 @@ Features in the order that makes the most quests runnable, counting only quests 
 
 | Gaps | Quests | ...data complete, no overlap |
 |---|---|---|
-| level requirement + repeat timer + time limit | 65 | 0 |
+| level requirement + repeat timer + time limit | 64 | 0 |
 | level requirement + prerequisite quests + repeat timer + time limit | 17 | 0 |
-| chest/door/lever interaction + level requirement + repeat timer + time limit | 12 | 1 |
-| item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 7 | 1 |
-| Enter hook (arrive at a place) + level requirement + repeat timer + time limit | 6 | 0 |
+| item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 9 | 1 |
+| chest/door/lever interaction + level requirement + repeat timer + time limit | 7 | 0 |
+| chest/door/lever interaction + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 7 | 2 |
 | level requirement + time limit | 5 | 0 |
-| ApplyEffect + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 4 | 0 |
-| ApplyEffect + Enter hook (arrive at a place) + crafting step + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 3 | 0 |
-| chest/door/lever interaction + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 3 | 1 |
+| Enter hook (arrive at a place) + level requirement + repeat timer + time limit | 5 | 0 |
+| ApplyEffect + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 5 | 0 |
 | item grants beyond the Shelter's item profiles + level requirement + prerequisite quests + repeat timer + time limit | 3 | 0 |
+| ApplyEffect + Enter hook (arrive at a place) + crafting step + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
+| ApplyEffect + crafting step + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
 | Enter hook (arrive at a place) + item grants beyond the Shelter's item profiles + level requirement + repeat timer + time limit | 2 | 0 |
-| kingdom/faction/hero status + level requirement + repeat timer + time limit | 2 | 0 |
 
 ## Overlaps with the older hand-coded catalogs
 
@@ -351,6 +352,7 @@ An operated catalog quest keeps running until its rows here replace it in one ch
 | Eliminate the Slithis Eyestalks | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Thin the Shade Matrons | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Release the Ryai Takeru | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
+| Lost Homestead | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Kallikan of the Corn | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Sulthis Scare | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
 | Temple Chromast | start NPC entity | emote-sets.tsv | first set in file order | another quest's sets already answer this NPC |
@@ -390,7 +392,7 @@ Rows generate for these, but another catalog hunt of the same NPC has none (the 
 | Vault quest | Catalog | Parity |
 |---|---|---|
 
-Start NPCs that an older catalog only places, or that have an information-only `npc-dialogue-v1` profile (vault rows win, nothing to retire): 155 quests: Dillo Rustlers, Mucor Mushroom Hunt, Slay the Shrethwarden, Linvak Soulbound Weapons, Osteth Soulbound Weapons, Armor of the Ancient Kings, Armor of the Ancient Knights, Shoyanen's Solutions, Armor of the Ancient Lords, Mimbu Negotiations, Akkilea's Purification, Vengence for Unaro, Kill the Keerik, Olthoi Grub Meat, Journey to Linvak, Slay the Gray Flayer, Slay Gurog Vuldor, Slay Uran the Black, Slay Veran, Slay Rymeras, Slay the Shattered Golem, Slay the Demented Warath, Slay Thanos, Sword of the Doomed Hero, Great Big Pumpkin, Scent of the Prey, Shreth-Hide Leather, Find a Good Spear, Moarsman Fin Soup, Shreth-Hunters Guide to Omishan, Dreams of the Ero-Bal, Something Borrowed, Decode the Glyphs, The Long Eared Menace, Hunt the Plague Mucor, There's something about Lahry, Destroy The Chaos Eidolon, Lost Company, Bringing Down the Catacombs, Spirit Guide, Vengeance for Unaro, Gem Quest, Recover the Arcanum's Library, Slay the White Rabbit, Rashans Last Word, New Burun Threat, Slay Gurog Ancients, Slay Gurog Undying One, Slay Gurog Blood Lords, Slay Gurog Oathbreaker, I'm Hungry, Fanboi, Pumping Iron, Wild Hare, Green Thumb, White Wedding, Follow the Bouncing Ball, Herd Rescue, Land Claim, Dillo Rancher, Carrot-Eating Freaks, Get Buzzed, Dereth Rally, S.H.R.E.T.H., Slithis Hunt, Dairy Heir, Ludwards Dream, Virindi Training, Naokim's Gift, Rescue the Folk, Broken Wheel, Trumped, Ero-Bal Purification, Temple of Elemental Light, Dereth Tarot, Path of Darkness, Crush the Sandy Armoredillos, Exterminate the Green Phyntos Wasps, Put Down the Carrion Shreth, Rout the Deranged Lashers, Dispatch the Anguish Crones, Perforate the Spawn, Exterminate the Olthoi Harvesters, Vaporize the Frost Wisps, Unravel the Dark Dread Mu-miyah, Dispatch the Thornling Plunderers, Dispatch the Shock Reapers, Exterminate the Olthoi Worker Nymphs, Fracture the Lumna Niffis, Fracture the Veinu Niffis, Fracture the Bone Golems, Fracture the Rime Golems, Fracture the Uncharneled Golems, Exterminate the Olthoi Drones, Pluck the Stray Darkenfowl, Perforate the Servitor Spawn, Perforate the Puppet Spawn, Perforate the Surrogate Spawn, Drive Out the Kachem Mimbu, Deflate the Parfal Nefanes, Deflate the Listris Niffis, Eliminate the Ulu Sclavus, Eliminate the Faisi Sclavus, Thin the Marsh Armoredillos, Cull the Blighted Mucor, Puncture the Opor Nefanes, Gearknight Rumble, Piercing the Shield wall, Tibri outpost, Wild Mushroom Hunt, Foundry Mushroom Hunt, Gardens Mushroom Hunt, Knorr Mushroom Hunt, Eliminate Linthes Divinators, Destroy the Toxic Grievvers, Destroy the Anguish Felsisters, Terminate the Swarm, A Grievous Threat, Cleanse the Standing Stones, A Fell Plot, Lost Ithkanda, Smash The Sandstone Colossi, Infiltrate the Nursery, Crypt Keys, Siege Stores, Slay the Banderling Maulers, Eradicate the Skyport Controllers, Slay the Banderling Berserkers, Investigate Vothardun, Release Uncle Finiel, Crush the Cursed Bones, Crush the Skeleton Lieutenants, Blood Feud, Destroy the Ravenous Lashers, Magma Golem Madness, Crush the Skeleton Lancers, Save the Farm, Destroy the Ruthless Waraths, In the Name of Science, Journey to Greenstone, Destroy the Moarsman Sentries, Eliminate the Sishalti Spawn, Eliminate the Slithis Eyestalks, Thin the Shade Matrons, Release the Ryai Takeru, Kallikan of the Corn, Sulthis Scare, Temple Chromast, The Revered One, Journey to the Aerie, Eliminate the Swarm Drone Nymphs, Exterminate the Swarm Harvesters, Destroy the Cahi Takeru, Crypt Keys II, Aldemon's Slaughterfest.
+Start NPCs that an older catalog only places, or that have an information-only `npc-dialogue-v1` profile (vault rows win, nothing to retire): 156 quests: Dillo Rustlers, Mucor Mushroom Hunt, Slay the Shrethwarden, Linvak Soulbound Weapons, Osteth Soulbound Weapons, Armor of the Ancient Kings, Armor of the Ancient Knights, Shoyanen's Solutions, Armor of the Ancient Lords, Mimbu Negotiations, Akkilea's Purification, Vengence for Unaro, Kill the Keerik, Olthoi Grub Meat, Journey to Linvak, Slay the Gray Flayer, Slay Gurog Vuldor, Slay Uran the Black, Slay Veran, Slay Rymeras, Slay the Shattered Golem, Slay the Demented Warath, Slay Thanos, Sword of the Doomed Hero, Great Big Pumpkin, Scent of the Prey, Shreth-Hide Leather, Find a Good Spear, Moarsman Fin Soup, Shreth-Hunters Guide to Omishan, Dreams of the Ero-Bal, Something Borrowed, Decode the Glyphs, The Long Eared Menace, Hunt the Plague Mucor, There's something about Lahry, Destroy The Chaos Eidolon, Lost Company, Bringing Down the Catacombs, Spirit Guide, Vengeance for Unaro, Gem Quest, Recover the Arcanum's Library, Slay the White Rabbit, Rashans Last Word, New Burun Threat, Slay Gurog Ancients, Slay Gurog Undying One, Slay Gurog Blood Lords, Slay Gurog Oathbreaker, I'm Hungry, Fanboi, Pumping Iron, Wild Hare, Green Thumb, White Wedding, Follow the Bouncing Ball, Herd Rescue, Land Claim, Dillo Rancher, Carrot-Eating Freaks, Get Buzzed, Dereth Rally, S.H.R.E.T.H., Slithis Hunt, Dairy Heir, Ludwards Dream, Virindi Training, Naokim's Gift, Rescue the Folk, Broken Wheel, Trumped, Ero-Bal Purification, Temple of Elemental Light, Dereth Tarot, Path of Darkness, Crush the Sandy Armoredillos, Exterminate the Green Phyntos Wasps, Put Down the Carrion Shreth, Rout the Deranged Lashers, Dispatch the Anguish Crones, Perforate the Spawn, Exterminate the Olthoi Harvesters, Vaporize the Frost Wisps, Unravel the Dark Dread Mu-miyah, Dispatch the Thornling Plunderers, Dispatch the Shock Reapers, Exterminate the Olthoi Worker Nymphs, Fracture the Lumna Niffis, Fracture the Veinu Niffis, Fracture the Bone Golems, Fracture the Rime Golems, Fracture the Uncharneled Golems, Exterminate the Olthoi Drones, Pluck the Stray Darkenfowl, Perforate the Servitor Spawn, Perforate the Puppet Spawn, Perforate the Surrogate Spawn, Drive Out the Kachem Mimbu, Deflate the Parfal Nefanes, Deflate the Listris Niffis, Eliminate the Ulu Sclavus, Eliminate the Faisi Sclavus, Thin the Marsh Armoredillos, Cull the Blighted Mucor, Puncture the Opor Nefanes, Gearknight Rumble, Piercing the Shield wall, Tibri outpost, Wild Mushroom Hunt, Foundry Mushroom Hunt, Gardens Mushroom Hunt, Knorr Mushroom Hunt, Eliminate Linthes Divinators, Destroy the Toxic Grievvers, Destroy the Anguish Felsisters, Terminate the Swarm, A Grievous Threat, Cleanse the Standing Stones, A Fell Plot, Lost Ithkanda, Smash The Sandstone Colossi, Infiltrate the Nursery, Crypt Keys, Siege Stores, Slay the Banderling Maulers, Eradicate the Skyport Controllers, Slay the Banderling Berserkers, Investigate Vothardun, Release Uncle Finiel, Crush the Cursed Bones, Crush the Skeleton Lieutenants, Blood Feud, Destroy the Ravenous Lashers, Magma Golem Madness, Crush the Skeleton Lancers, Save the Farm, Destroy the Ruthless Waraths, In the Name of Science, Journey to Greenstone, Destroy the Moarsman Sentries, Eliminate the Sishalti Spawn, Eliminate the Slithis Eyestalks, Thin the Shade Matrons, Release the Ryai Takeru, Lost Homestead, Kallikan of the Corn, Sulthis Scare, Temple Chromast, The Revered One, Journey to the Aerie, Eliminate the Swarm Drone Nymphs, Exterminate the Swarm Harvesters, Destroy the Cahi Takeru, Crypt Keys II, Aldemon's Slaughterfest.
 
 ## Per quest
 
@@ -417,7 +419,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 219 | Combat Archaeology | blocked |  |  | 0/0 | chest/door/lever interaction, crafting step, level requirement, time limit | start NPC 'Elpeth Arden' entity (no DAT/definitions name match) |
 | 236 | Crypt Keys | blocked |  | Zroth 0x8140d400470038ee (high) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, time limit |  |
 | 159 | Dairy Heir | blocked |  | Stubby None (medium) | 5/5 | fellowship credit, level requirement, random reward choice, repeat timer, time limit | reward item 'Dillo Bell Musical Instrument' entity |
-| 17 | Darkstone | blocked | 0x40000084 | Ancestor Head  (none) | 4/4 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit | start NPC 'Ancestor Head' placement (entity known: 0x4700086a, 0x47000871, 0x47000882, 0x470012f5; none placed in Pyrealium's world near the Vault coordinates) |
+| 17 | Darkstone | blocked | 0x40000084 | Ancestor Head  (none) | 4/4 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit | start NPC override (entity 0x470012f5) has no placement in the prepared world |
 | 170 | Dereth Tarot | blocked |  | The Fortune Teller 0x8140f5f11ced4682 (medium) | 0/0 | ApplyEffect, crafting step, level requirement, random reward choice | journal id and title string (no DAT quest or string of this name) |
 | 224 | Desolation Mushroom Hunt | blocked |  |  | 0/0 | Enter hook (arrive at a place), crafting step, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Vendor' entity (no DAT/definitions name match); reward item 'Recipe for Mushroom Stew' entity |
 | 156 | Destroy Black Ferahs Shadow | blocked | 0x40000373 | Enter the Shadow Antechamber  (none) | 0/1 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | start NPC override (entity 0x47003275) has no placement in the prepared world; 1 of 1 quoted lines have no DAT string match |
@@ -435,8 +437,8 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 98 | Gurog Portal Beacon Blowout | blocked |  |  | 0/0 | ApplyEffect, chest/door/lever interaction, fellowship credit, level requirement, random reward choice, summoned pet reward | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; reward item 'Gurog Summoner Gem (Destroyed on use)' entity |
 | 256 | Heart of Stone | blocked |  |  | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, summoned pet reward, time limit | start NPC (the Vault names none, or the start is not an NPC); prerequisite quests: the generator does not link them to their own rows yet |
 | 265 | In the Name of Science | blocked |  | Adora Fellar 0x8140e775c04944f9 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from nearby chest' entity |
-| 274 | Kallikan of the Corn | blocked |  | Urln Bestaad 0x8140d40047004094 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from the nearby chest' entity; kill target 'Chip' entity |
-| 49 | Karus Lament | blocked |  |  | 1/3 | ApplyEffect, Enter hook (arrive at a place), crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Karu Geddon' entity (no DAT/definitions name match); 2 of 3 quoted lines have no DAT string match |
+| 274 | Kallikan of the Corn | blocked |  | Urln Bestaad 0x8140d40047004094 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from the nearby chest' entity; kill target 'Chip the Gnawer' entity |
+| 49 | Karus Lament | blocked |  | Karu Geddon  (none) | 1/3 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC override (entity 0x47001900) has no placement in the prepared world; 2 of 3 quoted lines have no DAT string match |
 | 175 | Kill Kogun | blocked |  |  | 0/0 | chest/door/lever interaction, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); experience percentage (the Vault records only an observed amount) |
 | 177 | Kingdom Fort Raid | blocked |  |  | 0/0 | kingdom points, kingdom/faction/hero status, level requirement, repeat timer | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC) |
 | 48 | Kiraly's Lament | blocked |  |  | 1/4 | ApplyEffect, Enter hook (arrive at a place), crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Kiraly Geddon' entity (no DAT/definitions name match); 3 of 4 quoted lines have no DAT string match |
@@ -444,7 +446,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 50 | Linvak Soulbound Weapons | blocked |  | Malga Dresovan 0x8140eee6b0d8f83f (high) | 2/2 | ApplyEffect, chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 179 | Lodestones (Sigil of Unity) | blocked |  |  | 0/5 | ApplyEffect, crafting step, level requirement, random reward choice, summoned pet reward | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); 5 of 5 quoted lines have no DAT string match |
 | 115 | Lost Company | blocked | 0x400002bb | Gallus 0x8140b41e1a7db0e4 (high) | 0/0 | Enter hook (arrive at a place), chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 273 | Lost Homestead | blocked |  |  | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | start NPC 'Fiona Diask' entity (no DAT/definitions name match); reward item 'Loot from the nearby chest' entity |
+| 273 | Lost Homestead | blocked |  | Fiona Dyask 0x8140d4004700407c (high) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Bendit Stelzor' entity |
 | 233 | Lost Ithkanda | blocked |  | Telemanua None (medium) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); reward item 'Loot from Telemanua's chest' entity |
 | 101 | Loyalist Intervention I-V | blocked | 0x40000273 |  | 0/0 | level requirement, random reward choice | start NPC 'Rytherian' entity (no DAT/definitions name match); kill target 'Rebel Lord Quaesetor' entity; kill target 'Thaderan' entity |
 | 160 | Ludwards Dream | blocked | 0x4000035a | Ludward 0x8140d40047002e5e (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit |  |
@@ -453,7 +455,6 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 109 | Master Vault of Omishan | blocked |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); kill target 'Archon Renselm' entity |
 | 111 | Master Vault of Oseth | blocked |  |  | 0/0 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Master Vault of Oseth Key' entity |
 | 114 | Mirra Essence | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), chest/door/lever interaction, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Beryl Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity; reward item 'Beryl Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Rouge Mirra Essence' entity; reward item 'Jet Mirra Essence' entity; reward item 'Alabaster Mirra Essence' entity |
-| 39 | Mucor Mushroom Hunt | blocked | 0x400000ff | Adesar the Mushroom Collector 0x8140869166568783 (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 86 | Mysterious Egg | blocked | 0x40000263 |  | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, summoned pet reward, time limit | start NPC 'She' entity (no DAT/definitions name match) |
 | 163 | Naokim's Gift | blocked |  | Naokim 0x81408e776e1bb127 (low) | 0/1 | fellowship credit, kingdom/faction/hero status, level requirement, time limit | 1 of 1 quoted lines have no DAT string match; start NPC placement (several same-named placements and no Vault coordinates) |
 | 130 | New Burun Threat | blocked | 0x40000306 | Tuamoa 0x8140a5ca5b4bdbd6 (high) | 4/4 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Burun Immortal Grandmaster' entity |
@@ -466,30 +467,26 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 70 | Radiant Enlightenment | blocked | 0x400001cc | Temple Guardian Lasher Spirit 0x8140df6c06b1d37d (high) | 5/5 | crafting step, fellowship credit, item grants beyond the Shelter's item profiles, kingdom/faction/hero status, level requirement, repeat timer, time limit |  |
 | 259 | Refinery | blocked |  |  | 0/0 | chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, random reward choice, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); kill target 'Chief' entity; prerequisite quests: the generator does not link them to their own rows yet |
 | 245 | Release Uncle Finiel | blocked |  | Gerald Maquail None (medium) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 239 | Remove the Iridescent Stinger | blocked |  | Muriona None (medium) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit |  |
+| 239 | Remove the Iridescent Stinger | blocked |  | Muriona None (medium) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 173 | Retracing the Path | blocked |  |  | 0/0 | chest/door/lever interaction, level requirement, prerequisite quests, time limit | start NPC 'Tumerok Lataua' entity (no DAT/definitions name match); prerequisite quests: the generator does not link them to their own rows yet |
 | 155 | S.H.R.E.T.H. | blocked |  | Justiciar Maronak 0x8140d40047002f42 (high) | 0/0 | ApplyEffect, chest/door/lever interaction, crafting step, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); reward item 'Juggernaught Staff' entity; reward item 'Alchemist Vial' entity |
 | 68 | Salvation of Artefon | blocked | 0x400001c7 | Hoshino Kei  (none) | 1/1 | ApplyEffect, chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer, time limit | start NPC 'Hoshino Kei' placement (entity known: 0x47001d37, 0x47001d43, 0x47001e39; none placed in Pyrealium's world near the Vault coordinates) |
-| 263 | Save the Farm | blocked |  | Derrigos Elan 0x8140b1fa86cf9bca (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from nearby chest' entity; kill target 'Tromp Wheran' entity |
+| 263 | Save the Farm | blocked |  | Derrigos Elan 0x8140b1fa86cf9bca (high) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Tromp Wheran' entity |
 | 149 | Search for Isin Dule II | blocked |  | None  (none) | 4/4 | ApplyEffect, chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, summoned pet reward, time limit | start NPC override (entity 0x470027d7) has no placement in the prepared world; prerequisite quests: the generator does not link them to their own rows yet |
 | 285 | Shaper's Hoard Keys | blocked |  |  | 0/0 | ApplyEffect, Enter hook (arrive at a place), fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, repeat timer | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); reward item 'Mined Trait' entity; reward item 'Lodestones (sometimes)' entity |
 | 55 | Shoyanen's Solutions | blocked |  | Orlen Jarlns 0x81408912b2d9bf89 (high) | 3/3 | crafting step, item grants beyond the Shelter's item profiles, random reward choice, time limit |  |
-| 91 | Shreth-Hide Leather | blocked |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | Enter hook (arrive at a place), gold reward, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 237 | Siege Stores | blocked |  | Torgara 0x8140893d7533ad86 (high) | 0/0 | Enter hook (arrive at a place), defend a spawned object, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 134 | Slay Gurog Oathbreaker | blocked | 0x4000030b | Gurog High Shaman None (medium) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Treasure Chest loot' entity |
-| 132 | Slay Gurog Undying One | blocked | 0x4000030c | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Treasure Chest loot' entity |
+| 132 | Slay Gurog Undying One | blocked | 0x4000030c | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | chest/door/lever interaction, level requirement, prerequisite quests, repeat timer, time limit | reward item 'Treasure Chest loot' entity; prerequisite quests: the generator does not link them to their own rows yet |
 | 59 | Slay Lady Silva | blocked |  |  | 2/2 | ApplyEffect, crafting step, level requirement | journal id and title string (no DAT quest or string of this name); start NPC 'Darvain Geddon' entity (no DAT/definitions name match) |
-| 41 | Slay the Shrethwarden | blocked |  | Kiral 0x8140f2046642acd1 (high) | 0/1 | chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
 | 128 | Slay the White Rabbit | blocked | 0x40000294 | Lahry 0x8140954475888a04 (high) | 0/1 | ApplyEffect, chest/door/lever interaction, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, time limit | 1 of 1 quoted lines have no DAT string match; reward item 'Staff/Drum of Bunny Booty' entity |
 | 158 | Slithis Hunt | blocked | 0x40000379 | Shi Kenarea - Master of the Hunt None (medium) | 0/0 | ApplyEffect, Enter hook (arrive at a place), level requirement, random reward choice, repeat timer, time limit | reward item 'Shadow Wing Ort OR Shadow Blade Ort (random)' entity |
 | 260 | Smith's Chambers | blocked |  |  | 0/0 | ApplyEffect, chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; prerequisite quests: the generator does not link them to their own rows yet |
 | 112 | Soulslayer Weapon | blocked |  |  | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, prerequisite quests | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC); walkthrough has no parseable steps; reward item 'Soulslayer Weapon' entity; prerequisite quests: the generator does not link them to their own rows yet |
 | 294 | Stolen Siraluun Cargo | blocked |  | Elder Jrim  (none) | 0/0 | chest/door/lever interaction, level requirement, random reward choice, repeat timer, time limit | start NPC 'Elder Jrim' placement (entity known: 0x47004645; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount); reward item 'Several Drudge Rocket fireworks' entity |
 | 174 | Stop Aun Tanua | blocked |  |  | 0/0 | chest/door/lever interaction, fellowship credit, repeat timer | start NPC (the Vault names none, or the start is not an NPC); experience percentage (the Vault records only an observed amount); reward item 'Stop Aun Tanua is a 1 time quest' entity |
-| 83 | Sword of the Doomed Hero | blocked | 0x400001fa | Vargil Darkener 0x8140b204892c2d57 (high) | 0/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
-| 69 | Temple Forge Repair | blocked | 0x400001ce | Radiant Temple Master Smith 0x814095f79363f958 (high) | 2/2 | crafting step, level requirement, time limit |  |
-| 229 | Terminate the Swarm | blocked |  | Daranua None (medium) | 0/0 | chest/door/lever interaction, level requirement, repeat timer, time limit | reward item 'Loot from Daranua's Chest' entity; kill target 'Swarm Gardener Nymphet' entity |
-| 67 | The Star of Heroes | blocked | 0x400001cf |  | 2/2 | ApplyEffect, crafting step, kingdom/faction/hero status, level requirement, time limit | start NPC 'High Priestess' entity (no DAT/definitions name match); reward item 'Arramora Recall' entity |
+| 229 | Terminate the Swarm | blocked |  | Daranua None (medium) | 0/0 | chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | kill target 'Swarm Gardener Nymphet' entity |
+| 67 | The Star of Heroes | blocked | 0x400001cf | Radiant Temple High Priestess 0x8140b9f3b9166f69 (high) | 2/2 | ApplyEffect, crafting step, kingdom/faction/hero status, level requirement, time limit | reward item 'Arramora Recall' entity |
 | 73 | Three Ancient Artifacts | blocked |  |  | 1/1 | kingdom points, kingdom/faction/hero status, level requirement | journal id and title string (no DAT quest or string of this name); start NPC (the Vault names none, or the start is not an NPC) |
 | 215 | Tibri outpost | blocked |  | Leftenant Jassel 0x8140c4a1c3ec2b40 (high) | 0/0 | Enter hook (arrive at a place), chest/door/lever interaction, item grants beyond the Shelter's item profiles, level requirement, repeat timer |  |
 | 217 | Trace the Bounds | blocked |  |  | 0/0 | Enter hook (arrive at a place), chest/door/lever interaction, level requirement, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC) |
@@ -498,7 +495,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 65 | Undead Taint | blocked |  |  | 1/1 | ApplyEffect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, random reward choice, time limit | start NPC (the Vault names none, or the start is not an NPC) |
 | 66 | Unlock the Altars | blocked | 0x400001c0 |  | 0/0 | Enter hook (arrive at a place), kingdom points, kingdom/faction/hero status, level requirement, random reward choice, time limit | start NPC (the Vault names none, or the start is not an NPC) |
 | 162 | Virindi Training | blocked |  | Virindi Adumbrator 0x8140dba2ca3eeeaf (low) | 0/0 | ApplyEffect, random reward choice, repeat timer, time limit | walkthrough has no parseable steps; start NPC placement (several same-named placements and no Vault coordinates) |
-| 220 | Wild Mushroom Hunt | blocked |  | Vendor 17 0x8140d40047003ccb (high) | 0/0 | ApplyEffect, Enter hook (arrive at a place), crafting step, level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount); reward item 'Recipe for Wild Mushroom Power Potion' entity |
+| 220 | Wild Mushroom Hunt | blocked |  | Vendor 17 0x8140d40047003ccb (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 255 | Aerfalle's Generals | partial |  |  | 0/0 | item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, time limit | start NPC (the Vault names none, or the start is not an NPC); prerequisite quests: the generator does not link them to their own rows yet |
 | 60 | Akkilea's Purification | partial |  | Akkilea 0x8140f3984b7f353e (high) | 6/6 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 287 | Aldemon's Slaughterfest | partial |  | Aldemon None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, prerequisite quests, repeat timer, time limit | kill target 'Falatacot' entity; prerequisite quests: the generator does not link them to their own rows yet |
@@ -514,12 +511,10 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 182 | Destroy the Tanglefoot Vermin | partial | 0x400000a3 | Grey Ondarus  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC 'Grey Ondarus' placement (entity known: 0x47003550; none placed in Pyrealium's world near the Vault coordinates) |
 | 191 | Dispatch the Shock Reapers | partial | 0x4000020e | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 190 | Dispatch the Thornling Plunderers | partial | 0x40000221 | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
-| 103 | Dreams of the Ero-Bal | partial |  | Lupe 0x8140b4ed06cc1d4d (high) | 5/7 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 2 of 7 quoted lines have no DAT string match |
 | 204 | Drive Out the Kachem Mimbu | partial |  | Pim Donar 0x8140a4d2f2dca678 (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 262 | Eliminate Colossi | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | ApplyEffect, level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 226 | Eliminate Linthes Divinators | partial |  | Alainn Russmad 0x8140d40047003fc4 (high) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); experience percentage (the Vault records only an observed amount) |
 | 242 | Eradicate the Skyport Controllers | partial |  | Maera Torvaeya None (medium) | 0/0 | level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
-| 168 | Ero-Bal Purification | partial |  | Valentaua 0x8140ffba8eec578f (high) | 0/0 | ApplyEffect, level requirement, repeat timer, time limit | reward item 'Ero-Bal Egg (Vigor Potion)' entity |
 | 241 | Exterminate the Iridescent Piercers | partial |  | Ivor Strongbow  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC override (entity 0x47003f69) has no placement in the prepared world |
 | 198 | Exterminate the Olthoi Drones | partial | 0x40000210 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 192 | Exterminate the Olthoi Worker Nymphs | partial | 0x40000214 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
@@ -542,7 +537,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 99 | Seek out Rytherian | partial |  | Kelannik None (medium) | 0/0 | Enter hook (arrive at a place), level requirement | journal id and title string (no DAT quest or string of this name) |
 | 249 | Shred the Mu-Miyah Warriors | partial |  | Furakhe  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC 'Furakhe' placement (entity known: 0x47003fa8; none placed in Pyrealium's world near the Vault coordinates) |
 | 293 | Skeleton Totem | partial |  | Mikaci  (none) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | start NPC 'Mikaci' placement (entity known: 0x470045d8; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount); prerequisite quests: the generator does not link them to their own rows yet |
-| 292 | Skull Totem | partial |  | Mikaci  (none) | 0/0 | level requirement, repeat timer, time limit | start NPC 'Mikaci' placement (entity known: 0x470045d8; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount) |
+| 292 | Skull Totem | partial |  | Mikaci  (none) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | start NPC 'Mikaci' placement (entity known: 0x470045d8; none placed in Pyrealium's world near the Vault coordinates); experience percentage (the Vault records only an observed amount) |
 | 243 | Slay the Banderling Berserkers | partial | 0x4000004c | Gwynna Stronghand None (medium) | 0/0 | level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount) |
 | 71 | Slow the Olthoi Menace | partial | 0x400001da |  | 1/1 | level requirement, time limit | start NPC (the Vault names none, or the start is not an NPC) |
 | 252 | Smash the Coral Golems | partial |  |  | 0/0 | level requirement, repeat timer, time limit | start NPC 'Endaren Brightstar' entity (no DAT/definitions name match) |
@@ -554,11 +549,10 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 291 | Thin the Felsister Ranks | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 284 | Thin the Thrall Ranks | partial |  | Postings 0x8140b84a84037a73 (high) | 0/0 | ApplyEffect, level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 166 | Trumped | partial |  | Jayna 0x8140af386b6ac4e4 (high) | 0/3 | gold reward, level requirement, repeat timer, time limit | experience percentage (the Vault records only an observed amount); 3 of 3 quoted lines have no DAT string match |
-| 116 | Uncovering the Past | partial |  |  | 5/5 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name); start NPC 'Lodrog the Foresaken' entity (no DAT/definitions name match); kill target 'King' entity |
-| 123 | Vengeance for Unaro | partial |  | Akkilea 0x8140f3984b7f353e (high) | 2/2 | level requirement, repeat timer, time limit | reward item 'Burun Slayer Imbue on Your Unaro Weapon' entity |
+| 116 | Uncovering the Past | partial |  | Lodrog the Forsaken 0x8140bd370eb36561 (high) | 5/5 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 61 | Vengence for Unaro | partial |  | Akkilea 0x8140f3984b7f353e (high) | 2/2 | level requirement, prerequisite quests, time limit | journal id and title string (no DAT quest or string of this name); prerequisite quests: the generator does not link them to their own rows yet |
-| 140 | Wild Hare | partial |  | Mayala Olvidan 0x8140e211810c1187 (high) | 1/2 | Enter hook (arrive at a place), level requirement, repeat timer, time limit | 1 of 2 quoted lines have no DAT string match |
-| 232 | A Fell Plot | shipped |  | Shrill Angostara None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
+| 140 | Wild Hare | partial |  | Mayala Olvidan 0x8140e211810c1187 (high) | 1/2 | level requirement, repeat timer, time limit | 1 of 2 quoted lines have no DAT string match |
+| 232 | A Fell Plot | shipped |  | Shrill Angostara None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 147 | Carrot-Eating Freaks | resolved |  | Stubby 0x8140ce2fbf4e43cf (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
 | 246 | Crush the Cursed Bones | resolved |  | Brelar Marlage 0x8140939b9cb146ca (high) | 0/0 | ApplyEffect, level requirement, repeat timer, time limit |  |
 | 180 | Crush the Sandy Armoredillos | shipped |  | Shiela Ondaran 0x8140b551b320f961 (high) | 0/0 | level requirement, repeat timer, time limit |  |
@@ -575,11 +569,13 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 146 | Dillo Rancher | resolved |  | Odaba Olvidan 0x8140f1904bb70f22 (medium) | 1/1 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
 | 22 | Dillo Rustlers | shipped | 0x4000006e | Eli Spinekeeper None (medium) | 1/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, several kill counters in one quest, summoned pet reward, time limit |  |
 | 185 | Dispatch the Anguish Crones | resolved | 0x400001fe | Brother Groli Vontag 0x8140c12bb0ed88b7 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 103 | Dreams of the Ero-Bal | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 5/7 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 2 of 7 quoted lines have no DAT string match |
 | 208 | Eliminate the Faisi Sclavus | shipped |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 268 | Eliminate the Sishalti Spawn | shipped |  | Jaina Larin 0x8140d40047003fb9 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 270 | Eliminate the Slithis Eyestalks | shipped |  | Norekhe 0x8140d40047003fbb (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 280 | Eliminate the Swarm Drone Nymphs | shipped |  | Temakhe None (medium) | 0/0 | level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 207 | Eliminate the Ulu Sclavus | shipped |  | Sister Nell Palnos 0x8140d5d4c268a38b (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 168 | Ero-Bal Purification | resolved |  | Valentaua 0x8140ffba8eec578f (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 181 | Exterminate the Green Phyntos Wasps | shipped |  | Krestovmik 0x8140f2e375f7cf3b (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 187 | Exterminate the Olthoi Harvesters | resolved | 0x40000213 | Gregor Adulen 0x8140fe49ece82d85 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 282 | Exterminate the Swarm Harvesters | shipped |  | Bertrand Jas None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
@@ -592,17 +588,18 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 194 | Fracture the Veinu Niffis | shipped | 0x4000020f | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 148 | Get Buzzed | shipped |  | Stubby None (medium) | 2/2 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 89 | Great Big Pumpkin | resolved | 0x4000027b | Ikkabod 0x8140b07822c7d041 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 141 | Green Thumb | shipped |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | level requirement, repeat timer, time limit |  |
+| 141 | Green Thumb | resolved |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | level requirement, repeat timer, time limit |  |
 | 144 | Herd Rescue | shipped |  | Ulafa Olvidan 0x8140dd4f509af946 (medium) | 3/3 | chest/door/lever interaction, fellowship credit, level requirement, repeat timer, time limit |  |
 | 107 | Hunt the Plague Mucor | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 135 | I'm Hungry | shipped |  | Stubby None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
 | 244 | Investigate Vothardun | resolved |  | Jethric 0x8140ba6d593e3a9a (high) | 0/0 | Enter hook (arrive at a place), level requirement, repeat timer, time limit |  |
 | 64 | Journey to Linvak | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 4/4 | level requirement, repeat timer, time limit |  |
 | 62 | Kill the Keerik | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 1/1 | level requirement, time limit |  |
-| 145 | Land Claim | resolved |  | Almahra Olvidan 0x8140bcd6627af0b0 (high) | 1/1 | level requirement, repeat timer, time limit |  |
+| 145 | Land Claim | shipped |  | Almahra Olvidan 0x8140bcd6627af0b0 (high) | 1/1 | level requirement, repeat timer, time limit |  |
 | 57 | Mimbu Negotiations | shipped |  | Akkilea 0x8140f3984b7f353e (high) | 3/3 | level requirement, time limit |  |
 | 93 | Moarsman Fin Soup | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 87 | Mosswart Rescue | shipped |  | Fungal Mosswart Hut 0x8140a56b83feed7c (high) | 0/0 | escort/protect, fellowship credit, item grants beyond the Shelter's item profiles, level requirement, summoned pet reward, time limit |  |
+| 39 | Mucor Mushroom Hunt | shipped | 0x400000ff | Adesar the Mushroom Collector 0x8140869166568783 (high) | 0/0 | ApplyEffect, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 202 | Perforate the Puppet Spawn | shipped |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 201 | Perforate the Servitor Spawn | shipped |  | Sumalar 0x8140bc71da3cb759 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 186 | Perforate the Spawn | shipped |  | Audalon 0x8140a37df61e22e6 (high) | 0/0 | level requirement, repeat timer, time limit |  |
@@ -615,6 +612,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 164 | Rescue the Folk | resolved |  | Araton 0x8140841d1f74ccab (high) | 0/0 | gold reward, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 184 | Rout the Deranged Lashers | shipped |  | Nola Vontag 0x8140868534db609d (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 90 | Scent of the Prey | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, level requirement, quest points, repeat timer, time limit |  |
+| 91 | Shreth-Hide Leather | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit |  |
 | 94 | Shreth-Hunters Guide to Omishan | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | level requirement, quest points, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 131 | Slay Gurog Ancients | shipped | 0x40000309 | Gurog Supreme Warlord 0x8140d40047002796 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 133 | Slay Gurog Blood Lords | shipped | 0x4000030a | Gurog High Shaman None (medium) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
@@ -627,16 +625,20 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 81 | Slay the Demented Warath | shipped |  | Vere Anthor 0x8140e7babf4a0dd8 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 74 | Slay the Gray Flayer | shipped |  | Portus 0x8140e5d6a8dacfb3 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 80 | Slay the Shattered Golem | shipped |  | Randon Fordes 0x8140972601ba03ad (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 41 | Slay the Shrethwarden | shipped |  | Kiral 0x8140f2046642acd1 (high) | 0/1 | chest/door/lever interaction, crafting step, item grants beyond the Shelter's item profiles, level requirement, quest points, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
 | 234 | Smash The Sandstone Colossi | shipped |  | Jasper Urleg None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
 | 104 | Something Borrowed | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | crafting step, gold reward, level requirement, repeat timer, time limit |  |
 | 122 | Spirit Guide | resolved | 0x400002bd | Amano-Bal 0x8140b016909d4ce0 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
+| 83 | Sword of the Doomed Hero | shipped | 0x400001fa | Vargil Darkener 0x8140b204892c2d57 (high) | 0/1 | fellowship credit, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit | 1 of 1 quoted lines have no DAT string match |
 | 276 | Temple Chromast | shipped |  | Elion Magnaron 0x8140d40047004082 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 69 | Temple Forge Repair | shipped | 0x400001ce | Radiant Temple Master Smith 0x814095f79363f958 (high) | 2/2 | crafting step, level requirement, time limit |  |
 | 106 | The Long Eared Menace | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | gold reward, level requirement, repeat timer, time limit | journal id and title string (no DAT quest or string of this name) |
 | 277 | The Revered One | resolved | 0x400000f2 | Shelara Volsaerion 0x8140d40047004079 (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 209 | Thin the Marsh Armoredillos | shipped |  | Baltor Vultu 0x8140fa768d39c98b (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 271 | Thin the Shade Matrons | shipped |  | Andar Morlean 0x8140d40047003fbc (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 189 | Unravel the Dark Dread Mu-miyah | resolved |  | Red Bellows 0x8140f18fe63f8a5b (high) | 0/0 | level requirement, repeat timer, time limit |  |
 | 188 | Vaporize the Frost Wisps | shipped |  | Tankaru 0x81408b1515a4d431 (high) | 0/0 | level requirement, repeat timer, time limit |  |
+| 123 | Vengeance for Unaro | resolved |  | Akkilea 0x8140f3984b7f353e (high) | 2/2 | level requirement, repeat timer, time limit |  |
 | 142 | White Wedding | resolved |  | Silia Olvidan 0x8140e242441aa3d8 (high) | 2/2 | level requirement, repeat timer, time limit |  |
 
 ## Method and limits

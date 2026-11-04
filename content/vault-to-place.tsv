@@ -11,12 +11,12 @@ creature to spawn	Ascended Chaos Golem	0x47002706	0x47002706						Cleanse the Ch
 creature to spawn	Banderling Herdkeeper	0x47002922	0x47002922						Herd Rescue (shipped)
 creature to spawn	Bar Nobla	0x4700431d	0x4700431d						Blood Feud
 creature to spawn	Benshii Felsister	0x4700431c	0x4700431c						A Fell Plot (shipped)
-creature to spawn	Burun Shrethwarden	0x4700173e	0x4700173e						Slay the Shrethwarden
+creature to spawn	Burun Shrethwarden	0x4700173e	0x4700173e						Slay the Shrethwarden (shipped)
 creature to spawn	Burun-Ugruk Shaman	0x47002577	0x47002577						Spirit Guide
 creature to spawn	Chromast Chromu	0x4700431f	0x4700431f						Temple Chromast (shipped)
 creature to spawn	Cunning Tom	0x47004319	0x47004319						Tree Avenger
 creature to spawn	Demented Warath	0x4700209a	0x4700209a						Slay the Demented Warath (shipped)
-creature to spawn	Empowered Warath	0x47001f76	0x47001f76						Sword of the Doomed Hero
+creature to spawn	Empowered Warath	0x47001f76	0x47001f76						Sword of the Doomed Hero (shipped)
 creature to spawn	Exalted Chaos Golem	0x47002704	0x47002704						Cleanse the Chaos Forge
 creature to spawn	Foundry Protector	0x47003be6	0x47003be6						Heart of Stone
 creature to spawn	Fymras	0x4700410d	0x4700410d						Aerfalle's Generals
@@ -37,6 +37,7 @@ creature to spawn	Resplendent Chaos Golem	0x47002707	0x47002707						Cleanse the
 creature to spawn	Resuscitated Urkhad	0x4700431b	0x4700431b						Cleanse the Standing Stones
 creature to spawn	Rymeras	0x47002099	0x47002099						Slay Rymeras (shipped)
 creature to spawn	Sanguine Bloodstone	0x47001d4c	0x47001d4c						Salvation of Artefon
+creature to spawn	Scarred Hunter Shreth	0x470021c1	0x470021c1						Shreth-Hide Leather (shipped)
 creature to spawn	Skyport Controllers	0x47003b13	0x47003b13						Eradicate the Skyport Controllers
 creature to spawn	Slithis Eye Stalks	0x47003b21	0x47003b21						Eliminate the Slithis Eyestalks (shipped)
 creature to spawn	Supreme Chaos Golem	0x47002708	0x47002708						Cleanse the Chaos Forge
@@ -71,7 +72,5 @@ start NPC	Temakhe	0x47003fc0	0x47003fc0	-38.4	45.8	0xb94e003d	143.2	86.4	Elimina
 start NPC	Tiamary Graziel	0x47004002	0x47004002	-35.7	36.3	0xad510038	125.2	157.2	Tree Avenger
 start NPC	Valt Ondar	0x470040a1	0x470040a1	-40.0	45.4	0xb94c001d	61.6	80.0	A Grievous Threat
 step NPC	Aldemon	0x470038ec	0x470038ec						Crypt Keys
-step NPC	Black Mucor Blight Excrescence	0x4700287e	0x4700287e						Green Thumb (shipped)
-step NPC	Captain Trammel	0x470040f4	0x470040f4						Journey to Greenstone
 step NPC	Mallenos	0x470038f2	0x470038f2						Crypt Keys
-step NPC	Mucor Mushroom	0x47001744	0x47001744						Green Thumb (shipped)
+step NPC	Mucor Mushroom	0x47001744	0x47001744						Green Thumb

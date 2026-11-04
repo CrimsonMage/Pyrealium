@@ -157,6 +157,9 @@ def seconds(text):
         return None, "unknown"
     if "in-game" in t.lower():
         return None, "in-game hours (no real-time length given)"
+    # '1/2 Hours' is half an hour, not 2 hours
+    t = re.sub(r"(\d+)\s*/\s*(\d+)", lambda m: f"{int(m.group(1)) / int(m.group(2)):g}", t)
+    t = re.sub(r"\bhalf (an? )?hour", "0.5 hour", t, flags=re.I)
     days = re.search(r"([\d.]+)\s*day", t, re.I)
     hours = re.search(r"([\d.]+)\s*hour", t, re.I)
     if "days hours" in t.lower():
@@ -632,16 +635,21 @@ OVERRIDE_FIELDS = {
           "`,cap`)",
     "quote": "key: the quote's number (1 = first in the draft); value: `table:key`, both hex",
     "prerequisite": "value: the Vault id or title of the quest that must be solved first",
-    "step": "key: its order (1, 2, ...); value: `talk NPC`, `kill N X`, `loot ITEM`, `give ITEM to NPC`, "
+    "step": "key: its order (1, 2, ...); value: `talk NPC`, `kill N X`, `loot ITEM`, `give ITEM to NPC` (`ITEM|ITEM`: any "
+            "one of them), `learn 0x6f...` (a recipe taught there), "
             "`use ITEM on X`, `open OBJECT`, `craft ITEM`, `effect 0x6f... SECONDS`, `lift 0x6f...`, "
             "`receive [N] ITEM [from NPC]` (an NPC hands the player an item: from the giver at the offer when no NPC "
             "is named), `give [N] ITEM to NPC`, `pay N to NPC` (coins), `escort NAME`, `arrive OBJECT [N m]` or "
             "`travel N.N[NS] E.E[EW]`; any step row replaces the parsed steps",
-    "journal": "key: a step's order (its stage), `turn` (the turn-in) or `done` (completed); value: `0x25......:0x........` "
-               "(table:key), the DAT string that is that stage's journal line",
-    "line": "key: a step's order, `offer` or `turn`; value: `0x25......:0x........` (table:key), a DAT line the NPC "
-            "says at that step (several rows with one key speak in file order); replaces the matched quote there",
+    "journal": "key: a step's order (its stage; `N.k` the k-th count stage of a kill step), `turn` (the turn-in) or "
+               "`done` (completed); value: `0x25......:0x........` (table:key), the DAT string that is that stage's journal line",
+    "line": "key: a step's order, `offer`, `turn`, `busy` (the giver while the quest is underway), `weak` (the giver to a "
+            "player below the level) or `wait` (the giver while the repeat is not due); value: `0x25......:0x........` "
+            "(table:key), a DAT line the NPC says there (several rows with one key speak in file order)",
     "time_limit": "key `seconds`; value: how long a run may stay underway (a source's figure)",
+    "hold": "key `reason`; value: why the quest must not ship yet (its steps cannot be written whole): it never ships",
+    "journal_id": "value: `0x40......`, the DAT quest (content/native-quests.json) this quest is, where the title match picks another",
+    "kills": "key `ordered`, value `yes`: consecutive kill steps are done one after another, not as one stage of counters",
     "repeat": "key `seconds`; value: how long after a solve the quest may start again (a source's figure)",
     "reward_recipe": "value: `0x6f......` (an rcp_*.wc recipe the reward teaches: LearnRecipe)",
     "reward_effect": "value: `0x6f...... SECONDS` (an Effect state the reward puts on the player: ApplyEffect)",
@@ -676,6 +684,7 @@ STEP_GRAMMAR = [
     ("give", re.compile(r"^give\s+(?:(?P<count>\d+)\s+)?(?P<item>.+?)\s+to\s+(?P<npc>.+)$|^give\s+(?P<item2>\S+(?:\s\S+)*?)\s+(?P<npc2>[A-Z][^ ]*(?:\s[A-Z][^ ]*)*)$", re.I)),
     ("receive", re.compile(r"^receive\s+(?:(?P<count>\d+)\s+)?(?P<item>.+?)(?:\s+from\s+(?P<npc>.+))?$", re.I)),
     ("pay", re.compile(r"^pay\s+(?P<gold>\d+)\s+to\s+(?P<npc>.+)$", re.I)),
+    ("learn", re.compile(r"^learn\s+(?P<recipe>0x6f[0-9a-fA-F]{6})$", re.I)),
     ("use", re.compile(r"^use\s+(?P<item>.+?)\s+on\s+(?P<target>.+)$", re.I)),
     ("travel", re.compile(r"^travel\s+(?P<where>.+)$", re.I)),
     ("open", re.compile(r"^open\s+(?P<target>.+)$", re.I)),
@@ -718,6 +727,8 @@ def parse_step(text):
             return {"kind": "receive", "item": g["item"], "npc": g.get("npc"), "count": int(g.get("count") or 1)}
         if kind == "pay":
             return {"kind": "pay", "gold": int(g["gold"]), "npc": g["npc"]}
+        if kind == "learn":
+            return {"kind": "learn", "recipe": g["recipe"].lower()}
         if kind == "use":
             return {"kind": "use", "item": g["item"], "target": g["target"]}
         if kind in ("open", "craft"):
@@ -778,8 +789,10 @@ def load_overrides(path, quest_ids):
                 bad("xp fixed takes a positive whole number")
             if k == "percent" and not re.fullmatch(r"\d+(\.\d{1,2})?(,\d+)?", value):
                 bad("xp percent takes `P` or `P,cap` (P with at most two decimals)")
-            if k not in ("fixed", "percent"):
-                bad("xp takes key `fixed` or `percent`")
+            if k == "min" and not (value.isdigit() and int(value) > 0):
+                bad("xp min takes a positive whole number (the percent rule's minimum)")
+            if k not in ("fixed", "percent", "min"):
+                bad("xp takes key `fixed`, `percent` or `min`")
         elif field == "quote":
             if not k.isdigit() or int(k) < 1 or not re.fullmatch(r"0x25[0-9a-fA-F]{6}:0x[0-9a-fA-F]{1,8}", value):
                 bad("quote takes the quote's number and `0x25......:0x........` (table:key)")
@@ -794,9 +807,19 @@ def load_overrides(path, quest_ids):
                     "`pay N to NPC`, `use ITEM on X`, `open OBJECT`, `craft ITEM`, `effect 0x6f... SECONDS`, `lift 0x6f...`, "
                     "`escort NAME`, `arrive OBJECT [N m]` or `travel N.N[NS] E.E[EW]`")
         elif field in ("journal", "line"):
-            keys = ("turn", "done") if field == "journal" else ("offer", "turn")
-            if not (k.isdigit() and int(k) >= 1 or k in keys) or not re.fullmatch(r"0x25[0-9a-fA-F]{6}:0x[0-9a-fA-F]{1,8}", value):
+            keys = ("turn", "done") if field == "journal" else ("offer", "turn", "busy", "weak", "wait")
+            step_key = re.fullmatch(r"\d+(\.\d+)?", k) if field == "journal" else k.isdigit()
+            if not (step_key or k in keys) or not re.fullmatch(r"0x25[0-9a-fA-F]{6}:0x[0-9a-fA-F]{1,8}", value):
                 bad(f"{field} takes a step's order or {' / '.join(keys)}, and `0x25......:0x........` (table:key)")
+        elif field == "hold":
+            if k != "reason" or not value:
+                bad("hold takes key `reason` and why the quest must not ship")
+        elif field == "journal_id":
+            if hexval(value, {0x40}) is None:
+                bad("journal_id takes `0x40......`")
+        elif field == "kills":
+            if k != "ordered" or value != "yes":
+                bad("kills takes key `ordered` and value `yes`")
         elif field in ("time_limit", "repeat"):
             if k != "seconds" or not (value.isdigit() and int(value) > 0):
                 bad(f"{field} takes key `seconds` and a positive whole number")
@@ -882,7 +905,13 @@ def draft(row, data, links):
 
     # --- rewards
     rw = parse_reward(row["reward"])
+    if rw.get("xp") and rw.get("xp_percent"):
+        # '60000 XP' beside '.5% needed to level': the fixed figure is an observation at one level
+        rw["xp_observed"] = rw.get("xp_observed", []) + [f"{rw['xp']} XP"]
+        rw["xp"] = None
     for o in overrides(qid, "xp"):
+        if o["key"] == "min":
+            continue
         rw["xp_observed"] = rw.get("xp_observed", []) + ([f"{rw['xp']} XP"] if rw.get("xp") else [])
         rw.update(xp=None, xp_percent=None, xp_cap=None, xp_min=None, xp_percent_unknown=False)
         if o["key"] == "fixed":
@@ -892,6 +921,9 @@ def draft(row, data, links):
             rw["xp_percent"], rw["xp_cap"] = float(pct), int(cap) if cap else None
         rw["other"] = [x for x in rw["other"] if not re.search(r"\bxp\b|experience|percentage", x, re.I)]
         rw["xp_source"] = "user override: " + o["source"]
+    for o in overrides(qid, "xp"):
+        if o["key"] == "min":
+            rw["xp_min"] = int(o["value"])
     F["reward"] = {"value": {k: v for k, v in rw.items() if k != "raw"}, "raw": rw["raw"], "source": src_v + " reward"}
 
     # --- start NPC and coordinates
@@ -952,13 +984,16 @@ def draft(row, data, links):
     # journal id
     jid = None
     cands = data.native_by_key.get(key(title), [])
+    jov = overrides(qid, "journal_id")
+    if jov:
+        cands = [int(jov[-1]["value"], 16)]
     if not cands:
         k = key(title)
         for kk, ids in data.native_by_key.items():
             if len(k) > 6 and (kk.startswith(k) or k.startswith(kk)) and abs(len(kk) - len(k)) <= 4:
                 cands = ids
                 break
-    how = "DAT quest list (content/native-quests.json, gmQuestInfo) by name"
+    how = "DAT quest list (content/native-quests.json, gmQuestInfo) by name" if not jov else f"user override: {jov[-1]['source']}"
     if not cands:
         # 7230 keeps most quest names in private tables; the quest's package (its WState name,
         # e.g. QuestDarkstone) still carries the title
@@ -1594,6 +1629,8 @@ def classify(d, data):
             continue
         kind = next(((g, w) for needle, g, w in GAP_KINDS if needle in m), ("Other data", "you"))
         d["blocks"].append((kind[0], kind[1], m))
+    for o in overrides(qid, "hold"):
+        d["blocks"].append(("Held", "you", f"held: {o['value']}"))
     ign = {o["key"] for o in overrides(qid, "ignore")}
     kinds = {parse_step(o["value"])["kind"] for o in overrides(qid, "step")}
     for g in d["gaps"]:
@@ -1908,6 +1945,10 @@ def spec_steps(d, data, catalog=None):
                 # from the quest giver, with the offer
                 offer_extra.append(give)
                 continue
+            if beats and key(beats[-1].get("name") or "") == key(s["npc"]):
+                # 'use X on Y' / 'give X to Y' / 'talk Y', then 'receive Z from Y': one visit
+                beats[-1]["after"].insert(0, give)
+                continue
             n = resolve_named(d, data, s["npc"], "npc")
             if not n:
                 return fail("Identify or place", f"the NPC '{s['npc']}' (an `npc` override, or place it)")
@@ -1930,7 +1971,8 @@ def spec_steps(d, data, catalog=None):
                           source=f"the DAT NPC tables' death effects for this hunt (as {catalog[0]} cites them; DAT over Vault)")
             if not kt:
                 return fail("Identify entity", f"the creature '{s['target']}' (a `kill_target` override)")
-            if beats and beats[-1]["kind"] == "kill" and not beats[-1].get("drop"):
+            ordered = any(o["key"] == "ordered" for o in overrides(qid, "kills"))
+            if beats and beats[-1]["kind"] == "kill" and not beats[-1].get("drop") and not ordered:
                 beats[-1]["kills"].append((s["target"], kt["entities"], s["count"], kt["source"]))
             else:
                 beats.append({"kind": "kill", "kills": [(s["target"], kt["entities"], s["count"], kt["source"])], "after": [], "n": s["n"]})
@@ -1942,14 +1984,18 @@ def spec_steps(d, data, catalog=None):
                 return fail("Write steps", f"where '{s['item']}' comes from: a `kill` step before the `loot` step")
             beats[-1]["drop"] = it
         elif k == "give":
-            it = resolve_item(d, data, s["item"]) if s.get("item") else next((b["drop"] for b in reversed(beats) if b.get("drop")), None)
+            names = [x.strip() for x in s["item"].split("|")] if s.get("item") else []
+            alts = [resolve_item(d, data, x) for x in names]
+            if names and not all(alts):
+                return fail("Identify item", f"the item handed to '{s['npc']}' (an `item` override for each of {names})")
+            it = alts[0] if alts else next((b["drop"] for b in reversed(beats) if b.get("drop")), None)
             if not it:
                 return fail("Identify item", f"the item handed to '{s['npc']}' (an `item` override, or write the steps)")
             n = resolve_named(d, data, s["npc"], "npc")
             if not n:
                 return fail("Identify or place", f"the NPC '{s['npc']}' (an `npc` override, or place it)")
             beats.append({"kind": "give", "npc": n, "name": s["npc"], "item": it, "item_name": s.get("item") or "the item",
-                          "count": s.get("count", 1), "after": [], "n": s["n"]})
+                          "count": s.get("count", 1), "alts": alts[1:], "after": [], "n": s["n"]})
         elif k == "use":
             it = resolve_item(d, data, s["item"])
             obj = resolve_named(d, data, s["target"], "object")
@@ -1969,6 +2015,9 @@ def spec_steps(d, data, catalog=None):
             if not it:
                 return fail("Identify item", f"the crafted item '{s['item']}' (an `item` override)")
             beats.append({"kind": "craft", "item": it, "item_name": s["item"], "after": [], "n": s["n"]})
+        elif k == "learn":
+            (beats[-1]["after"] if beats else offer_extra).append(
+                ("LearnRecipe", [s["recipe"]], f"{vsrc_of(qid)}: a recipe taught here (step {s['n']})"))
         elif k in ("effect", "lift"):
             act = (("ApplyEffect", [s["effect"], str(s["seconds"])]) if k == "effect" else ("RemoveEffect", [s["effect"]]))
             (beats[-1]["after"] if beats else offer_extra).append(act + (s.get("source", "the steps"),))
@@ -2040,9 +2089,10 @@ def spec_steps(d, data, catalog=None):
         if dat is None:
             sys.exit(f"vault-quest-overrides.tsv:{o['line']}: quest {qid}: no DAT string 0x{t:08x}:0x{k:08x}")
         return dat.strip(), f"DAT string table 0x{t:08x} ({data.table_name.get(t)}) key 0x{k:08x}; user override: {o['source']}"
-    def speak(name, order, step, tab):
-        """The NPC's lines at a step: its `line` overrides, else the next matched Vault quote."""
-        said = lines_at(qid, step)
+    def speak(name, order, step, tab, also=None):
+        """The NPC's lines at a step: its `line` overrides (and `also`'s, the turn-in's), else the
+        next matched Vault quote."""
+        said = lines_at(qid, step) + (lines_at(qid, also) if also is not None and also != step else [])
         if said:
             for t, k, src in said:
                 acts.append([name, order, "Tell", 0, t, k, "", "", "", src])
@@ -2061,21 +2111,38 @@ def spec_steps(d, data, catalog=None):
             order += 1
         return order
     def hand_in(b, name, vsrc):
-        """A give's or a pay's check and cost, in a success set `<name>_ok`: the next action's order
-        there (1: no check, the body is the set itself)."""
+        """A give's or a pay's check and cost: (the set the step goes on in, the next action's order
+        there); (name, 1) when there is no check."""
         if b["kind"] == "give":
             body, n = f"{name}_ok", b.get("count", 1)
             sets.append([body, "", "", "QuestSuccess", "", "", "", "", "", "", f"{vsrc}: the item handed in"])
-            acts.append([name, 1, "InqOwnsItems", 0, b["item"][0], n, body, "", "", b["item"][1]])
-            acts.append([body, 1, "TakeItem", 0, b["item"][0], n, "", "", "", f"{vsrc}: hand {n} {b['item_name']} to {b['name']}"])
-            return 2
+            items = [b["item"]] + b.get("alts", [])
+            if len(items) == 1:
+                acts.append([name, 1, "InqOwnsItems", 0, b["item"][0], n, body, "", "", b["item"][1]])
+                # more than 16 is a stack's quantity (100 Tallow): TakeQuantity; else items one by one
+                acts.append([body, 1, "TakeQuantity" if n > 16 else "TakeItem", 0, b["item"][0], n, "", "", "",
+                             f"{vsrc}: hand {n} {b['item_name']} to {b['name']}"])
+                return body, 2
+            # any one of several items: each is checked in turn; the one held is taken, then the step goes on
+            ask = name
+            for j, it in enumerate(items):
+                take, other = f"{name}_take{j + 1}", (f"{name}_alt{j + 2}" if j + 1 < len(items) else "")
+                sets.append([take, "", "", "QuestSuccess", "", "", "", "", "", "", f"{vsrc}: one of the items held"])
+                if other:
+                    sets.append([other, "", "", "QuestFailure", "", "", "", "", "", "", f"{vsrc}: try the next item"])
+                acts.append([ask, 1, "InqOwnsItems", 0, it[0], n, take, other, "", it[1]])
+                acts.append([take, 1, "TakeQuantity" if n > 16 else "TakeItem", 0, it[0], n, "", "", "", f"{vsrc}: hand {n} of {b['item_name']} to {b['name']}"])
+                acts.append([take, 2, "Goto", 0, body, "", "", "", "", "the step goes on"])
+                ask = other
+            return body, 1
+
         if b["kind"] == "pay":
             body = f"{name}_ok"
             sets.append([body, "", "", "QuestSuccess", "", "", "", "", "", "", f"{vsrc}: the coins paid"])
             acts.append([name, 1, "InqStat", 0, "gold", b["gold"], "", body, "", f"{vsrc}: pay {b['gold']} coins to {b['name']}"])
             acts.append([body, 1, "TakeGold", 0, b["gold"], "", "", "", "", f"{vsrc}: pay {b['gold']} coins to {b['name']}"])
-            return 2
-        return 1
+            return body, 2
+        return name, 1
     for i, b in enumerate(beats):
         name = f"{q}_s{i + 1}"
         b["stage"] = st
@@ -2087,11 +2154,7 @@ def spec_steps(d, data, catalog=None):
             text = journal(b["n"], *((line[0], line[1]) if line else (what, pyrealium)))
             stages.append([q, st, 0, text[0], text[1]])
             sets.append([name, e, iid or "", "Use", "", q, st, st, "", "", f"{vsrc}: {b['kind']} {b['name']}; {nsrc_}"])
-            order = 1
-            body = name
-            order = hand_in(b, name, vsrc)
-            if order > 1:
-                body = f"{name}_ok"
+            body, order = hand_in(b, name, vsrc)
             order = speak(body, order, b["n"], tab)
             order = after_rows(body, order, b)
             acts.append([body, order, "SetStage", 0, q, st + 1, "", "", "", vsrc])
@@ -2101,7 +2164,7 @@ def spec_steps(d, data, catalog=None):
             if len(kills) == 1:
                 target, ents, n, ksrc = kills[0]
                 for k in range(n):
-                    stages.append([q, st + k, 0, *journal(b["n"], f"Kill {n} {target}: {n - k} left.", pyrealium)])
+                    stages.append([q, st + k, 0, *journal(f"{b['n']}.{k + 1}", *journal(b["n"], f"Kill {n} {target}: {n - k} left.", pyrealium))])
                     for ent in ents:
                         sn = f"{q}_k{i + 1}_{ent[2:]}_{k + 1}"
                         sets.append([sn, ent, "", "Kill", "", q, st + k, st + k, "", "", f"{ksrc}; {vsrc}: kill {n} {target}"])
@@ -2142,14 +2205,14 @@ def spec_steps(d, data, catalog=None):
             e, iid, tab, osrc = b["obj"]
             stages.append([q, st, 0, *journal(b["n"], f"Use {b['item_name']} on {b['name']}.", pyrealium)])
             sets.append([name, e, iid or "", "ItemUsedOn", b["item"][0], q, st, st, "", "", f"{vsrc}: use {b['item_name']} on {b['name']}; {osrc}"])
-            order = after_rows(name, 1, b)
+            order = after_rows(name, speak(name, 1, b["n"], None), b)
             acts.append([name, order, "SetStage", 0, q, st + 1, "", "", "", vsrc])
             st += 1
         elif b["kind"] == "open":
             e, iid, tab, osrc = b["obj"]
             stages.append([q, st, 0, *journal(b["n"], f"Open {b['name']}.", pyrealium)])
             sets.append([name, e, iid or "", "Use", "", q, st, st, "", "", f"{vsrc}: open {b['name']}; {osrc}"])
-            order = 1
+            order = speak(name, 1, b["n"], None)
             for ent, cnt in b["gives"]:
                 acts.append([name, order, "GiveItem", 0, ent, cnt, "", "", "", b["src"]])
                 order += 1
@@ -2162,7 +2225,7 @@ def spec_steps(d, data, catalog=None):
             stages.append([q, st, 0, *journal(b["n"], f"Bring {who} to {b['name']}." if who else f"Go to {b['name']}.", pyrealium)])
             sets.append([name, e, iid, "Enter", "", q, st, st, f"{b['range']:g}", "",
                          f"{vsrc}: arrive at {b['name']}; {osrc}; the radius is Pyrealium policy"])
-            order = 1
+            order = speak(name, 1, b["n"], None)
             if who:
                 acts.append([name, order, "EndEscort", 0, "", "", "", "", "", f"{vsrc}: the escort arrives"])
                 order += 1
@@ -2172,7 +2235,7 @@ def spec_steps(d, data, catalog=None):
         elif b["kind"] == "craft":
             stages.append([q, st, 0, *journal(b["n"], f"Craft {b['item_name']}.", pyrealium)])
             sets.append([name, b["item"][0], "", "Crafted", "", q, st, st, "", "", f"{vsrc}: craft {b['item_name']}; {b['item'][1]}"])
-            order = after_rows(name, 1, b)
+            order = after_rows(name, speak(name, 1, b["n"], None), b)
             acts.append([name, order, "SetStage", 0, q, st + 1, "", "", "", vsrc])
             st += 1
     # the turn-in
@@ -2181,10 +2244,8 @@ def spec_steps(d, data, catalog=None):
     stages.append([q, st, 0, *journal("turn", line[0] if line else f"Return to {turn['name']}.", line[1] if line else pyrealium)])
     tname = f"{q}_turn_in"
     sets.append([tname, e, iid or "", "Use", "", q, st, st, "", "", f"{vsrc}: the reward at {turn['name']}; {tsrc_}"])
-    body, order = tname, hand_in(turn, tname, vsrc)
-    if order > 1:
-        body = f"{tname}_ok"
-    order = speak(body, order, "turn" if not lines_at(qid, turn.get("n")) else turn.get("n"), tab)
+    body, order = hand_in(turn, tname, vsrc)
+    order = speak(body, order, turn.get("n", "turn"), tab, also="turn")
     for a, params, src in reward_actions(d, vsrc):
         acts.append([body, order, a, 0, *(params + [""] * (5 - len(params))), src])
         order += 1
@@ -2225,6 +2286,18 @@ def spec_steps(d, data, catalog=None):
                "; credit: fellowship (Pyrealium policy, user 2026-11-04: fellows in range share quest kills)")]]
     ns = table_strings(data, gtab) if gtab else {}
     weak, wait = giver_lines(q, gtab, ns, level, F, vsrc)
+    for which in ("weak", "wait"):
+        said = lines_at(qid, which)
+        if said:
+            line_ = ("Tell", said[0][0], said[0][1], said[0][2])
+            weak, wait = (line_, wait) if which == "weak" else (weak, line_)
+    busy = lines_at(qid, "busy")
+    if busy and st > 1:
+        # the giver's 'not done yet' line while the quest is underway (after the quest's own step sets)
+        sets.append([f"{q}_busy", giver["entity"], giver["iid"] or "", "Use", "", q, 1, st - 1, "", "",
+                     f"{vsrc}: the giver while the quest is underway"])
+        for j, (t, k_, src) in enumerate(busy, 1):
+            acts.append([f"{q}_busy", j, "Tell", 0, t, k_, "", "", "", src])
     for a, params, src in offer_extra:
         pass
     why["steps"] = "generated"
