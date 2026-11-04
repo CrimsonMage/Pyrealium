@@ -136,6 +136,13 @@ pub fn skill_update(id:u32,book:&crate::professions::Book)->Result<Vec<u8>,World
     crate::script::private_call(0x82060027,&panel_graph(&[panel_skill(id,&book.get(id))]))
 }
 pub fn learned_recipe(id:u32)->Result<Vec<u8>,WorldError>{crate::script::private_call(0x8206001b,&crate::script::integer(id))}
+/// `WM_Craft` 0x1A UpdateRecipe with the recipe's record shown (slot 6 -1): the learn above only
+/// names the recipe, and the record the player's script makes for it is the constructor's, slot 6
+/// 0, which the craft panel's recipe view hides (`gRecipeAdaptor::SetShown`,
+/// `gmCraftUI::RefreshRecipePage`). Retail's servers sent -1 there in 54,660 of the 55,318
+/// RecipeRecords of the captures, and one capture (pkt_2017-1-22_1485087345) follows a learn with
+/// this update of the same recipe; sent after every learn here, so the recipe lists at once.
+pub fn shown_recipe(id:u32)->Result<Vec<u8>,WorldError>{crate::script::private_call(0x8206001a,&panel_graph(&[panel_recipe(id)]))}
 pub fn initialization_book(authorized:bool,book:&crate::professions::Book)->Result<Vec<Vec<u8>>,WorldError>{
     initialization_with_quests(authorized,book,&crate::arwic_mines::State::default())
 }
@@ -763,6 +770,18 @@ pub fn rank(skill: u32, crafting_xp: u64) -> Option<CraftRank> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_learned_recipe_is_followed_by_its_shown_record() {
+        let update = shown_recipe(0x6f00_5d72).unwrap();
+        assert_eq!(&update[4..8], &0x8206_001au32.to_le_bytes());
+        // The captured RecipeRecord: package 0x1D9 (u16), 12 slots, slot 6 -1, slot 7 the DID.
+        let at = update.windows(6).position(|w| w == [0xd9, 0x01, 0x0c, 0, 0, 0]).unwrap() + 6;
+        let slot = |n: usize| u32::from_le_bytes(update[at + 4 * n..at + 4 * n + 4].try_into().unwrap());
+        assert_eq!(slot(6), u32::MAX, "shown");
+        assert_eq!(slot(7), 0x6f00_5d72);
+        assert_eq!(slot(11), u32::MAX);
+    }
 
     #[test]
     fn imported_crafting_curves_match_the_pyreal_dump() {

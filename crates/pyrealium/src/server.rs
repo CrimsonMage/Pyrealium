@@ -1694,7 +1694,7 @@ fn item_service_transaction_profile(
         let plan=crate::arwic_mines::plan(&saved.quests,&saved.inventory,action,store.next_item_id()?,time)?;
         if crate::player_transaction::encode_items(items)!=crate::player_transaction::encode_items(&plan.items) || crate::player_transaction::encode_changes(changes)!=crate::player_transaction::encode_changes(&plan.rewards) {return Err(invalid("Lesson exchange differs from canonical plan"));}
         events.extend(plan.quests.updates_since(&saved.quests).map_err(other)?);
-        if plan.quests.arwic.learned && !saved.quests.arwic.learned {events.push(crate::crafting::learned_recipe(crate::arwic_mines::RECIPE).map_err(other)?);}
+        if plan.quests.arwic.learned && !saved.quests.arwic.learned {events.push(crate::crafting::learned_recipe(crate::arwic_mines::RECIPE).map_err(other)?);events.push(crate::crafting::shown_recipe(crate::arwic_mines::RECIPE).map_err(other)?);}
         let guidance=plan.quests.arwic.guidance().split_whitespace().collect::<Vec<_>>().join(" ");
         events.push(crate::interaction::dialogue("Arwic Mines and Crafting Quest",&guidance).map_err(other)?);
     }
