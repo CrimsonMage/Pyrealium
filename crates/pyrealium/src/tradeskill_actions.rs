@@ -314,6 +314,13 @@ pub(super) fn mine(
 /// Corpses already butchered ("has already been butchered": a corpse butchers once).
 static BUTCHERED: std::sync::Mutex<std::collections::BTreeSet<u64>> = std::sync::Mutex::new(std::collections::BTreeSet::new());
 
+/// The creature `corpse` came back: its new body can be butchered.
+pub(super) fn respawned(corpse: u64) {
+    if let Ok(mut butchered) = BUTCHERED.lock() {
+        butchered.remove(&corpse);
+    }
+}
+
 /// Whether `knife` is a hunting knife in the character's pack (the tool of `WM_Usage` 0x22 whose
 /// target is a corpse).
 pub(super) fn is_knife(inventory: &Inventory, knife: u64) -> bool {

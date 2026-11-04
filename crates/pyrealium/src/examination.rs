@@ -362,3 +362,187 @@ mod hit_chance_tests {
         assert_eq!(with[with.len() - expected.len() + count..], expected[count..]);
     }
 }
+
+/// `examination.stt` (0x25000011) 0x32A6B06F, "Killed by ", its name the StringInfo variable
+/// [`KILLER_VARIABLE`].
+pub const KILLED_BY: u32 = 0x32a6b06f;
+pub const KILLER_VARIABLE: u32 = 0x23a664c8;
+/// 0x4167081E "Butchered by " and 0x05398B05 "First looted by ", their name the variable
+/// [`PERSON_VARIABLE`].
+pub const BUTCHERED_BY: u32 = 0x4167081e;
+pub const FIRST_LOOTED_BY: u32 = 0x05398b05;
+pub const PERSON_VARIABLE: u32 = 0x15b20d98;
+/// 0x9750666D "You can loot this corpse." and 0x3AE8BD92 "You cannot loot this corpse.".
+pub const CAN_LOOT: u32 = 0x9750666d;
+pub const CANNOT_LOOT: u32 = 0x3ae8bd92;
+/// 0x4C5A2B82 "Contents Unknown" and 0x40DA243B "Contains #1: #1:{item[1]|items}.", the count
+/// the int variable [`COUNT_VARIABLE`].
+pub const CONTENTS_UNKNOWN: u32 = 0x4c5a2b82;
+pub const CONTAINS: u32 = 0x40da243b;
+pub const COUNT_VARIABLE: u32 = 0x073eacea;
+
+/// What a corpse's profile tells after its name.
+#[derive(Clone, Debug)]
+pub struct Corpse {
+    pub killer: Name,
+    pub butcher: Option<Name>,
+    pub first_looter: Option<Name>,
+    pub can_loot: bool,
+    /// The items left in it, once it has been opened.
+    pub contents: Option<u32>,
+}
+
+/// A player's name as the retail servers wrote it into a profile: the name, then its grammar tag,
+/// `[M]` or `[F]` by the character's sex with `v` when the name begins with a vowel ("Sytis [F]",
+/// "Gotwald [M]", "Alexis The Proud [Mv]", "Elder Man [Mv]", "Uurrgghh [Mv]": the 41 killers of
+/// the captured corpse profiles).
+pub fn tagged_name(name: &str, female: bool) -> String {
+    let vowel = name.chars().next().is_some_and(|c| "AEIOUaeiou".contains(c));
+    format!("{name} [{}{}]", if female { 'F' } else { 'M' }, if vowel { "v" } else { "" })
+}
+
+fn row(bytes: &mut Vec<u8>, string: u32, variable: Option<(u32, &Name)>, count: Option<u32>) -> Result<(), WorldError> {
+    let vars = u32::from(variable.is_some()) + u32::from(count.is_some());
+    for word in [0x40000004, 2, 0x33be4035, string, EXAMINATION_TABLE, vars] {
+        bytes.extend(u32::to_le_bytes(word));
+    }
+    if let Some((name, value)) = variable {
+        bytes.extend(name.to_le_bytes());
+        bytes.extend(9u32.to_le_bytes()); // a StringInfo variable
+        bytes.extend(value.wire()?);
+    }
+    if let Some(count) = count {
+        for word in [COUNT_VARIABLE, 2, count] {
+            bytes.extend(u32::to_le_bytes(word));
+        }
+    }
+    bytes.extend(0x40000006u32.to_le_bytes());
+    bytes.extend(2u32.to_le_bytes());
+    Ok(())
+}
+
+/// A corpse's nodes after its name row, as the retail servers sent them in all 5,302 captured
+/// corpse profiles (2017 captures, e.g. pkt_2017-1-22_1485083221_log.pcap): a blank row, "Killed
+/// by" the killer, "Butchered by" and "First looted by" once someone has, whether the examiner
+/// can loot it, and "Contents Unknown" until it has been opened, then "Contains N items". Each row
+/// carries only its own variable (in 5,284 of the 5,302; a few on 2017-1-26 carried the rows
+/// before theirs too). Returns the bytes and the node count.
+pub fn corpse_nodes(corpse: &Corpse) -> Result<(Vec<u8>, u32), WorldError> {
+    let mut bytes = Vec::new();
+    bytes.extend(0x40000006u32.to_le_bytes());
+    bytes.extend(2u32.to_le_bytes());
+    let mut nodes = 1;
+    row(&mut bytes, KILLED_BY, Some((KILLER_VARIABLE, &corpse.killer)), None)?;
+    nodes += 2;
+    for (string, name) in [(BUTCHERED_BY, &corpse.butcher), (FIRST_LOOTED_BY, &corpse.first_looter)] {
+        if let Some(name) = name {
+            row(&mut bytes, string, Some((PERSON_VARIABLE, name)), None)?;
+            nodes += 2;
+        }
+    }
+    row(&mut bytes, if corpse.can_loot { CAN_LOOT } else { CANNOT_LOOT }, None, None)?;
+    match corpse.contents {
+        None => row(&mut bytes, CONTENTS_UNKNOWN, None, None)?,
+        Some(count) => row(&mut bytes, CONTAINS, None, Some(count))?,
+    }
+    nodes += 4;
+    Ok((bytes, nodes))
+}
+
+/// A corpse's profile: its "Corpse of" name row, then [`corpse_nodes`].
+pub fn corpse_response(target: u64, victim: Name, corpse: &Corpse) -> Result<Vec<u8>, WorldError> {
+    let (nodes, count) = corpse_nodes(corpse)?;
+    let mut bytes = Vec::new();
+    let newer = crate::data_profile::unconverted_7230();
+    for word in [5, 1, 1, 0x44000100, 0, 0xffff0099, 0x40000002, 0, target as u32, (target >> 32) as u32] {
+        bytes.extend(u32::to_le_bytes(word));
+    }
+    if newer {
+        bytes.extend(0x203u32.to_le_bytes());
+    }
+    bytes.extend((count + 2).to_le_bytes());
+    for word in [0x40000004, 2, 0xbe5b6513] {
+        bytes.extend(u32::to_le_bytes(word));
+    }
+    bytes.extend(Name::Corpse(Box::new(victim)).wire()?);
+    bytes.extend(0x40000006u32.to_le_bytes());
+    bytes.extend(2u32.to_le_bytes());
+    bytes.extend(nodes);
+    if newer {
+        bytes.extend(0x203u32.to_le_bytes());
+    }
+    bytes.extend(0u32.to_le_bytes());
+    script::private_call(0x820a0009, &bytes)
+}
+
+#[cfg(test)]
+mod corpse_tests {
+    use super::*;
+
+    fn hex(text: &str) -> Vec<u8> {
+        (0..text.len()).step_by(2).map(|i| u8::from_str_radix(&text[i..i + 2], 16).unwrap()).collect()
+    }
+
+    /// pkt_2017-1-22_1485083221_log.pcap: a corpse nobody had opened, killed by "Hand Of Doom
+    /// [F]"; every node after the corpse name, byte for byte.
+    #[test]
+    fn an_unopened_corpse_is_the_captured_one() {
+        let captured = hex(concat!(
+            "0600004002000000",
+            "04000040020000003540be336fb0a6321100002501000000c864a62309000000",
+            "00000000000000000000010010",
+            "00bc9292e59b766beb01ddfbfcc0a647cbffe6d77f3ecd70f510ad6c22bad476b20000",
+            "0600004002000000",
+            "04000040020000003540be336d6650971100002500000000", "0600004002000000",
+            "04000040020000003540be33822b5a4c1100002500000000", "0600004002000000",
+        ));
+        let corpse = Corpse { killer: Name::Literal("Hand Of Doom [F]".into()), butcher: None, first_looter: None, can_loot: true, contents: None };
+        let (bytes, nodes) = corpse_nodes(&corpse).unwrap();
+        assert_eq!(nodes, 7);
+        assert_eq!(bytes, captured);
+    }
+
+    /// pkt_2017-1-26_1485489976_log.pcap's opened corpse: the count row (4 items).
+    #[test]
+    fn an_opened_corpse_counts_its_items() {
+        let corpse = Corpse {
+            killer: Name::Literal("A".into()),
+            butcher: Some(Name::Literal("B".into())),
+            first_looter: Some(Name::Literal("C".into())),
+            can_loot: false,
+            contents: Some(4),
+        };
+        let (bytes, nodes) = corpse_nodes(&corpse).unwrap();
+        assert_eq!(nodes, 11);
+        let tail = hex(concat!(
+            "04000040020000003540be3392bde83a11000025000000000600004002000000",
+            "04000040020000003540be333b24da401100002501000000eaac3e0702000000040000000600004002000000",
+        ));
+        assert_eq!(bytes[bytes.len() - tail.len()..], tail[..]);
+        for string in [BUTCHERED_BY, FIRST_LOOTED_BY] {
+            let mut head = string.to_le_bytes().to_vec();
+            head.extend(hex("1100002501000000980db21509000000"));
+            assert!(bytes.windows(head.len()).any(|w| w == head.as_slice()));
+        }
+    }
+
+    #[test]
+    fn names_carry_the_retail_grammar_tag() {
+        assert_eq!(tagged_name("Sytis", true), "Sytis [F]");
+        assert_eq!(tagged_name("Gotwald", false), "Gotwald [M]");
+        assert_eq!(tagged_name("Alexis The Proud", false), "Alexis The Proud [Mv]");
+        assert_eq!(tagged_name("Hugh Jass", false), "Hugh Jass [M]");
+    }
+
+    #[test]
+    fn the_profile_counts_the_name_row_too() {
+        let corpse = Corpse { killer: Name::Literal("A [Mv]".into()), butcher: None, first_looter: None, can_loot: true, contents: None };
+        let bytes = corpse_response(9, Name::Literal("Drudge".into()), &corpse).unwrap();
+        let target: Vec<u8> = [9u32, 0].iter().flat_map(|w| w.to_le_bytes()).collect();
+        let mut count = bytes.windows(8).position(|w| w == target.as_slice()).unwrap() + 8;
+        if bytes[count..count + 4] == 0x203u32.to_le_bytes() {
+            count += 4;
+        }
+        assert_eq!(bytes[count..count + 4], 9u32.to_le_bytes(), "the captured corpse profiles' nine nodes");
+    }
+}

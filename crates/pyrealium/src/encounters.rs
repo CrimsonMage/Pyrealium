@@ -291,7 +291,7 @@ pub enum Event {
         book: crate::quests::Book,
     },
     /// A player's kill of a creature, for the fellows' quest credit (`quest_emotes::fellow_kill`).
-    Kill { player: u64, entity: u32 },
+    Kill { actor: u64, player: u64, entity: u32 },
     /// A kill's experience for the server to split among `player`'s fellowship
     /// (`fellowship_xp`); not yet paid to anyone.
     KillXp { player: u64, xp: u64 },
@@ -1300,7 +1300,7 @@ impl Encounters {
             let corpse_too=std::env::var("PYREALIUM_TEST_CORPSE_LOOT").as_deref()==Ok("1");
             let corpse_loot=killed && self.training_loot && (corpse_too || (quest_drop.is_none() && loot.is_none()));
             if corpse_loot {events.push(Event::Loot{actor:attack.target,player,entity:actor.entity,ai:actor.ai});}
-            if killed {events.push(Event::Kill{player,entity:actor.entity});}
+            if killed {events.push(Event::Kill{actor:attack.target,player,entity:actor.entity});}
             if shared_kill {events.push(Event::KillXp{player,xp:actor.rule.xp});}
             if store.characters[&player].quests != previous_quests {
                 events.push(Event::Quest {

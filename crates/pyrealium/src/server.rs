@@ -649,6 +649,25 @@ fn examine_target(
     if let Some(object) = scene.examination_content(character, target) {
         let mut lines = Vec::new();
         let dead=object.stat(0x102)==Some(0) && object.stat(0x107).is_some();
+        // A creature's corpse: the retail profile rows (`examination::corpse_nodes`) once the server
+        // knows its killer; a body killed before this server started, or whose killer is gone, keeps
+        // the plain lines.
+        let person=|id:u64|store.characters.get(&id).filter(|c|!c.deleted).map(|c|{
+            let female=c.creation.as_ref().is_some_and(|r|r.sex==crate::appearance::FEMALE);
+            Name::Literal(examination::tagged_name(&c.name,female))
+        });
+        if let Some((body,killer))=loot.body(target).filter(|_|dead && object.service.is_none()).and_then(|b|person(b.killer).map(|k|(b,k))) {
+            let corpse=examination::Corpse {
+                killer,
+                butcher:body.butcher.and_then(person),
+                first_looter:body.first_looter.and_then(person),
+                // Pyrealium policy: a body's loot is its killer's (`loot::Loot::get`).
+                can_loot:body.killer==character,
+                contents:body.opened.then(||loot.remaining(target,body.killer,now)),
+            };
+            let victim=object.name.clone().map(Name::Literal).unwrap_or_else(||names.get(object.entity,"Object"));
+            return examination::corpse_response(target,victim,&corpse).map_err(other);
+        }
         if dead {lines.push("Defeated creature. Double-click to examine its remaining loot.".into());}
         else if let Some(level)=object.stat(0x12e) {lines.push(format!("Level {level}"));}
         if let Some(service)=object.service {
@@ -2472,6 +2491,7 @@ fn corpse_action(peer:&mut Peer,character:u64,request:crate::loot::Request,loot:
     let reward=loot.get(container,character,now).ok_or_else(||invalid("No loot is available to your character."))?;
     let pending=reward.items.clone();
     if matches!(request,Request::Open(_)){
+        loot.opened(container);
         let mut events=pending.iter().map(|item|world::create_inventory_item(item,container,1).map_err(other)).collect::<io::Result<Vec<_>>>()?;
         events.push(crate::loot::opened_items(container,&pending.iter().map(|i|i.id).collect::<Vec<_>>()).map_err(other)?);
         peer.queue_ordered_batch(events)?;
@@ -2490,6 +2510,7 @@ fn corpse_action(peer:&mut Peer,character:u64,request:crate::loot::Request,loot:
         // item profiles have no sale value and remain in the container.
         let updates=item_service_transaction(peer,character,&[],&[crate::progression::Command::AwardGold(total)],completion,store,scene,metadata)?;
         for (id,_) in eligible{loot.claimed(container,id);}
+        loot.looted(container,character);
         return Ok(updates);
     }
     let Request::Take{player,item,..}=request else {unreachable!()};
@@ -2509,7 +2530,7 @@ fn corpse_action(peer:&mut Peer,character:u64,request:crate::loot::Request,loot:
         if pending.definition==crate::arwic_mines::HAMMER {
             updates.extend(arwic_exchange(peer,character,crate::arwic_mines::Action::Hammer,completion,store,scene,metadata)?);
         } else {updates.extend(item_service_transaction(peer,character,&[crate::inventory::Command::Grant(owned)],&[],completion,store,scene,metadata)?);}
-        loot.claimed(container,pending.id);collected+=1;
+        loot.claimed(container,pending.id);loot.looted(container,character);collected+=1;
     }
     if collected==0 && store.characters[&character].inventory.free_slot().is_some(){return Err(invalid("No loot was collected."));}
     Ok(updates)
@@ -4474,7 +4495,10 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                                                         trade_actions::butcher(peer, character, request.target, assets, &mut store, &mut scene, &inventory_metadata)
                                                     };
                                                     match result {
-                                                        Ok(updates) => deliveries.extend(updates),
+                                                        Ok(updates) => {
+                                                            corpse_loot.butchered(request.target, character);
+                                                            deliveries.extend(updates)
+                                                        }
                                                         Err(error) => peer.queue_ordered_batch(vec![script::chat(&error.to_string(), 1).map_err(other)?])?,
                                                     }
                                                     return Ok(replies);
@@ -6870,7 +6894,9 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                             }
                         }
                     }
-                    crate::encounters::Event::Kill { player, entity } => {
+                    crate::encounters::Event::Kill { actor, player, entity } => {
+                        // The corpse's examination names its killer ("Killed by").
+                        corpse_loot.killed(actor, player);
                         // A fellowship quest's kill counts for the killer's fellows in the world
                         // (registry credit `fellowship`; Pyrealium policy: no range limit is recovered).
                         let unix = crate::recovered_quests::now();
@@ -6940,6 +6966,7 @@ fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool) -> io::Res
                     }
                     crate::encounters::Event::Respawn { actor, health, vigor } => {
                         corpse_loot.remove(actor);
+                        trade_actions::respawned(actor);
                         scene.content_stat(actor, 0x102, health)?;
                         if let Some(max_vigor) = vigor {
                             scene.content_stat(actor, 0x103, max_vigor)?;

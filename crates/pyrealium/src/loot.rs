@@ -221,7 +221,12 @@ impl Catalog {
     }
 }
 #[derive(Default)]
-pub struct Loot {rewards:BTreeMap<u64,Reward>,sequence:u64,pub catalog:Catalog,random:u64}
+pub struct Loot {rewards:BTreeMap<u64,Reward>,sequence:u64,pub catalog:Catalog,random:u64,bodies:BTreeMap<u64,Body>}
+/// What a creature's corpse remembers for its examination profile (`examination::Corpse`): who
+/// killed it, who butchered it and who first looted it (characters), and whether it has been
+/// opened. Kept until the creature respawns or leaves the world ([`Loot::remove`]).
+#[derive(Clone,Copy,Debug,Default,PartialEq,Eq)]
+pub struct Body {pub killer:u64,pub butcher:Option<u64>,pub first_looter:Option<u64>,pub opened:bool}
 impl Loot {
     /// Reproducible isolated integration runs; never accepted from a client.
     pub fn seed_for_test(&mut self,seed:u64)->io::Result<()> {
@@ -258,7 +263,18 @@ impl Loot {
             .find_map(|(_,r)|r.items.iter().find(|i|i.id==item))
     }
     pub fn contains(&self,container:u64,now:u64)->bool{self.rewards.get(&container).is_some_and(|r|r.expires>now)}
-    pub fn remove(&mut self,container:u64){self.rewards.remove(&container);}
+    pub fn remove(&mut self,container:u64){self.rewards.remove(&container);self.bodies.remove(&container);}
+    /// `killer` killed the creature `corpse`.
+    pub fn killed(&mut self,corpse:u64,killer:u64) {
+        if self.bodies.len()>=16384 && !self.bodies.contains_key(&corpse){return}
+        self.bodies.insert(corpse,Body{killer,..Body::default()});
+    }
+    pub fn butchered(&mut self,corpse:u64,by:u64){if let Some(b)=self.bodies.get_mut(&corpse){b.butcher.get_or_insert(by);}}
+    pub fn looted(&mut self,corpse:u64,by:u64){if let Some(b)=self.bodies.get_mut(&corpse){b.first_looter.get_or_insert(by);}}
+    pub fn opened(&mut self,corpse:u64){if let Some(b)=self.bodies.get_mut(&corpse){b.opened=true;}}
+    pub fn body(&self,corpse:u64)->Option<Body>{self.bodies.get(&corpse).copied()}
+    /// The items left for `owner` in `corpse` (none once its reward is gone).
+    pub fn remaining(&self,corpse:u64,owner:u64,now:u64)->u32{self.get(corpse,owner,now).map_or(0,|r|r.items.len() as u32)}
     pub fn claimed(&mut self,container:u64,item:u64) {
         if let Some(reward)=self.rewards.get_mut(&container){reward.items.retain(|i|i.id!=item);}
     }
@@ -267,6 +283,17 @@ impl Loot {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn a_body_remembers_its_killer_first_butcher_and_first_looter_until_it_respawns() {
+        let mut loot=Loot::default();
+        loot.butchered(5,1);
+        assert_eq!(loot.body(5),None,"only a killed creature has a body record");
+        loot.killed(5,7);
+        loot.looted(5,8);loot.looted(5,9);loot.butchered(5,9);loot.opened(5);
+        assert_eq!(loot.body(5),Some(Body{killer:7,butcher:Some(9),first_looter:Some(8),opened:true}));
+        loot.remove(5);
+        assert_eq!(loot.body(5),None,"a respawned creature's new body starts afresh");
+    }
     #[test]
     fn native_quantity_overrides_fallback_but_not_lootproof_or_operator_tables() {
         let mut catalog=Catalog::default();let mut random=37;
