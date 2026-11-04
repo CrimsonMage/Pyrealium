@@ -117,6 +117,8 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     }
     let mut store = Store::open(&config.database)?;
     store.set_save_interval(config.save_interval);
+    // The instance lanes characters hold (`quest_emotes::instances`), from their quest books.
+    crate::quest_emotes::instances::rebuild(store.characters.values().filter(|c| !c.deleted).map(|c| &c.quests));
     // The hunts the AC2 Vault rows replace (`hunting_quests::retired`; `check_runnable` made sure
     // their rows are loaded): each character's state of them moves onto those rows' quests.
     if crate::quest_emotes::tables().is_some() {

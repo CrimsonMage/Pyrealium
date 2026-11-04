@@ -586,6 +586,27 @@ impl Encounters {
         Ok(())
     }
     pub fn removed(&mut self,id:u64,now:u64) { self.spawners.removed(id,now); }
+    /// Holds quest spawn slots (a live edit's new ones): they spawn only when summoned.
+    pub fn hold_slots(&mut self,ids:impl Iterator<Item=u64>) {
+        for id in ids.filter(|id|self.actors.contains_key(id)) {self.spawners.hold(id);}
+    }
+    /// A held slot's creature is due now (`quest_emotes` Generate): it comes as the spawner's
+    /// Respawn. False when the slot has a creature or one coming.
+    pub fn summon(&mut self,id:u64,now:u64)->bool { self.actors.contains_key(&id) && self.spawners.summon(id,now) }
+    /// Whether the creature `id` is alive (not a corpse, not waiting to spawn).
+    pub fn alive(&self,id:u64)->bool { self.actors.get(&id).is_some_and(|a|a.health>0) }
+    /// Whether a held slot has no creature in the world and none coming.
+    pub fn dormant(&self,id:u64)->bool { self.spawners.dormant(id) }
+    /// A held slot's creature (alive or a corpse) leaves the world: the Despawn to carry out.
+    /// Its attackers stop.
+    pub fn dismiss(&mut self,id:u64)->Option<Event> {
+        let action=self.spawners.dismiss(id)?;
+        let crate::spawners::Action::Remove(id)=action else {return None};
+        let attackers=self.attacks.iter().filter(|(_,a)|a.target==id).map(|(&p,_)|p).collect::<Vec<_>>();
+        for player in attackers {self.attacks.remove(&player);self.pending.push(Event::Stop(player));}
+        if let Some(actor)=self.actors.get_mut(&id) {actor.health=0;actor.target=None;actor.route.clear();}
+        Some(Event::Despawn(id))
+    }
     pub fn stop(&mut self, player: u64) {
         self.attacks.remove(&player);
     }

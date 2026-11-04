@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 4;
+pub const SCHEMA_VERSION: i32 = 5;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -148,6 +148,30 @@ CREATE TABLE IF NOT EXISTS template_arg (
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (use_name, param)
 );
+CREATE TABLE IF NOT EXISTS instance_group (
+  name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  doc TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS instance_lane (
+  instance_group TEXT NOT NULL REFERENCES instance_group(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  lane INTEGER NOT NULL CHECK (lane BETWEEN 0 AND 255),
+  entry TEXT NOT NULL CHECK (entry <> ''),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (instance_group, lane)
+);
+CREATE TABLE IF NOT EXISTS spawn_slot (
+  name TEXT NOT NULL CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  instance_group TEXT NOT NULL,
+  lane INTEGER NOT NULL,
+  iid TEXT NOT NULL CHECK (iid GLOB '0x[0-9a-fA-F]*'),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (name, lane),
+  FOREIGN KEY (instance_group, lane) REFERENCES instance_lane(instance_group, lane) ON UPDATE CASCADE ON DELETE CASCADE
+);
 ";
 
 /// Each table with its columns (the four TSV tables first, in TSV column order; `emote_set`'s
@@ -176,9 +200,12 @@ pub(super) const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 2] = [
+const SHAPES_TAIL: [Shape; 5] = [
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
+    Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
+    Shape { table: "instance_lane", order: "instance_group, lane", key: 2, columns: &["instance_group", "lane", "entry", "source"] },
+    Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "instance_group", "lane", "iid", "source"] },
 ];
 /// Every table, in dump order.
 pub(super) fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()) }
@@ -273,7 +300,10 @@ fn named(db: &Connection, shape: &Shape) -> io::Result<Vec<Row>> {
 /// template uses expanded into sets and actions, every set in priority order), and the aliases
 /// and named counters.
 #[derive(Default)]
-pub struct QuestRows { pub tables: [Vec<Row>; 4], pub aliases: Vec<Row>, pub counters: Vec<Row> }
+pub struct QuestRows {
+    pub tables: [Vec<Row>; 4], pub aliases: Vec<Row>, pub counters: Vec<Row>,
+    pub groups: Vec<Row>, pub lanes: Vec<Row>, pub slots: Vec<Row>,
+}
 
 pub fn rows(db: &Connection) -> io::Result<QuestRows> {
     let expanded = super::templates::expand(db)?;
@@ -289,6 +319,9 @@ pub fn rows(db: &Connection) -> io::Result<QuestRows> {
         tables: [named(db, &SHAPES[0])?, named(db, &SHAPES[1])?, sets.into_iter().map(|(_, row)| row).collect(), actions],
         aliases: named(db, shape("alias"))?,
         counters: named(db, shape("quest_counter"))?,
+        groups: named(db, shape("instance_group"))?,
+        lanes: named(db, shape("instance_lane"))?,
+        slots: named(db, shape("spawn_slot"))?,
     })
 }
 

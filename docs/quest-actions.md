@@ -35,6 +35,11 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `InqKingdom` | p1 kingdom: whole number 0-3<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether the player is in the kingdom (0: in any). |
 | `InqKingdomPoints` | p1 points: whole number, at least 0<br>[p2 success set: set name]<br>[p3 failure set: set name] | Whether the player has at least points Kingdom Points. |
 | `Goto` | p1 set: set name | Runs another set's actions, then carries on with this one's. |
+| `ClaimInstance` | p1 group: instance group name<br>[p2 success set: set name]<br>[p3 failure set: set name] | Takes a free lane of the instance group for the player (success set), or finds none free (failure set). A player already holding a lane of it succeeds. |
+| `ReleaseInstance` | p1 group: instance group name | Frees the player's lane of the group and sends its slots' creatures away. |
+| `Generate` | p1 slot: spawn slot name | Summons the slot's creature in the player's lane of its group (an earlier one's corpse goes first); nothing without a lane. |
+| `DismissSlots` | p1 group: instance group name | Sends away the creatures, alive or dead, of the group's slots in the player's lane. |
+| `MoveToLane` | p1 group: instance group name | Moves the player to the entry of its lane of the group. |
 | `MoveTo` | p1 cell: hex (0x...) or alias<br>p2 x: number<br>p3 y: number<br>p4 z: number<br>p5 heading: stage (0-255) | Moves the player to a place (heading 0-255, clockwise from north). |
 | `StartEscort` | p1 creature: entity DID (0x47...) or entity alias | The nearest free creature of the entity starts following the player. |
 | `EndEscort` | none | The player's escorts stop following. |

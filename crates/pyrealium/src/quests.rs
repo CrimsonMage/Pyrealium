@@ -75,6 +75,9 @@ pub struct Book {
     timers: std::collections::BTreeMap<u32, Timer>,
     /// Story scenes the character has earned (`crate::story`), by scene id.
     scenes: std::collections::BTreeSet<u32>,
+    /// The instance lanes the character holds (`quest_emotes` ClaimInstance), by group id.
+    #[serde(default)]
+    lanes: std::collections::BTreeMap<u32, u8>,
 }
 
 /// A data-driven quest's times, in Unix seconds (0: never).
@@ -114,6 +117,11 @@ pub enum Command {
     /// A data-driven quest reset to stage 0: its counters and run start go, its solves stay
     /// (`quest_emotes` EraseQuest).
     Erase { quest: u32 },
+    /// The character holds lane `lane` of instance group `group` (`quest_emotes` ClaimInstance;
+    /// the group's id is `quest_emotes::group_id` of its name).
+    Lane { group: u32, lane: u8 },
+    /// The character leaves its lane of instance group `group` (ReleaseInstance).
+    LaneOff { group: u32 },
     /// A retired hunt's state leaves the hunting book (`Store::migrate_retired_hunts`).
     RetireHunt { quest: u32 },
     /// A quest effect (an `Effect` state) put on at `at` until `until` (Unix seconds).
@@ -169,6 +177,8 @@ impl Command {
             Self::Started { quest, at } => format!("started,{quest:08x},{at}"),
             Self::Solved { quest, at } => format!("solved,{quest:08x},{at}"),
             Self::Erase { quest } => format!("erase,{quest:08x}"),
+            Self::Lane { group, lane } => format!("lane,{group:08x},{lane}"),
+            Self::LaneOff { group } => format!("laneoff,{group:08x}"),
             Self::RetireHunt { quest } => format!("retire,{quest:08x}"),
             Self::EffectOn { effect, at, until } => format!("effect,{effect:08x},{at},{until}"),
             Self::EffectOff { effect } => format!("effectoff,{effect:08x}"),
@@ -226,6 +236,14 @@ impl Command {
                 let until = f.next().and_then(|v| v.parse::<u64>().ok()).filter(|u| *u > at).ok_or(QuestError::InvalidRecord)?;
                 if f.next().is_some() { return Err(QuestError::InvalidRecord); }
                 Ok(Self::EffectOn { effect, at, until })
+            }
+            _ if text.starts_with("lane,") || text.starts_with("laneoff,") => {
+                let mut f = text.split(',');
+                let on = f.next() == Some("lane");
+                let group = f.next().filter(|h| h.len() == 8).and_then(|h| u32::from_str_radix(h, 16).ok()).ok_or(QuestError::InvalidRecord)?;
+                let lane = if on { Some(f.next().and_then(|v| v.parse::<u8>().ok()).ok_or(QuestError::InvalidRecord)?) } else { None };
+                if f.next().is_some() { return Err(QuestError::InvalidRecord); }
+                Ok(match lane { Some(lane) => Self::Lane { group, lane }, None => Self::LaneOff { group } })
             }
             _ if text.starts_with("erase,") => {
                 let hex = &text["erase,".len()..];
@@ -299,6 +317,9 @@ impl Book {
         self.effects.iter().filter(|(_, (_, until))| *until > now).map(|(e, (_, until))| (*e, *until)).collect()
     }
     /// A data-driven quest's times (all zero for a quest never started under them).
+    /// The lane of instance group `group` the character holds.
+    pub fn lane(&self, group: u32) -> Option<u8> { self.lanes.get(&group).copied() }
+    pub fn lanes(&self) -> impl Iterator<Item = (u32, u8)> + '_ { self.lanes.iter().map(|(g, l)| (*g, *l)) }
     pub fn timer(&self, quest: u32) -> Timer { self.timers.get(&quest).copied().unwrap_or_default() }
     /// The story scenes earned, in id order.
     pub fn scenes(&self) -> impl Iterator<Item = u32> + '_ { self.scenes.iter().copied() }
@@ -354,6 +375,8 @@ impl Book {
                 next.subcounts.retain(|(q, _), _| q != quest);
             }
             Command::RetireHunt { quest } => { next.hunting.0.remove(quest); }
+            Command::Lane { group, lane } => { next.lanes.insert(*group, *lane); }
+            Command::LaneOff { group } => { next.lanes.remove(group); }
             Command::Erase { quest } => {
                 next.stages.remove(quest);
                 next.counts.remove(quest);

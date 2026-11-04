@@ -195,6 +195,18 @@ Names instead of numbers, and shapes written once:
   or unknown argument, an unknown `$name`, or a filled-in row that does not check names the use
   and the template row. A quest with a shape of its own is plain rows.
 
+Instances (parallel copies of a place a quest hands out one per player, `quest_emotes/instances.rs`):
+
+- `instance_group` (name, doc), `instance_lane` (instance_group, lane 0-255, entry: `cell x y z
+  heading` or a placement alias), `spawn_slot` (name, instance_group, lane, iid): a slot is one
+  world placement per lane (its iid in the world table) held back until a quest summons it; it
+  never regenerates.
+- ClaimInstance takes a free lane for the player (durable in its quest book, so a restart keeps
+  it), MoveToLane moves the player to its lane's entry, Generate summons a slot's creature in the
+  player's lane, DismissSlots sends the lane's creatures away, ReleaseInstance does that and frees
+  the lane. A death, logout or expiry set may release and dismiss (not claim, summon or move), so
+  a run that ends that way can free its lane: give every instanced quest such sets.
+
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that
 family's rows and puts new sets after every existing one.

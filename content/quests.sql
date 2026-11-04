@@ -1,6 +1,6 @@
--- Pyrealium quest content (schema 4). Written by `pyrealium-content export`;
+-- Pyrealium quest content (schema 5). Written by `pyrealium-content export`;
 -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.
-PRAGMA user_version = 4;
+PRAGMA user_version = 5;
 CREATE TABLE IF NOT EXISTS quest (
   name TEXT PRIMARY KEY CHECK (name <> ''),
   journal_id TEXT NOT NULL CHECK (journal_id GLOB '0x[0-9a-fA-F]*'),
@@ -123,6 +123,30 @@ CREATE TABLE IF NOT EXISTS template_arg (
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (use_name, param)
+);
+CREATE TABLE IF NOT EXISTS instance_group (
+  name TEXT PRIMARY KEY CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  doc TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS instance_lane (
+  instance_group TEXT NOT NULL REFERENCES instance_group(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  lane INTEGER NOT NULL CHECK (lane BETWEEN 0 AND 255),
+  entry TEXT NOT NULL CHECK (entry <> ''),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (instance_group, lane)
+);
+CREATE TABLE IF NOT EXISTS spawn_slot (
+  name TEXT NOT NULL CHECK (name GLOB '[a-z]*' AND name NOT GLOB '*[^a-z0-9_]*'),
+  instance_group TEXT NOT NULL,
+  lane INTEGER NOT NULL,
+  iid TEXT NOT NULL CHECK (iid GLOB '0x[0-9a-fA-F]*'),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> ''),
+  PRIMARY KEY (name, lane),
+  FOREIGN KEY (instance_group, lane) REFERENCES instance_lane(instance_group, lane) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 INSERT INTO quest (name, journal_id, title_table, title_key, title, goal, credit, min_level, time_limit_seconds, max_solves, repeat_seconds, source, family) VALUES ('shelter', '0x4000ff05', '0x25021616', '0xa8607cec', 'Rescue the Shelter Hold', NULL, 'killer', NULL, NULL, NULL, NULL, 'Title: DAT 0x25021616 ''Rescue the Shelter Hold''; journal id 0x4000ff05 is Pyrealium''s (the retail id is not recovered); kill credit to the killer as Pyrealium''s other quests (no AC2 Vault or AC2Hero text on fellowship credit)', 'hand');

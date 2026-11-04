@@ -42,7 +42,7 @@ pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_em
         events.push(script::private_call(script::COMBAT_STATE,&script::integer(0)).map_err(other)?);
     }
     let mut updates=item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(outcome),None,None)?;
-    crate::quest_emotes::pending::defer_outcome(character,outcome);
+    crate::quest_emotes::instances::committed(character,outcome);
     // The quest's effects (ApplyEffect / RemoveEffect) reach the client's strip (`WM_Effect`);
     // an escort starts or ends.
     if let Some(runtime)=encounters.as_mut() {
@@ -86,7 +86,7 @@ pub(super) fn trigger_emotes(peer:&mut Peer,character:u64,trigger:crate::quest_e
         let mut events=Vec::new();
         for (table,key) in &outcome.tells {events.push(crate::quest_emotes::tell(*table,*key).map_err(other)?);}
         updates.extend(item_service_transaction_profile(peer,character,&outcome.items,&outcome.changes,events,store,scene,metadata,false,false,Some(&outcome),None,None)?);
-        crate::quest_emotes::pending::defer_outcome(character,&outcome);
+        crate::quest_emotes::instances::committed(character,&outcome);
         if let Some(runtime)=encounters.as_mut() {
             runtime.sync_quest_effects(character,&store.characters[&character].quests.quest_effects(unix),unix,now,true);
         }

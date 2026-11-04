@@ -38,6 +38,10 @@ pub enum Kind {
     Weights,
     /// A player stat (`Stat::NAMES`).
     Stat,
+    /// An instance group's name (`instance_group.name`).
+    Group,
+    /// A spawn slot's name (`spawn_slot.name`).
+    Slot,
 }
 
 impl Kind {
@@ -58,6 +62,8 @@ impl Kind {
             Kind::Number => "number".into(),
             Kind::Weights => "0x47...:weight,...".into(),
             Kind::Stat => format!("stat ({})", Stat::NAMES.join(", ")),
+            Kind::Group => "instance group name".into(),
+            Kind::Slot => "spawn slot name".into(),
         }
     }
 }
@@ -125,6 +131,17 @@ pub const ACTIONS: &[Spec] = &[
     Spec { name: "InqKingdomPoints", params: &[req("points", U32), OK, FAIL], doc: "Whether the player has at least points Kingdom Points." },
     // Flow
     Spec { name: "Goto", params: &[req("set", Kind::Set)], doc: "Runs another set's actions, then carries on with this one's." },
+    // Instances
+    Spec { name: "ClaimInstance", params: &[req("group", Kind::Group), OK, FAIL],
+        doc: "Takes a free lane of the instance group for the player (success set), or finds none free (failure set). A player already holding a lane of it succeeds." },
+    Spec { name: "ReleaseInstance", params: &[req("group", Kind::Group)],
+        doc: "Frees the player's lane of the group and sends its slots' creatures away." },
+    Spec { name: "Generate", params: &[req("slot", Kind::Slot)],
+        doc: "Summons the slot's creature in the player's lane of its group (an earlier one's corpse goes first); nothing without a lane." },
+    Spec { name: "DismissSlots", params: &[req("group", Kind::Group)],
+        doc: "Sends away the creatures, alive or dead, of the group's slots in the player's lane." },
+    Spec { name: "MoveToLane", params: &[req("group", Kind::Group)],
+        doc: "Moves the player to the entry of its lane of the group." },
     // World
     Spec { name: "MoveTo", params: &[req("cell", Kind::Hex), req("x", Kind::Number), req("y", Kind::Number), req("z", Kind::Number), req("heading", Kind::Stage)],
         doc: "Moves the player to a place (heading 0-255, clockwise from north)." },
@@ -154,6 +171,7 @@ fn hex(v: &str) -> Option<u32> { u32::from_str_radix(v.strip_prefix("0x").or_els
 pub struct Names<'a> {
     pub quests: &'a BTreeMap<String, u32>, pub sets: &'a BTreeMap<String, String>,
     pub aliases: &'a BTreeMap<String, (AliasKind, String)>, pub counters: &'a BTreeMap<(u32, String), u8>,
+    pub groups: &'a BTreeMap<String, super::instances::Group>, pub slots: &'a BTreeMap<String, super::instances::Slot>,
 }
 
 /// What an alias (`alias.kind`) stands for.
@@ -178,7 +196,7 @@ pub fn aliases(rows: &[super::Row]) -> std::io::Result<BTreeMap<String, (AliasKi
     }
     Ok(out)
 }
-fn placement(text: &str) -> Option<Placement> {
+pub(super) fn placement(text: &str) -> Option<Placement> {
     let t: Vec<&str> = text.split_whitespace().collect();
     if t.len() != 5 { return None; }
     let p = Placement { cell: hex(t[0])?, coordinates: [t[1].parse().ok()?, t[2].parse().ok()?, t[3].parse().ok()?], heading: t[4].parse().ok()? };
@@ -236,6 +254,8 @@ fn value(kind: Kind, text: &str, names: &Names, quest: Option<u32>) -> Result<V,
             }
             V::Weights(pairs)
         }
+        Kind::Group => if names.groups.contains_key(text) { V::Text(text.to_owned()) } else { return Err("is not an instance_group".into()) },
+        Kind::Slot => if names.slots.contains_key(text) { V::Text(text.to_owned()) } else { return Err("is not a spawn_slot".into()) },
         Kind::Stat => V::Stat(Stat::parse(text).ok_or_else(|| format!("must be one of {}", Stat::NAMES.join(", ")))?),
     })
 }
@@ -267,6 +287,7 @@ pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
         });
     }
     let quest = |i: usize| v[i].u32();
+    let text = |x: &V| if let V::Text(t) = x { t.clone() } else { String::new() };
     Ok(match name {
         "Tell" => Action::Tell { table: v[0].u32(), key: v[1].u32() },
         "Message" => Action::Message(match &v[0] { V::Text(t) => t.clone(), _ => String::new() }),
@@ -318,6 +339,11 @@ pub fn parse(name: &str, p: &[&str], names: &Names) -> Result<Action, String> {
             Action::MoveTo(placement)
         }
         "StartEscort" => Action::StartEscort(v[0].u32()),
+        "ClaimInstance" => Action::ClaimInstance { group: text(&v[0]), success: v[1].set(), failure: v[2].set() },
+        "ReleaseInstance" => Action::ReleaseInstance(text(&v[0])),
+        "DismissSlots" => Action::DismissSlots(text(&v[0])),
+        "Generate" => Action::Generate(text(&v[0])),
+        "MoveToLane" => Action::MoveToLane(text(&v[0])),
         "EndEscort" => Action::EndEscort,
         other => return Err(format!("action `{other}` has no builder")),
     })

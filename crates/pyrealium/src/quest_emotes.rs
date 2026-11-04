@@ -137,6 +137,17 @@ pub enum Action {
     /// Runs another set, then carries on.
     Goto(String),
     DecrementCounter { quest: u32, counter: u8 },
+    /// Takes a free lane of the group for the player (success), or none is free (failure); a
+    /// player holding one already succeeds.
+    ClaimInstance { group: String, success: Option<String>, failure: Option<String> },
+    /// Frees the player's lane of the group, sending its slots' creatures away.
+    ReleaseInstance(String),
+    /// Sends away the creatures of the group's slots in the player's lane.
+    DismissSlots(String),
+    /// Summons the slot's creature in the player's lane of its group.
+    Generate(String),
+    /// Moves the player to the entry of its lane of the group.
+    MoveToLane(String),
     SetCounter { quest: u32, counter: u8, value: u16 },
     /// Whether the player's level reaches the quest's `min_level`.
     InqLevel { quest: u32, success: Option<String>, failure: Option<String> },
@@ -177,6 +188,9 @@ pub struct Tables {
     sets: Vec<Set>,
     /// Each set's actions in order, each with the delay before it (milliseconds).
     actions: BTreeMap<String, Vec<(u32, Action)>>,
+    /// Instance groups and spawn slots, by name (`instances`).
+    groups: BTreeMap<String, instances::Group>,
+    slots: BTreeMap<String, instances::Slot>,
 }
 
 /// What one trigger did for one player, to be committed as one record.
@@ -199,6 +213,11 @@ pub struct Outcome {
     pub end_escort: bool,
     /// The set paused for an action's delay: the caller runs `Tables::resume` after it.
     pub resume: Option<Resume>,
+    /// Creatures summoned or sent away (`instances`; applied by the server's tick).
+    pub world: Vec<instances::WorldOp>,
+    /// Instance lanes taken and freed (group id, lane).
+    pub claims: Vec<(u32, u8)>,
+    pub releases: Vec<(u32, u8)>,
 }
 
 /// Where a set paused for a delay (ACE's per-action Delay): the sets to carry on from, innermost
@@ -273,6 +292,7 @@ pub fn shipped() -> Arc<Tables> {
 }
 
 pub mod db;
+pub mod instances;
 pub mod pending;
 mod items;
 mod load;
@@ -289,6 +309,8 @@ mod tests;
 mod engine_tests;
 #[cfg(test)]
 mod template_tests;
+#[cfg(test)]
+mod instance_tests;
 
 /// A Tell action's line: the StringInfo `table`/`key` as a chat line (display type 1).
 pub fn tell(table: u32, key: u32) -> Result<Vec<u8>, crate::world::WorldError> {

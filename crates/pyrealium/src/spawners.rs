@@ -2,6 +2,9 @@
 //! not for a retail generator's radius, child mix, density or regeneration time.
 //! Each point owns at most one child lifetime (including its lootable corpse).
 //! Fixed services and scripted actors never enter this controller.
+//! A summoned point (a quest spawn slot, `quest_emotes` Generate) has no child of its own: it
+//! waits dormant until it is summoned, and after its child's corpse is removed it is dormant
+//! again instead of regenerating.
 use std::{cmp::Reverse, collections::{BTreeMap, BinaryHeap}, io};
 
 #[derive(Clone, Copy, Debug)]
@@ -25,6 +28,8 @@ enum State {
     Spawning,
     Corpse { remove_at: u64, refill_at: u64 },
     Removing { refill_at: u64 },
+    /// A summoned point with no child and nothing scheduled.
+    Dormant,
 }
 impl State {
     fn deadline(self) -> Option<u64> {
@@ -36,7 +41,7 @@ impl State {
     }
 }
 #[derive(Clone)]
-struct Point { policy: Policy, state: State }
+struct Point { policy: Policy, state: State, summoned: bool }
 #[derive(Clone)]
 struct Group { capacity:usize, members:Vec<u64> }
 
@@ -56,7 +61,7 @@ impl Spawners {
         let mut result = Self::default();
         for (id, policy) in points {
             if id == 0 || id == u64::MAX || !policy.valid() || result.points.len() >= 16384
-                || result.points.insert(id, Point { policy, state: State::Live }).is_some()
+                || result.points.insert(id, Point { policy, state: State::Live, summoned: false }).is_some()
             {
                 return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid or duplicate point spawner"));
             }
@@ -94,6 +99,7 @@ impl Spawners {
     pub fn initialize(&mut self, now: u64) {
         self.due.clear();
         for (&id, point) in &mut self.points {
+            if point.summoned { point.state = State::Dormant; continue; }
             let due = now.saturating_add(point.policy.initial_delay_ms);
             point.state = State::Waiting { due };
             self.due.push(Reverse((due, id)));
@@ -117,6 +123,7 @@ impl Spawners {
             State::Live => now.saturating_add(point.policy.regeneration_ms),
             _ => return, // Repeated notifications must not postpone regeneration.
         };
+        if point.summoned { point.state = State::Dormant; return; }
         point.state = State::Waiting { due };
         self.due.push(Reverse((due, id)));
     }
@@ -132,9 +139,36 @@ impl Spawners {
             return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid or duplicate point spawner"));
         }
         let due = now.saturating_add(policy.initial_delay_ms);
-        self.points.insert(id, Point { policy, state: State::Waiting { due } });
+        self.points.insert(id, Point { policy, state: State::Waiting { due }, summoned: false });
         self.due.push(Reverse((due, id)));
         Ok(())
+    }
+    /// Makes `id` a summoned point: dormant from the next `initialize` (or at once when it has
+    /// no child yet), spawning only when [`Self::summon`] asks.
+    pub fn hold(&mut self, id: u64) -> bool {
+        let Some(point) = self.points.get_mut(&id) else { return false };
+        point.summoned = true;
+        if matches!(point.state, State::Waiting { .. }) { point.state = State::Dormant; }
+        true
+    }
+    pub fn dormant(&self, id: u64) -> bool { self.points.get(&id).is_some_and(|p| matches!(p.state, State::Dormant)) }
+    /// A dormant summoned point's child is due at `now`.
+    pub fn summon(&mut self, id: u64, now: u64) -> bool {
+        let Some(point) = self.points.get_mut(&id).filter(|p| p.summoned && matches!(p.state, State::Dormant)) else { return false };
+        point.state = State::Waiting { due: now };
+        self.due.push(Reverse((now, id)));
+        true
+    }
+    /// A summoned point's child (alive or a corpse) leaves the world: `Some(Remove)` for the
+    /// caller to carry out (then [`Self::removed`] makes it dormant); one not yet spawned is
+    /// dormant at once.
+    pub fn dismiss(&mut self, id: u64) -> Option<Action> {
+        let point = self.points.get_mut(&id).filter(|p| p.summoned)?;
+        match point.state {
+            State::Waiting { .. } => { point.state = State::Dormant; None }
+            State::Live | State::Corpse { .. } => { point.state = State::Removing { refill_at: 0 }; Some(Action::Remove(id)) }
+            _ => None,
+        }
     }
     /// Live edit: forget a point and its group membership. Stale heap entries are skipped.
     pub fn remove_point(&mut self, id: u64) {
@@ -209,6 +243,21 @@ mod tests {
     fn population() -> Spawners {
         Spawners::new([(7, Policy { initial_delay_ms: 500, regeneration_ms: 3000 }),
             (8, Policy { initial_delay_ms: 0, regeneration_ms: 5000 })].into_iter()).unwrap()
+    }
+    #[test]
+    fn a_summoned_point_spawns_only_when_summoned_and_never_regenerates() {
+        let mut p=population();assert!(p.hold(7));p.initialize(0);
+        assert_eq!(p.poll(100000),vec![Action::Spawn(8)],"held point stays dormant");
+        assert!(p.dormant(7));assert!(p.summon(7,200000));assert!(!p.summon(7,200000));
+        assert_eq!(p.poll(200000),vec![Action::Spawn(7)]);assert!(p.spawned(7));
+        assert!(p.died(7,201000,60000));assert_eq!(p.poll(261000),vec![Action::Remove(7)]);
+        p.removed(7,261000);assert!(p.dormant(7));assert!(p.poll(10_000_000).is_empty(),"no regeneration");
+        // Dismissed while alive: removed now, then dormant.
+        assert!(p.summon(7,0));p.poll(10_000_001);p.spawned(7);
+        assert_eq!(p.dismiss(7),Some(Action::Remove(7)));p.removed(7,10_000_002);assert!(p.dormant(7));
+        // Dismissed before it spawned: dormant at once, and the stale deadline is skipped.
+        assert!(p.summon(7,20_000_000));assert_eq!(p.dismiss(7),None);assert!(p.poll(20_000_000).is_empty());
+        assert_eq!(p.dismiss(8),None,"an ordinary point cannot be dismissed");
     }
     #[test]
     fn overrides_preserve_and_restore_high_bit_native_groups() {

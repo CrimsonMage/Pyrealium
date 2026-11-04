@@ -199,7 +199,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                         let previous = c.quests.clone();
                         let account = c.account.clone();
                         if srv.store.emote_transaction(&account, fellow, &outcome).is_err() { continue; }
-                        crate::quest_emotes::pending::defer_outcome(fellow, &outcome);
+                        crate::quest_emotes::instances::committed(fellow, &outcome);
                         for (table, key) in &outcome.tells {
                             updates.push(crate::scene::Delivery { recipient: fellow, data: crate::quest_emotes::tell(*table, *key).map_err(other)?.into() });
                         }

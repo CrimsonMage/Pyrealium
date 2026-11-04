@@ -12,7 +12,7 @@ pub(super) fn commit_quest_outcome(store: &mut Store, character: u64, outcome: &
     let mut events = store.characters[&character].quests.updates_since(&before).map_err(other)?;
     for (table, key) in &outcome.tells { events.push(crate::quest_emotes::tell(*table, *key).map_err(other)?); }
     for line in &outcome.lines { events.push(script::chat(line, 1).map_err(other)?); }
-    crate::quest_emotes::pending::defer_outcome(character, outcome);
+    crate::quest_emotes::instances::committed(character, outcome);
     Ok(events)
 }
 
@@ -46,6 +46,8 @@ pub(super) fn departed(store: &mut Store, character: u64) {
 /// run their QuestExpired sets once.
 pub(super) fn quest_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer>) -> io::Result<()> {
     let Some(tables) = crate::quest_emotes::tables() else { return Ok(()) };
+    let updates = world_ops(srv)?;
+    deliver_scene(updates, &srv.active_characters, peers, &srv.primary, srv.now, &mut srv.failed_peers)?;
     for (character, resume) in crate::quest_emotes::pending::take_due() {
         if let Err(error) = resume_set(srv, peers, &tables, character, &resume) {
             eprintln!("Quest set {} resumed for character {character:x}: {error}", resume.frames.first().map_or("", |f| f.0.as_str()));
@@ -94,4 +96,31 @@ fn resume_set(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, Peer>, tables: 
     let updates = commit_emote(peer, character, &outcome, Vec::new(), &mut srv.store, &mut srv.scene, &srv.inventory_metadata,
         &mut srv.encounters, &mut srv.bootstrap, srv.now_ms)?;
     deliver_scene(updates, &srv.active_characters, peers, &srv.primary, srv.now, &mut srv.failed_peers)
+}
+
+/// The spawn slots committed outcomes summon or send away (`quest_emotes::instances`).
+fn world_ops(srv: &mut Server) -> io::Result<Vec<crate::scene::Delivery>> {
+    let mut updates = Vec::new();
+    let ops = crate::quest_emotes::instances::take_world();
+    let Some(runtime) = srv.encounters.as_mut() else { return Ok(updates) };
+    for op in ops {
+        match op {
+            crate::quest_emotes::instances::WorldOp::Dismiss(id) => updates.extend(dismiss_slot(runtime, &mut srv.scene, id, srv.now_ms)?),
+            crate::quest_emotes::instances::WorldOp::Generate(id) => {
+                // A slot whose creature still stands is left; an earlier one's corpse goes first.
+                if !runtime.dormant(id) && !runtime.alive(id) { updates.extend(dismiss_slot(runtime, &mut srv.scene, id, srv.now_ms)?); }
+                runtime.summon(id, srv.now_ms);
+            }
+        }
+    }
+    Ok(updates)
+}
+/// A spawn slot's creature (alive or a corpse) sent away now.
+fn dismiss_slot(runtime: &mut crate::encounters::Encounters, scene: &mut crate::scene::Scene, id: u64, now: u64) -> io::Result<Vec<crate::scene::Delivery>> {
+    let mut updates = Vec::new();
+    if let Some(crate::encounters::Event::Despawn(id)) = runtime.dismiss(id) {
+        if scene.content_placement(id).is_some() { updates.extend(scene.despawn_content(id)?); }
+        runtime.removed(id, now);
+    }
+    Ok(updates)
 }

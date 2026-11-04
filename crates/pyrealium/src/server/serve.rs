@@ -93,6 +93,8 @@ pub(super) fn serve(mut srv: Server, mut peers: BTreeMap<SocketAddr, Peer>, mut 
                 let reply = match crate::live_edit::apply(&job.change, &mut srv.scene, srv.encounters.as_mut(), &mut srv.corpse_loot, srv.now_ms) {
                     Ok((deliveries, mut summary)) => {
                         summary.quests = job.change.quests.as_ref().map(|q| crate::live_edit::apply_quests(q, &mut srv.inventory_metadata));
+                        // New spawn slots wait to be summoned.
+                        if let (Some(q), Some(runtime)) = (job.change.quests.as_ref(), srv.encounters.as_mut()) { runtime.hold_slots(q.tables.slot_iids()); }
                         summary.apply_us = started.elapsed().as_micros() as u64;
                         deliver_scene(deliveries, &srv.active_characters, &mut peers, &srv.primary, srv.now, &mut srv.failed_peers)?;
                         println!("Live edit: +{} -{} ~{} objects, {} rule targets{}, applied in {} µs.",

@@ -61,8 +61,8 @@ impl Tables {
     }
 
     /// The same, with the database's aliases and named counters (`db::rows`).
-    pub fn parse_all(rows: super::db::QuestRows) -> io::Result<Self> {
-        let tables = rows.tables;
+    pub fn parse_all(mut rows: super::db::QuestRows) -> io::Result<Self> {
+        let tables = std::mem::take(&mut rows.tables);
         let mut t = Tables::default();
         for (at, f) in &tables[0] {
             let f: Vec<&str> = f.iter().map(String::as_str).collect();
@@ -95,6 +95,7 @@ impl Tables {
             if t.stages.insert((quest, stage), (completed, f[3].to_owned())).is_some() { return Err(bad("duplicate stage")); }
         }
         let aliases = super::spec::aliases(&rows.aliases)?;
+        t.instances(&rows, &aliases)?;
         let counters = super::spec::counters(&rows.counters, &t.keys)?;
         let entity_or_alias = |v: &str| hex32(v).or_else(|| aliases.get(v).filter(|(k, _)| *k == super::spec::AliasKind::Entity).and_then(|(_, v)| hex32(v)));
         let mut lines = BTreeMap::new();
@@ -137,7 +138,7 @@ impl Tables {
             let order: u32 = f[1].parse().map_err(|_| bad("order must be a whole number"))?;
             let delay: u32 = if f[3].is_empty() { 0 } else { f[3].parse().ok().filter(|d| *d <= 3_600_000).ok_or_else(|| bad("delay_ms must be 0 to 3600000 (an hour)"))? };
             if f[9].is_empty() { return Err(bad("source must not be empty")); }
-            let names = super::spec::Names { quests: &t.keys, sets: &lines, aliases: &aliases, counters: &counters };
+            let names = super::spec::Names { quests: &t.keys, sets: &lines, aliases: &aliases, counters: &counters, groups: &t.groups, slots: &t.slots };
             let action = super::spec::parse(f[2], &f[4..9], &names).map_err(|why| bad(&why))?;
             if let Action::Goto(target) = &action { if target == f[0] { return Err(bad("a set cannot Goto itself")); } }
             orders.entry(f[0].to_owned()).or_default().push((order, at.clone(), (delay, action)));
@@ -181,7 +182,7 @@ impl Tables {
                 for (_, action) in self.actions.get(set).map_or(&[][..], Vec::as_slice) {
                     let refused = matches!(action, Action::GiveItem { .. } | Action::TakeItem { .. } | Action::RandomGive(_)
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
-                        | Action::StartEscort(_));
+                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::ClaimInstance { .. });
                     if refused {
                         let at = lines.get(start.id.as_str()).map_or("", String::as_str);
                         return Err(io::Error::other(format!("{at}: a {:?} set changes quests and talks only, but reaches {action:?} in set {set}",
@@ -199,6 +200,33 @@ impl Tables {
                     }
                 }
             }
+        }
+        Ok(())
+    }
+}
+
+impl Tables {
+    /// The instance groups, their lanes (each entry a placement `cell x y z heading` or a
+    /// placement alias) and the spawn slots (one iid per lane of the slot's group).
+    fn instances(&mut self, rows: &super::db::QuestRows, aliases: &BTreeMap<String, (super::spec::AliasKind, String)>) -> io::Result<()> {
+        use super::instances::{Group, Slot, group_id};
+        for (_, f) in &rows.groups { self.groups.insert(f[0].clone(), Group { id: group_id(&f[0]), lanes: BTreeMap::new() }); }
+        for (at, f) in &rows.lanes {
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
+            let text = aliases.get(&f[2]).filter(|(k, _)| *k == super::spec::AliasKind::Placement).map_or(f[2].as_str(), |(_, v)| v.as_str());
+            let entry = super::spec::placement(text).ok_or_else(|| bad("entry must be `cell x y z heading` or a placement alias"))?;
+            let lane: u8 = f[1].parse().map_err(|_| bad("lane must be 0 to 255"))?;
+            self.groups.get_mut(&f[0]).ok_or_else(|| bad("instance_group is not in instance_group"))?.lanes.insert(lane, entry);
+        }
+        for (at, f) in &rows.slots {
+            let bad = |why: &str| io::Error::other(format!("{at}: {why}"));
+            let lane: u8 = f[2].parse().map_err(|_| bad("lane must be 0 to 255"))?;
+            if !self.groups.get(&f[1]).is_some_and(|g| g.lanes.contains_key(&lane)) { return Err(bad("the slot's group has no such lane")); }
+            let iid = hex64(&f[3]).ok_or_else(|| bad("iid must be hex"))?;
+            let slot = self.slots.entry(f[0].clone()).or_insert_with(|| Slot { group: f[1].clone(), iids: BTreeMap::new() });
+            if slot.group != f[1] { return Err(bad("a slot belongs to one instance group")); }
+            if self.slots.values().any(|s| s.iids.values().any(|i| *i == iid)) { return Err(bad("another slot already holds this iid")); }
+            self.slots.get_mut(&f[0]).unwrap().iids.insert(lane, iid);
         }
         Ok(())
     }

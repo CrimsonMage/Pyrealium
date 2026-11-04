@@ -263,6 +263,10 @@ impl Encounters {
         }
         }
         spawners.replace_groups(OPERATOR_GROUP,bestiary.operator_groups(&actors))?;
+        // Quest spawn slots spawn only when a quest's Generate summons them (`quest_emotes`).
+        if let Some(tables)=crate::quest_emotes::tables() {
+            for id in tables.slot_iids().filter(|id|actors.contains_key(id)) {spawners.hold(id);}
+        }
         Ok(Self {
             native_motion: false,
             actors,

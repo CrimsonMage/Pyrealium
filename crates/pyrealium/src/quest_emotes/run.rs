@@ -231,6 +231,37 @@ impl Tables {
                     };
                     if let Some(next) = branch(value >= *min && max.is_none_or(|m| value <= m), success, failure) { if let Some(frames) = self.descend(&next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
                 }
+                Action::ClaimInstance { group, success, failure } => {
+                    let ok = match self.groups.get(group) {
+                        Some(g) if s.book.lane(g.id).is_some() => true,
+                        Some(g) => match super::instances::free_lane(g, &s.outcome.claims) {
+                            Some(lane) => { s.quest(Q::Lane { group: g.id, lane })?; s.outcome.claims.push((g.id, lane)); true }
+                            None => false,
+                        },
+                        None => false,
+                    };
+                    if let Some(next) = branch(ok, success, failure) { if let Some(frames) = self.descend(&next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
+                }
+                Action::ReleaseInstance(group) => {
+                    if let Some((id, lane)) = self.groups.get(group).and_then(|g| s.book.lane(g.id).map(|l| (g.id, l))) {
+                        self.dismiss_lane(group, lane, s);
+                        s.quest(Q::LaneOff { group: id })?;
+                        s.outcome.releases.push((id, lane));
+                    }
+                }
+                Action::DismissSlots(group) => {
+                    if let Some(lane) = self.groups.get(group).and_then(|g| s.book.lane(g.id)) { self.dismiss_lane(group, lane, s); }
+                }
+                Action::Generate(slot) => {
+                    let iid = self.slots.get(slot).and_then(|sl| {
+                        let lane = self.groups.get(&sl.group).and_then(|g| s.book.lane(g.id))?;
+                        sl.iids.get(&lane).copied()
+                    });
+                    if let Some(iid) = iid { s.outcome.world.push(super::instances::WorldOp::Generate(iid)); }
+                }
+                Action::MoveToLane(group) => {
+                    if let Some(entry) = self.groups.get(group).and_then(|g| g.lanes.get(&s.book.lane(g.id)?)) { s.outcome.moveto = Some(*entry); }
+                }
                 Action::Goto(next) => { if let Some(frames) = self.descend(next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
                 Action::SetStage { quest, stage } => {
                     let done = |st: u8| self.stage(*quest, st).is_some_and(|(d, _)| d);
@@ -314,6 +345,15 @@ impl Tables {
         }
         Ok(None)
     }
+    /// Sends away the creatures of `group`'s slots in `lane`.
+    fn dismiss_lane(&self, group: &str, lane: u8, s: &mut State) {
+        for slot in self.slots.values().filter(|sl| sl.group == group) {
+            if let Some(iid) = slot.iids.get(&lane) { s.outcome.world.push(super::instances::WorldOp::Dismiss(*iid)); }
+        }
+    }
+    /// Every spawn slot's creature (the encounters hold them until summoned).
+    pub fn slot_iids(&self) -> impl Iterator<Item = u64> + '_ { self.slots.values().flat_map(|s| s.iids.values().copied()) }
+
     fn descend(&self, next: &str, set: &str, i: usize, s: &mut State, make: &dyn Fn(u32, u64, u16) -> Option<Item>, depth: u8)
         -> io::Result<Option<Vec<(String, usize)>>> {
         Ok(self.perform(next, 0, false, s, make, depth + 1)?.map(|mut frames| { frames.push((set.to_owned(), i + 1)); frames }))
