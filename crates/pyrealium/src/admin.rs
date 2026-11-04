@@ -6,7 +6,8 @@
 //! quest database dump, and the revision they were edited from). The
 //! request thread parses, checks and diffs (`live_edit::Planner`); the game loop
 //! applies the result between packets and replies; then the texts are saved to the
-//! overlay paths so a restart gives the same world. Every request carries
+//! overlay paths so a restart gives the same world. `GET /admin/strings?entity=0x47...` (or
+//! `?table=0x25...`) lists a DAT string table's lines for the quest editor (`dat_lines`). Every request carries
 //! `Authorization: Bearer TOKEN`; the token is in `DATA/admin.token` (owner-only).
 use crate::live_edit::{Job, Planner};
 use std::{
@@ -87,6 +88,8 @@ pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
     if paths.world==paths.rules || paths.quests==paths.world || paths.quests==paths.rules || paths.quests_base==paths.quests {
         return Err(io::Error::other("world, rules and quests paths must be different"));
     }
+    // The DAT's string tables for the quest editor's line picker (none if the DAT will not open).
+    let lines = crate::dat_lines::Lines::open(&game_data).ok();
     let planner = Planner::new(game_data, &read_or_empty(&paths.world)?, &read_or_empty(&paths.rules)?, base, quests.unwrap_or_default())?;
     let mut secret = [0u8; 32];
     getrandom::getrandom(&mut secret).map_err(|error| io::Error::other(error.to_string()))?;
@@ -98,10 +101,10 @@ pub fn start(bind: SocketAddr, data: &Path, game_data: PathBuf, paths: Paths,
     let players = Arc::new(AtomicUsize::new(0));
     let published = players.clone();
     std::thread::Builder::new().name("admin".into()).spawn(move || {
-        let mut planner = planner;
+        let (mut planner, mut lines) = (planner, lines);
         for request in server.incoming_requests() {
             // A browser closing its connection must not shut down the editor.
-            let _ = handle(request, &token, &mut planner, &sender, &published, &paths, &shipped);
+            let _ = handle(request, &token, &mut planner, &mut lines, &sender, &published, &paths, &shipped);
         }
     })?;
     println!("Live world editing on http://{address} (token in {}).", data.join("admin.token").display());
@@ -122,7 +125,8 @@ fn authorized(request: &Request, token: &str) -> bool {
     })
 }
 
-fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>,
+#[allow(clippy::too_many_arguments)]
+fn handle(mut request: Request, token: &str, planner: &mut Planner, lines: &mut Option<crate::dat_lines::Lines>, jobs: &mpsc::SyncSender<Job>,
           players: &AtomicUsize, paths: &Paths, shipped: &str) -> io::Result<()> {
     if !authorized(&request, token) {
         return request.respond(json(401, serde_json::json!({"error": "missing or wrong admin token"})));
@@ -142,9 +146,30 @@ fn handle(mut request: Request, token: &str, planner: &mut Planner, jobs: &mpsc:
                 _ => json(413, serde_json::json!({"error": "request body over 9 MiB or not UTF-8"})),
             }
         }
+        (Method::Get, url) if url.starts_with("/admin/strings?") => strings(&url["/admin/strings?".len()..], lines.as_mut()),
         _ => json(404, serde_json::json!({"error": "unknown admin request"})),
     };
     request.respond(response)
+}
+
+/// `entity=0x47...` (the NPC's own table) or `table=0x25...`: `{table, lines: [{key, text}]}`.
+fn strings(query: &str, lines: Option<&mut crate::dat_lines::Lines>) -> Response<io::Cursor<Vec<u8>>> {
+    let Some(lines) = lines else { return json(503, serde_json::json!({"error": "the server's DAT string tables are not available"})) };
+    let value = |name: &str| query.split('&').find_map(|pair| pair.strip_prefix(name)?.strip_prefix('='))
+        .and_then(|v| u32::from_str_radix(v.trim_start_matches("0x"), 16).ok());
+    let table = match (value("entity"), value("table")) {
+        (Some(entity), None) => match lines.table_of(entity) {
+            Some(table) => table,
+            None => return json(404, serde_json::json!({"error": "that entity has no named string table"})),
+        },
+        (None, Some(table)) => table,
+        _ => return json(400, serde_json::json!({"error": "ask for entity=0x47... or table=0x25..."})),
+    };
+    match lines.lines(table) {
+        Ok(found) => json(200, serde_json::json!({"table": format!("0x{table:08x}"),
+            "lines": found.into_iter().map(|(key, text)| serde_json::json!({"key": format!("0x{key:08x}"), "text": text})).collect::<Vec<_>>()})),
+        Err(error) => json(404, serde_json::json!({"error": error.to_string()})),
+    }
 }
 
 fn sync(body: &str, planner: &mut Planner, jobs: &mpsc::SyncSender<Job>, paths: &Paths, shipped: &str) -> Response<io::Cursor<Vec<u8>>> {

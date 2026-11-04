@@ -29,6 +29,7 @@ from editor_geometry import GeometryTools
 from editor_population import Population
 from editor_hero_map import HeroMap, default_export, load_export, read_routes, map_units, world_point, snap_tile_scale
 from editor_live import LiveLink
+from editor_quest_panel import QuestPanel
 
 
 def app_folder():
@@ -351,6 +352,8 @@ class Editor:
         self.workspace.add(self.atlas, text="World map")
         self.workspace.add(self.view3d, text="Explore in 3D")
         self.workspace.add(map_frame, text="Position map")
+        self.quest_panel = QuestPanel(self.workspace, self)
+        self.workspace.add(self.quest_panel, text="Quests")
         self.position_page = map_frame
         # The position map follows the camera: redraw it whenever its tab is shown.
         self.workspace.bind("<<NotebookTabChanged>>", lambda event: self.workspace.select() == str(map_frame) and self.preview())

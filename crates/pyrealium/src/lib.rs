@@ -80,6 +80,7 @@ pub mod creature_motion;
 pub mod world_rules;
 pub mod live_edit;
 pub mod admin;
+pub mod dat_lines;
 mod native_trophies;
 
 

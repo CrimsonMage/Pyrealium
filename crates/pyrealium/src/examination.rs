@@ -174,7 +174,7 @@ impl Names {
         }
         if !line.is_empty(){lines.push(line);}lines
     }
-    fn read(portal: &mut Dat, definition: u32) -> io::Result<Name> {
+    pub(crate) fn read(portal: &mut Dat, definition: u32) -> io::Result<Name> {
         let invalid = || io::Error::other("unsupported definition name prefix");
         if definition >> 24 != 0x47 {
             return Err(invalid());

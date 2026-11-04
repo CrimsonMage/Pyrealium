@@ -323,10 +323,25 @@ how long the server took to apply it.
   capacity. Live creatures use their native movement descriptors and instance scale.
 - Corpses already rolled keep their loot; the next kill uses the new table.
 - Only loopback addresses are accepted. Endpoints: `GET /admin/status`,
-  `GET /admin/quests` (`{revision, quests}`), and `POST /admin/sync` with
+  `GET /admin/quests` (`{revision, quests}`), `GET /admin/strings?entity=0x47...`
+  or `?table=0x25...` (a DAT string table's lines, for the Quests tab's line
+  picker), and `POST /admin/sync` with
   `{base, world, rules, quests?}`, all with `Authorization: Bearer TOKEN`.
 
 ### Quests
+
+The **Quests** tab (beside the World map) edits the quests in the editor itself:
+
+- **Open quests**, then find a quest, set, trigger or owner in the list.
+- Edit the set's fields and **Apply**.
+- Add, edit, delete and reorder its actions. Each action shows its parameters' help from
+  `docs/quest-actions.md`.
+- **Pick DAT line…** lists the owner NPC's own string-table lines from the live server and
+  makes the row a `Tell` by reference. Type your own text in a `Say` or `Message` row instead
+  where no line fits.
+- **Save** commits the database, and the live link pushes it.
+
+The guide to writing quests and speech is [`quest-authoring.md`](quest-authoring.md).
 
 The server's quest content (the quest database, `content/quests.sql`; see
 `content/README.md`) goes live the same way, as `my-world.quests.sql` beside the
