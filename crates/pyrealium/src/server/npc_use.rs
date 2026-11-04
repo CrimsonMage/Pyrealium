@@ -1,4 +1,4 @@
-//! Emotes, NPC dialogue and the training mentor.
+//! Quest emotes on world objects: Use, Ask and Talk sets and their committed outcomes.
 use super::*;
 
 // Explicit development services assigned to these DAT-backed NPC types.
@@ -12,10 +12,32 @@ pub(super) fn use_emote(peer:&mut Peer,character:u64,target:u64,trigger:crate::q
     scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,
     encounters:&mut Option<crate::encounters::Encounters>,bootstrap:&mut Option<crate::bootstrap::Bootstrap>,now:u64)->io::Result<Vec<crate::scene::Delivery>> {
     let saved=&store.characters[&character];
-    if peer.combat || !saved.progression.alive() {return Err(invalid("Do that while alive and out of combat."));}
-    let object=scene.examination_content(character,target).ok_or_else(||invalid("That is not visible."))?;
     let used=item.map(|id|saved.inventory.items().find(|i|i.id==id && matches!(i.location,crate::inventory::Location::Bag(_))).map(|i|i.definition)
         .ok_or_else(||invalid("Use an item from your backpack."))).transpose()?;
+    run_emote(peer,character,target,trigger,used,store,scene,metadata,encounters,bootstrap,now)
+}
+
+/// `@ask <topic>` (and `@mentor <topic>`): the nearest NPC within four metres with Ask sets
+/// answers the topic (`quest_emotes::topic_key`).
+#[allow(clippy::too_many_arguments)]
+pub(super) fn ask_emote(peer:&mut Peer,character:u64,topic:&str,store:&mut Store,
+    scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,
+    encounters:&mut Option<crate::encounters::Encounters>,bootstrap:&mut Option<crate::bootstrap::Bootstrap>,now:u64)->io::Result<Vec<crate::scene::Delivery>> {
+    let tables=crate::quest_emotes::installed()?;
+    let target=scene.nearby_object(character,|entity,iid|tables.reacts(entity,iid,crate::quest_emotes::Trigger::Ask))
+        .ok_or_else(||invalid("No one within four metres answers questions."))?;
+    run_emote(peer,character,target,crate::quest_emotes::Trigger::Ask,Some(crate::quest_emotes::topic_key(topic)),store,scene,metadata,encounters,bootstrap,now)
+}
+
+/// Runs `trigger` on the object for the player, `used` being the set's item (an item's
+/// definition, or an Ask topic's key).
+#[allow(clippy::too_many_arguments)]
+fn run_emote(peer:&mut Peer,character:u64,target:u64,trigger:crate::quest_emotes::Trigger,used:Option<u32>,store:&mut Store,
+    scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,
+    encounters:&mut Option<crate::encounters::Encounters>,bootstrap:&mut Option<crate::bootstrap::Bootstrap>,now:u64)->io::Result<Vec<crate::scene::Delivery>> {
+    let saved=&store.characters[&character];
+    if peer.combat || !saved.progression.alive() {return Err(invalid("Do that while alive and out of combat."));}
+    let object=scene.examination_content(character,target).ok_or_else(||invalid("That is not visible."))?;
     let roll=(now % 1000) as f32/1000.;
     let outcome=crate::quest_emotes::installed()?.run(trigger,object.entity,target,used,&saved.quests,&saved.inventory,&saved.progression,store.next_item_id()?,roll,crate::clock::now(),&crate::quest_emotes::item)?
         .ok_or_else(||invalid("Nothing happens."))?;
@@ -55,7 +77,11 @@ pub(super) fn outcome_lines(outcome:&crate::quest_emotes::Outcome,speaker:Option
 pub(super) fn commit_emote(peer:&mut Peer,character:u64,outcome:&crate::quest_emotes::Outcome,mut events:Vec<Vec<u8>>,speaker:Option<(u64,&str)>,store:&mut Store,
     scene:&mut crate::scene::Scene,metadata:&BTreeMap<u32,Option<crate::inventory_request::Metadata>>,
     encounters:&mut Option<crate::encounters::Encounters>,bootstrap:&mut Option<crate::bootstrap::Bootstrap>,now:u64)->io::Result<Vec<crate::scene::Delivery>> {
-    for (table,key) in &outcome.tells {events.push(crate::quest_emotes::tell(*table,*key).map_err(other)?);}
+    // A DAT line from an NPC is its speech; with no speaker it is a chat line.
+    for (table,key) in &outcome.tells {events.push(match speaker {
+        Some((iid,name)) if !name.is_empty() => crate::interaction::speech_localized(iid,name,*table,*key),
+        _ => crate::quest_emotes::tell(*table,*key),
+    }.map_err(other)?);}
     let before=store.characters[&character].quests.clone();
     let after=outcome.quests.iter().try_fold(before.clone(),|b,c|b.apply(c)).map_err(other)?;
     events.extend(outcome_lines(outcome,speaker,&before,&after)?);
@@ -147,26 +173,5 @@ pub(super) fn npc_interaction_events(owner: u64, target: u64, scene: &crate::sce
         crate::interaction::speech(target,name,text).map_err(other)?])
 }
 
-pub(super) fn use_npc_dialogue(peer:&mut Peer, owner:u64,target:u64,store:&Store,scene:&crate::scene::Scene,now:u64)
-    ->io::Result<()> {
-    if peer.combat || !store.characters[&owner].progression.alive() {
-        return Err(invalid("Speak to the NPC while alive and out of combat."));
-    }
-    let object=scene.examination_content(owner,target).ok_or_else(||invalid("NPC is not visible."))?;
-    let profile=crate::npc_dialogue::profiles().get(&object.entity).ok_or_else(||invalid("Unknown NPC."))?;
-    let completion=npc_use_completion(owner,target,scene)?;
-    peer.admit_npc_dialogue(now)?;
-    let text=profile.reply(peer.npc_dialogue.page(owner,target));
-    peer.queue_ordered_batch(vec![completion,
-        crate::interaction::speech(target,&profile.name,&text).map_err(other)?,
-        crate::interaction::dialogue(&profile.name,&text).map_err(other)?])?;
-    peer.npc_dialogue.advance(owner,target,profile.topics.len());
-    Ok(())
-}
 
-pub(super) fn mentor_interaction_events(owner: u64, target: u64, scene: &crate::scene::Scene, text: &str) -> io::Result<Vec<Vec<u8>>> {
-    let mut events = npc_interaction_events(owner, target, scene, "Pectar, Training Master", text)?;
-    events.push(crate::interaction::dialogue("Pectar, Training Master", text).map_err(other)?);
-    Ok(events)
-}
 

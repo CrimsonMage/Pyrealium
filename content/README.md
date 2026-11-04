@@ -163,6 +163,29 @@ reads `quests.sql` from beside the world table (`--content`; content preparation
   (no owner: reached from another set), and PlayerDeath, QuestExpired and Logout (no owner; they
   name their quest and stages: a death, a run past its time limit, or leaving the world). The
   last three change quests and talk only: the check refuses one that reaches a reward or a move.
+  The two conversation triggers:
+  - Ask: `@ask <topic>` (or `@mentor <topic>`) to the nearest NPC within four metres that has
+    Ask sets. The set's `phrase` column holds its topic (case and spacing are ignored); a set
+    with no phrase answers any other topic. `phrase` is for Ask sets only.
+  - Talk: the NPC's own conversation. It runs when a use of the NPC finds no quest Use set,
+    merchant or other service, and on `@talk` with the NPC selected.
+  `probability` is cumulative against one roll, as in ACE: for four equally likely lines, give
+  the first three sets 0.25, 0.5 and 0.75 and leave the last empty.
+- Speech: a set can speak a DAT line by reference, or text written in the row.
+  - `Tell table key` speaks the line from that NPC's own string table. The row holds only the
+    IDs; put a quote in `source` so the row stays readable. An NPC's Tell is its speech, a
+    bubble plus a chat line; with no NPC speaking (a Crafted set, for example) it is a chat line.
+  - `Say` holds your own text (a bubble plus the dialogue window) and `Message` gives a chat
+    line. Use them where no DAT line fits.
+  - Many NPC tables share the same keys:
+    - `0x2ae6122c` / `0x2ae6124e` / `0x2ae61248` / `0x2ae6124a`: offer, the first to fourth task
+    - `0x68a07c4d` / `0x68a04d4d` / `0x68a04e4d` / `0x68a04f4d`: reward
+    - `0xcde80fb2` / `0xcdeb1fb2` / `0xcdeb2fb2` / `0xcdeb3fb2`: not done yet
+    - `0x09200efe`: no task today
+    - `0x68f492a3`: come back when stronger
+    - `0xa964fc6c`: come back tomorrow, the repeat wait
+  - Choose the line with stage ranges and checks: `InqStage`, `InqLevel` / `InqStat`,
+    `InqOwnsItems` and `InqQuestReady`. `INDEX/dat_index.sqlite` lists every table's lines.
 - `emote_action`: emote_set, ord, action, delay_ms, p1..p5, source. Every action and its
   parameters is in [`docs/quest-actions.md`](../docs/quest-actions.md) (generated from the
   engine's list: `pyrealium-content actions`). `delay_ms` (up to an hour) waits before that
@@ -1091,14 +1114,15 @@ selected walkthroughs; they are not recovered retail speech. Empty lore sections
 are not replaced with invented quotations. Mirror aliases with identical quest
 bodies share a topic, and discontinued quests are labeled rather than activated.
 
-Ordinary double-click/use reaches this catalog after working quest, merchant,
-tutorial and service handlers. `@talk` browses the selected NPC's information
-without accepting a quest, spending items or opening its shop. Success returns
-native use completion, named speech, and a readable MessageDialog. Repeat use
-cycles pages; switching speakers resets browsing. Both paths require a living
-player out of combat, a visible noncombat NPC and a distance of at most four
-metres. The one-second limit applies across both paths. No rewards or journal
-state are changed by informational conversation.
+What these NPCs say is now quest content, not this file: each has a `Talk` set in
+`quests.sql` (family `npc`, named `talk_<entity>`). `Talk` runs when the player uses an
+NPC and no quest Use set, merchant or other service answered, and on `@talk` with the NPC
+selected. 65 NPCs whose DAT string table has the "no task today" line (key `0x09200efe`)
+speak it with `Tell`. The other 152 keep their wiki summaries as `Say` rows, one topic at
+random, until their tables' line roles are traced. Their `source` says which ones have a
+table. The server no longer reads `profiles[].topics`; the file stays as the placement
+evidence for `npc-world-v1.tsv`. Both paths require a living player out of combat, a
+visible noncombat NPC within four metres, and the one-second dialogue limit.
 
 The [audit](npc-dialogue-v1.audit.json) covers 225 wiki names: all 89 NPC-category
 entries, town NPC lists and exact quest-starter matches. Seventy-four category

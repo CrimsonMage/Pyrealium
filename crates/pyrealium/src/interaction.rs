@@ -104,6 +104,20 @@ pub fn speech(speaker: u64, name: &str, text: &str) -> Result<Vec<u8>, WorldErro
     script::private_call(NPC_SPEECH, &args)
 }
 
+/// `speech` with a DAT line: the same NPC_SPEECH call, its speech StringInfo naming the
+/// string table and key instead of carrying literal text.
+pub fn speech_localized(speaker: u64, name: &str, table: u32, key: u32) -> Result<Vec<u8>, WorldError> {
+    if !valid_id(speaker) || name.is_empty() || name.trim() != name || name.encode_utf16().count() > 32
+        || name.chars().any(char::is_control) {
+        return Err(WorldError::InvalidValue);
+    }
+    let mut args = script::integer(0);
+    args.extend(script::localized(table, key)?);
+    args.extend(script::literal(name)?);
+    args.extend(script::identity(speaker));
+    script::private_call(NPC_SPEECH, &args)
+}
+
 /// Native 7148 MessageDialog (OK closes locally, no fabricated response opcode).
 /// 82120024 -> WLib 10139c / 1aa400a9 -> EFun 85000c -> 00469c10
 /// -> CM_Character::SendNotice_DisplayMessage 00724be0 -> 00408080.

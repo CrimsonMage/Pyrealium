@@ -137,7 +137,12 @@ impl Tables {
             if trigger.personal() && trigger != Trigger::EnterWorld && f[5].is_empty() {
                 return Err(bad("a PlayerDeath, QuestExpired or Logout set names its quest (and the stages it applies to)"));
             }
-            let item = if f[4].is_empty() { None } else { Some(entity_or_alias(f[4]).ok_or_else(|| bad("item must be hex or an entity alias"))?) };
+            // An Ask set's topic is its item (`topic_key`); other sets name no phrase.
+            let phrase = f.get(12).filter(|v| !v.is_empty());
+            if phrase.is_some() && trigger != Trigger::Ask { return Err(bad("only an Ask set names a phrase")); }
+            if trigger == Trigger::Ask && !f[4].is_empty() { return Err(bad("an Ask set names its topic in phrase, not item")); }
+            let item = if let Some(phrase) = phrase { Some(super::topic_key(phrase)) }
+                else if f[4].is_empty() { None } else { Some(entity_or_alias(f[4]).ok_or_else(|| bad("item must be hex or an entity alias"))?) };
             let quest = if f[5].is_empty() { None } else { Some(*t.keys.get(f[5]).ok_or_else(|| bad("quest is not in the registry"))?) };
             let stage = |v: &str, d: u8| if v.is_empty() { Ok(d) } else { v.parse::<u8>().map_err(|_| bad("stages are 0 to 255")) };
             let stages = (stage(f[6], 0)?, stage(f[7], 255)?);

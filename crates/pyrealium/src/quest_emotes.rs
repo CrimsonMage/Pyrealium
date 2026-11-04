@@ -65,16 +65,22 @@ pub enum Trigger {
     Bind,
     /// The player travelled through a portal (owner: the portal).
     Travel,
+    /// The player asked a nearby NPC about a topic (`@ask <topic>`; owner: the NPC). The set's
+    /// `phrase` is the topic it answers; a set with none answers any topic.
+    Ask,
+    /// The player used an NPC that no quest Use set, vendor or other service answered (owner:
+    /// the NPC): its own conversation.
+    Talk,
 }
 
 impl Trigger {
-    pub const NAMES: [(&'static str, Trigger); 18] = [
+    pub const NAMES: [(&'static str, Trigger); 20] = [
         ("Use", Trigger::Use), ("Give", Trigger::Give), ("Kill", Trigger::Kill), ("ItemUsedOn", Trigger::ItemUsedOn),
         ("Enter", Trigger::Enter), ("Crafted", Trigger::Crafted), ("EscortLost", Trigger::EscortLost),
         ("QuestSuccess", Trigger::QuestSuccess), ("QuestFailure", Trigger::QuestFailure), ("Goto", Trigger::Goto),
         ("PlayerDeath", Trigger::PlayerDeath), ("QuestExpired", Trigger::QuestExpired), ("Logout", Trigger::Logout),
         ("EscortAbandoned", Trigger::EscortAbandoned), ("EnterWorld", Trigger::EnterWorld), ("UseItem", Trigger::UseItem),
-        ("Bind", Trigger::Bind), ("Travel", Trigger::Travel),
+        ("Bind", Trigger::Bind), ("Travel", Trigger::Travel), ("Ask", Trigger::Ask), ("Talk", Trigger::Talk),
     ];
     pub fn parse(name: &str) -> Option<Self> { Self::NAMES.iter().find(|(n, _)| *n == name).map(|(_, t)| *t) }
     /// A set with no owner: reached from another set (a branch or Goto).
@@ -92,6 +98,13 @@ impl Stat {
         Some(match name { "level" => Stat::Level, "gold" => Stat::Gold, "health" => Stat::Health, "vigor" => Stat::Vigor,
             "kingdom" => Stat::Kingdom, "kingdom_points" => Stat::KingdomPoints, _ => return None })
     }
+}
+
+/// The key an Ask set's `phrase` and an asked topic meet at (the set's `item`): FNV-1a of the
+/// trimmed, lower-case words.
+pub fn topic_key(phrase: &str) -> u32 {
+    let words = phrase.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase();
+    words.bytes().fold(0x811c_9dc5u32, |h, b| (h ^ u32::from(b)).wrapping_mul(0x0100_0193))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

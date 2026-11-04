@@ -335,11 +335,14 @@ pub(super) fn on_use_object(
         }
         return Ok(replies);
     }
-    if srv.quest_gameplay && service_entity.is_some_and(|d|crate::npc_dialogue::profiles().contains_key(&d))
-        && srv.encounters.as_ref().is_none_or(|e|!e.is_creature(request.item)) {
+    // An NPC's own conversation (`Talk` sets) when nothing above answered the use.
+    if srv.quest_gameplay && srv.encounters.as_ref().is_none_or(|e|!e.is_creature(request.item))
+        && srv.scene.examination_content(character,request.item).is_some_and(|o|crate::quest_emotes::tables().is_some_and(|t|
+            t.answers(crate::quest_emotes::Trigger::Talk,o.entity,request.item,None,&srv.store.characters[&character].quests,crate::clock::now()))) {
         if request.owner!=character {return Err(invalid("NPC use owner mismatch."));}
-        if let Err(error)=use_npc_dialogue(peer,character,request.item,&srv.store,&srv.scene,srv.now_ms) {
-            peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?;
+        match use_emote(peer,character,request.item,crate::quest_emotes::Trigger::Talk,None,&mut srv.store,&mut srv.scene,&srv.inventory_metadata,&mut srv.encounters,&mut srv.bootstrap,srv.now_ms) {
+            Ok(updates)=>outbox.deliveries.extend(updates),
+            Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,
         }
         return Ok(replies);
     }

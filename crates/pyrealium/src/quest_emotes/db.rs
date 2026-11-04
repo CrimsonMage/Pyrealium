@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 9;
+pub const SCHEMA_VERSION: i32 = 10;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -56,9 +56,10 @@ CREATE TABLE IF NOT EXISTS emote_set (
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*' OR owner_iid GLOB '[a-z]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
     'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned',
-    'EnterWorld', 'UseItem', 'Bind', 'Travel')),
+    'EnterWorld', 'UseItem', 'Bind', 'Travel', 'Ask', 'Talk')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
   owner_slots TEXT REFERENCES instance_group(name) ON UPDATE CASCADE,
+  phrase TEXT CHECK (phrase IS NULL OR (phrase <> '' AND trigger = 'Ask')),
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),
   stage_max INTEGER CHECK (stage_max BETWEEN 0 AND 255),
@@ -199,9 +200,9 @@ CREATE TABLE IF NOT EXISTS quest_item (
 /// leading columns are its key.
 pub(super) struct Shape { pub(super) table: &'static str, pub(super) columns: &'static [&'static str], order: &'static str, key: usize }
 /// Optional columns added after a table's first schema, which an older dump lacks.
-const OPTIONAL_SINCE: [(&str, &str); 3] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots")];
+const OPTIONAL_SINCE: [(&str, &str); 4] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots"), ("emote_set", "phrase")];
 /// `emote_set`'s columns beyond the TSV's (the database's own), in dump order after its name.
-const SET_EXTRA: [&str; 2] = ["priority", "owner_slots"];
+const SET_EXTRA: [&str; 3] = ["priority", "owner_slots", "phrase"];
 /// A table's columns as the database holds them: `emote_set`'s extras after its name, then
 /// `family`.
 fn db_columns(shape: &Shape) -> Vec<&'static str> {
@@ -347,8 +348,8 @@ pub struct QuestRows {
 
 pub fn rows(db: &Connection) -> io::Result<QuestRows> {
     let expanded = super::templates::expand(db)?;
-    // A set's owner_slots rides after its TSV columns (`Tables::parse_all` reads it there).
-    let mut sets: Vec<(i64, Row)> = table(db, &SHAPES[2], &["owner_slots", "priority"])?.into_iter().map(|mut f| {
+    // A set's owner_slots and phrase ride after its TSV columns (`Tables::parse_all` reads them there).
+    let mut sets: Vec<(i64, Row)> = table(db, &SHAPES[2], &["owner_slots", "phrase", "priority"])?.into_iter().map(|mut f| {
         let priority = f.pop().and_then(|p| p.parse().ok()).unwrap_or(0);
         (priority, (format!("quests emote_set {}", f[0]), f))
     }).collect();

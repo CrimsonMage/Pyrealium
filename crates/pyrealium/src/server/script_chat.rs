@@ -108,15 +108,17 @@ pub(super) fn on_chat(
                 text.split_whitespace().collect::<Vec<_>>();
             if text.trim().eq_ignore_ascii_case("@talk") && srv.quest_gameplay {
                 peer.last_chat_ms=Some(srv.now_ms);
-                let result=(|| -> io::Result<()> {
+                // The selected NPC's own conversation (its Talk sets).
+                let result=(|| -> io::Result<Vec<crate::scene::Delivery>> {
                     let target=peer.target.ok_or_else(||invalid("Select an NPC to speak with."))?;
                     if srv.encounters.as_ref().is_some_and(|e|e.is_creature(target)) {
                         return Err(invalid("That creature cannot hold a conversation."));
                     }
-                    use_npc_dialogue(peer,character,target,&srv.store,&srv.scene,srv.now_ms)
+                    use_emote(peer,character,target,crate::quest_emotes::Trigger::Talk,None,&mut srv.store,&mut srv.scene,&srv.inventory_metadata,&mut srv.encounters,&mut srv.bootstrap,srv.now_ms)
                 })();
-                if let Err(error)=result {
-                    peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?;
+                match result {
+                    Ok(updates)=>outbox.deliveries.extend(updates),
+                    Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,
                 }
                 return Ok(replies);
             }
@@ -280,20 +282,14 @@ pub(super) fn on_chat(
                 }
                 return Ok(replies);
             }
-            if words.first().is_some_and(|word| word.eq_ignore_ascii_case("@mentor")) && srv.config.initialize_ui && srv.config.training_kit {
+            // `@ask <topic>` (or `@mentor <topic>`): a nearby NPC's Ask sets answer (quest_emotes).
+            if words.first().is_some_and(|word| word.eq_ignore_ascii_case("@ask") || word.eq_ignore_ascii_case("@mentor")) {
                 peer.last_chat_ms = Some(srv.now_ms);
-                let result = (|| -> io::Result<()> {
-                    let saved = &srv.store.characters[&character];
-                    if peer.combat || !saved.progression.alive() { return Err(invalid("Speak to a mentor while alive and out of combat.")); }
-                    let mentor = srv.scene.nearby_service(character, TRAINING_MENTOR_ENTITY, None).ok_or_else(|| invalid("Move within four metres of a training mentor."))?;
-                    let race = saved.creation.as_ref().map_or(1, |request| request.race);
-                    let text = crate::training_dialogue::topic(&words[1..].join(" "), race).ok_or_else(|| invalid("Ask @mentor help, gear, combat, healing, supplies, crafting, travel or quests."))?;
-                    peer.admit_npc_dialogue(srv.now_ms)?;
-                    let events = mentor_interaction_events(character, mentor, &srv.scene, &text)?;
-                    peer.queue_ordered_batch(events)?;
-                    Ok(())
-                })();
-                if let Err(error) = result { replies.extend(peer.send_event(&script::chat(&error.to_string(), 1).map_err(other)?, srv.now)?); }
+                match ask_emote(peer, character, &words[1..].join(" "), &mut srv.store, &mut srv.scene, &srv.inventory_metadata,
+                    &mut srv.encounters, &mut srv.bootstrap, srv.now_ms) {
+                    Ok(updates) => outbox.deliveries.extend(updates),
+                    Err(error) => replies.extend(peer.send_event(&script::chat(&error.to_string(), 1).map_err(other)?, srv.now)?),
+                }
                 return Ok(replies);
             }
             if words.first().is_some_and(|word| {

@@ -1,21 +1,6 @@
 use super::*;
 
 #[test]
-fn dead_player_cannot_advance_dialogue_or_queue_speech() {
-    let path = crate::db::testdb::fresh();
-    let mut store=Store::open(&path).unwrap();
-    let character=store.create("local","Fallen Reader").unwrap().id;
-    store.progression_command("local",character,crate::progression::Command::Damage(100000)).unwrap();
-    let mut peer=peer();
-    let scene=crate::scene::Scene::with_content(crate::content::Content::default());
-    let error=use_npc_dialogue(&mut peer,character,10,&store,&scene,1000).unwrap_err();
-    assert!(error.to_string().contains("alive"));
-    assert_eq!(peer.npc_dialogue.page(character,10),0);
-    assert!(peer.scene_outbox.is_empty() && peer.last_npc_dialogue_ms.is_none());
-    drop(store);
-}
-
-#[test]
 fn selected_creature_vitals_use_current_scene_values() {
     let path = crate::db::testdb::fresh();
     let store=Store::open(&path).unwrap();
@@ -62,7 +47,6 @@ fn peer() -> Peer {
         deposits: BTreeMap::new(),
                             last_npc_dialogue_ms: None,
                             guide_page: 0,
-                            npc_dialogue: Default::default(),
         merchant_open_ms: None,
         last_shop_refresh_ms: None,
         native_shop: None,

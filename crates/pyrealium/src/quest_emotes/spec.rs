@@ -88,7 +88,7 @@ const ITEM: Param = req("item", Kind::Entity);
 pub const ACTIONS: &[Spec] = &[
     // Talking
     Spec { name: "Tell", params: &[req("table", Kind::Hex), req("key", Kind::Hex)],
-        doc: "Says a DAT string (StringInfo table and key) to the player as the NPC's chat line." },
+        doc: "Says a DAT string (StringInfo table and key): the NPC's speech, or a chat line when no NPC speaks." },
     Spec { name: "Message", params: &[req("text", Kind::Text)],
         doc: "Says Pyrealium text to the player, where retail has no DAT line." },
     Spec { name: "Say", params: &[req("text", Kind::Text), opt("speaker", Kind::Text)],

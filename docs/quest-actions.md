@@ -4,7 +4,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 
 | action | parameters | what it does |
 |---|---|---|
-| `Tell` | p1 table: hex (0x...) or alias<br>p2 key: hex (0x...) or alias | Says a DAT string (StringInfo table and key) to the player as the NPC's chat line. |
+| `Tell` | p1 table: hex (0x...) or alias<br>p2 key: hex (0x...) or alias | Says a DAT string (StringInfo table and key): the NPC's speech, or a chat line when no NPC speaks. |
 | `Message` | p1 text: text | Says Pyrealium text to the player, where retail has no DAT line. |
 | `Say` | p1 text: text<br>[p2 speaker: text] | The NPC says the text: a speech bubble over it and the dialogue window, titled with the speaker (else the NPC's name). |
 | `AwardXP` | p1 xp: whole number, at least 1 | Gives experience. |

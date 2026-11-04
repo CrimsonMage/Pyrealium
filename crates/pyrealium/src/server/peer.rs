@@ -26,7 +26,6 @@ pub(super) struct Peer {
     pub(super) deposits: BTreeMap<u64, trade_actions::Deposit>,
     pub(super) last_npc_dialogue_ms: Option<u64>,
     pub(super) guide_page: usize,
-    pub(super) npc_dialogue: crate::npc_dialogue::Cursor,
     pub(super) merchant_open_ms: Option<u64>,
     pub(super) last_shop_refresh_ms: Option<u64>,
     pub(super) native_shop: Option<crate::merchants::Shop>,

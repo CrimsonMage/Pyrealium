@@ -565,11 +565,14 @@ impl Scene {
         let mut updates=Vec::new();for id in expired{updates.extend(self.close_chest(id,None)?);}Ok(updates)
     }
     pub fn nearby_service(&self, observer: u64, entity: u32, target: Option<u64>) -> Option<u64> {
+        self.nearby_object(observer, |e, id| e == entity && target.is_none_or(|t| t == id))
+    }
+    /// The nearest visible object of the player's cell within four metres that `accept`s its
+    /// (entity, iid).
+    pub fn nearby_object(&self, observer: u64, accept: impl Fn(u32, u64) -> bool) -> Option<u64> {
         let player = self.player_placement(observer)?;
         self.content.at(player.cell)
-            .filter(|object| object.entity == entity
-                && target.is_none_or(|id| object.id == id)
-                && self.can_observe(observer, object.id))
+            .filter(|object| accept(object.entity, object.id) && self.can_observe(observer, object.id))
             .filter_map(|object| {
                 let distance: f32 = player.coordinates.iter().zip(object.placement.coordinates)
                     .map(|(a, b)| (a - b).powi(2)).sum();

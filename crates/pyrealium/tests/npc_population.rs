@@ -1,5 +1,5 @@
 //! Native assets, placement safety, and NPC combat protection for wiki recovery.
-use pyrealium::{content::Content, encounters::Encounters, geometry::Geometry, npc_dialogue};
+use pyrealium::{content::Content, encounters::Encounters, geometry::Geometry};
 use std::{collections::BTreeSet, path::Path};
 
 #[test]
@@ -8,6 +8,7 @@ fn wiki_npcs_are_grounded_unique_and_cannot_be_killed_for_loot() {
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let world=Content::load(&root.join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
     let content=Content::load(&root.join("npc-world-v1.tsv"),Path::new(&data)).unwrap();
+    let quests=include_str!("../../../content/quests.sql");
     let source:serde_json::Value=serde_json::from_str(include_str!("../../../content/npc-dialogue-v1.json")).unwrap();
     let encounters=Encounters::load(Path::new("training"),&world).unwrap();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();
@@ -15,7 +16,8 @@ fn wiki_npcs_are_grounded_unique_and_cannot_be_killed_for_loot() {
     let mut identities=BTreeSet::new();
     for npc in content.objects() {
         assert!(identities.insert(npc.entity));
-        assert!(npc_dialogue::profiles().contains_key(&npc.entity));
+        // Each NPC's own conversation is a Talk set in the quest content (`talk_<entity>`).
+        assert!(quests.contains(&format!("'talk_{:08x}",npc.entity)),"no Talk set for {:?}",npc.name);
         assert!(!encounters.is_creature(npc.id));
         assert!(encounters.spawners().policy(npc.id).is_none());
         assert!(geometry.contact(npc.placement) && geometry.dry_ground(npc.placement));

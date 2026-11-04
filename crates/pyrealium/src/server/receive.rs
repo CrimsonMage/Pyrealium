@@ -137,7 +137,6 @@ pub(super) fn receive(
             deposits: BTreeMap::new(),
                 last_npc_dialogue_ms: None,
                 guide_page: 0,
-                npc_dialogue: Default::default(),
                 merchant_open_ms: None,
                 last_shop_refresh_ms: None,
                 native_shop: None,
