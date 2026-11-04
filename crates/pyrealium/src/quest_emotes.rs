@@ -288,14 +288,10 @@ pub fn installed() -> io::Result<Arc<Tables>> {
 /// The tables if loaded (journal views tolerate their absence).
 pub fn tables() -> Option<Arc<Tables>> { INSTALLED.read().unwrap_or_else(|e| e.into_inner()).clone() }
 
-/// Refuses tables the running server cannot take: an item a set grants that is not an entity,
-/// or a retired hunt (`hunting_quests::retired_hunts`) whose replacing quest is missing.
+/// Refuses tables the running server cannot take: an item a set grants that is not an entity.
 pub fn check_runnable(tables: &Tables) -> io::Result<()> {
     if let Some((set, entity)) = tables.gives().find(|(_, e)| e >> 24 != 0x47) {
         return Err(io::Error::other(format!("emote set {set} gives {entity:08x}, which is not an entity")));
-    }
-    if let Some(id) = crate::hunting_quests::retired_hunts().iter().find(|id| !tables.quests().any(|q| q.journal_id == **id)) {
-        return Err(io::Error::other(format!("retired hunt {id:08x} has no quest in the quest tables (the vault family of quests.sql)")));
     }
     Ok(())
 }
@@ -308,7 +304,7 @@ pub fn kill(book: &Book, inventory: &Inventory, progression: &crate::progression
     let tables = tables()?;
     // Item grants are the encounter's loot transaction's; the identities here are placeholders.
     let first = inventory.high_water().max(crate::inventory::ITEM_NAMESPACE) + 1;
-    tables.run(Trigger::Kill, entity, iid, None, book, inventory, progression, first, 0.0, now, &item).ok().flatten()
+    tables.run_kill(entity, iid, book, inventory, progression, first, now, &item)
 }
 
 /// A kill credited to a fellow of the killer: the creature's Kill sets of the quests whose
@@ -353,6 +349,8 @@ mod template_tests;
 mod instance_tests;
 #[cfg(test)]
 mod gauntlet_tests;
+#[cfg(test)]
+mod hunt_tests;
 
 /// A Tell action's line: the StringInfo `table`/`key` as a chat line (display type 1).
 pub fn tell(table: u32, key: u32) -> Result<Vec<u8>, crate::world::WorldError> {

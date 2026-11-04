@@ -118,6 +118,41 @@ impl Tables {
         }
         Ok(out)
     }
+    /// A kill for the killer: every quest's first Kill set that answers the creature runs (one
+    /// kill counts for each quest that wants it, as ACE's kill tasks do), each on the book the
+    /// previous left, in priority order; a set without a quest runs once. A set that refuses (a
+    /// quest that cannot start yet) is left out and the others still run. The outcomes merge
+    /// into one (the kill's record); `None` when no set ran.
+    #[allow(clippy::too_many_arguments)]
+    pub fn run_kill(&self, entity: u32, iid: u64, book: &Book, inventory: &Inventory, progression: &crate::progression::Progression,
+        first: u64, now: u64, make: &dyn Fn(u32, u64, u16) -> Option<Item>) -> Option<Outcome> {
+        let (mut book, mut bag, mut progression) = (book.clone(), inventory.clone(), progression.clone());
+        let mut seen = std::collections::BTreeSet::new();
+        let mut merged: Option<Outcome> = None;
+        let mut next = first;
+        let candidates: Vec<&Set> = self.sets.iter().filter(|s| s.trigger == Trigger::Kill && self.owned_by(s, entity, iid)).collect();
+        for set in candidates {
+            if !seen.insert(set.quest) { continue; }
+            if !set.quest.is_none_or(|q| (set.stages.0..=set.stages.1).contains(&self.stage_now(&book, q, now))) { seen.remove(&set.quest); continue; }
+            let Ok(o) = self.perform_named(&set.id, set.range, &book, &bag, &progression, next, now, make) else { continue };
+            book = o.quests.iter().try_fold(book, |b, c| b.apply(c)).ok()?;
+            bag = o.items.iter().try_fold(bag, |b, c| b.apply(c)).ok()?;
+            progression = o.changes.iter().try_fold(progression, |p, c| p.apply(c)).ok()?;
+            next = bag.high_water().max(next);
+            match merged.as_mut() {
+                None => merged = Some(o),
+                Some(m) => {
+                    m.tells.extend(o.tells); m.lines.extend(o.lines); m.quests.extend(o.quests); m.items.extend(o.items);
+                    m.changes.extend(o.changes); m.given.extend(o.given); m.world.extend(o.world); m.says.extend(o.says);
+                    m.claims.extend(o.claims); m.releases.extend(o.releases);
+                    if m.resume.is_none() { m.resume = o.resume; }
+                    if m.moveto.is_none() { m.moveto = o.moveto; }
+                }
+            }
+        }
+        merged
+    }
+
     /// Whether the player's run of `quest` is underway and past its time limit at `now`.
     pub fn expired(&self, book: &Book, quest: u32, now: u64) -> bool {
         let stage = book.stage(quest);

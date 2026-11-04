@@ -121,14 +121,6 @@ pub(super) fn on_use_object(
         }
         return Ok(replies);
     }
-    if srv.quest_gameplay && service_entity.is_some_and(crate::hunting_quests::supported) {
-        if request.owner!=character || request.target!=0 {return Err(invalid("Quest use owner or target mismatch."));}
-        match use_hunting_npc(peer,character,request.item,&mut srv.store,&mut srv.scene,srv.now_ms) {
-            Ok(updates)=>outbox.deliveries.extend(updates),
-            Err(error)=>peer.queue_ordered_batch(vec![script::chat(&error.to_string(),1).map_err(other)?])?,
-        }
-        return Ok(replies);
-    }
     if srv.scene.examination_content(character,request.item).is_some_and(|o|o.service==Some(crate::services::Service::Sign)) {
         if request.owner!=character || !srv.store.characters[&character].progression.alive(){return Err(invalid("Use the sign with your living character."));}
         if !srv.scene.combat_distance(character,request.item).is_some_and(|d|d<=4.) {

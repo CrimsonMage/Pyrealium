@@ -251,7 +251,7 @@ mod tests {
         let dump = crate::quest_emotes::db::export(&d).unwrap();
         let push = serde_json::json!({"base": done["revision"], "world": "", "rules": rules, "quests": dump}).to_string();
         let (code, pushed) = call(handle.address, &token, "POST", "/admin/sync", &push);
-        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(22), Some(true)), "{pushed}");
+        assert_eq!((code, pushed["quests"].as_u64(), pushed["saved"].as_bool()), (200, Some(crate::quest_emotes::Tables::from_sql(&shipped).unwrap().quests().count() as u64 + 1), Some(true)), "{pushed}");
         assert_eq!(std::fs::read_to_string(folder.join("w.quests.sql")).unwrap(), dump);
         assert_eq!(std::fs::read_to_string(folder.join("w.quests.base.sql")).unwrap(), "", "the shipped quests it was edited from");
         assert_eq!(call(handle.address, &token, "GET", "/admin/quests", "").1["quests"].as_str(), Some(dump.as_str()));

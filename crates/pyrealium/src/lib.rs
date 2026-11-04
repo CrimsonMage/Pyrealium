@@ -85,5 +85,5 @@ mod native_trophies;
 pub mod recovered_quests;
 pub mod exploration_quests;
 
-pub mod hunting_quests;
+pub mod legacy_quests;
 pub mod npc_dialogue;

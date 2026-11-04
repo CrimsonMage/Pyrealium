@@ -48,7 +48,8 @@ pub struct Progress {
 pub struct Book {
     pub recovered: crate::recovered_quests::Book,
     pub exploration: crate::exploration_quests::Book,
-    pub hunting: crate::hunting_quests::Book,
+    /// A legacy hunt's saved run, until the start moves it onto its data quest (`legacy_quests`).
+    pub hunting: crate::legacy_quests::Hunts,
     pub arwic: crate::arwic_mines::State,
     training: Option<Progress>,
     supplies: Option<bool>,
@@ -127,7 +128,7 @@ pub enum Command {
     Lane { group: u32, lane: u8 },
     /// The character leaves its lane of instance group `group` (ReleaseInstance).
     LaneOff { group: u32 },
-    /// A retired hunt's state leaves the hunting book (`Store::migrate_retired_hunts`).
+    /// A legacy hunt's state leaves the hunting book (`Store::migrate_legacy_quests`).
     RetireHunt { quest: u32 },
     /// A quest effect (an `Effect` state) put on at `at` until `until` (Unix seconds).
     EffectOn { effect: u32, at: u64, until: u64 },
@@ -265,7 +266,6 @@ impl Command {
                 let hex = &text["retire,".len()..];
                 if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
                 let quest = u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)?;
-                if !crate::hunting_quests::retired(quest) { return Err(QuestError::InvalidRecord); }
                 Ok(Self::RetireHunt { quest })
             }
             _ if text.starts_with("started,") || text.starts_with("solved,") => {
@@ -501,7 +501,7 @@ impl Book {
     /// The gmQuestInfoList argument used by UI_Load for saved journal restoration.
     pub fn list_graph(&self) -> Result<Vec<u8>, WorldError> {
         let mut payload = Vec::new();
-        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32 + self.recovered.0.len() as u32 + self.exploration.0.len() as u32 + self.hunting.0.len() as u32 + u32::from(self.arwic.phase>0));
+        word(&mut payload, u32::from(self.training.is_some()) + u32::from(self.supplies.is_some()) + u32::from(self.potion != 0) + u32::from(self.journey != 0) + self.journal_stages().count() as u32 + self.recovered.0.len() as u32 + self.exploration.0.len() as u32 + u32::from(self.arwic.phase>0));
         if let Some(state) = self.training {
             payload.extend(info_payload(state, false)?);
         }
@@ -511,7 +511,6 @@ impl Book {
         for (quest, stage) in self.journal_stages() { payload.extend(stage_payload(quest, stage, self.timer(quest), self.count(quest), false)?); }
         for (id,state) in &self.recovered.0 { payload.extend(recovered_payload(*id,state,false)?); }
         for (id,state) in &self.exploration.0 { payload.extend(exploration_payload(*id,state,false)?); }
-        for (id,state) in &self.hunting.0 { payload.extend(hunting_payload(*id,state,false)?); }
         if self.arwic.phase>0 {payload.extend(arwic_payload(&self.arwic,false)?);}
         Ok(native_graph(0xa1, &payload))
     }
@@ -592,12 +591,6 @@ impl Book {
         for (id,state) in &self.exploration.0 {
             if previous.exploration.0.get(id)==Some(state) {continue;}
             let mut args=script::integer(0);args.extend(native_graph(0xa0,&exploration_payload(*id,state,true)?));
-            args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
-            events.push(script::private_call(UPDATE,&args)?);
-        }
-        for (id,state) in &self.hunting.0 {
-            if previous.hunting.0.get(id)==Some(state) {continue;}
-            let mut args=script::integer(0);args.extend(native_graph(0xa0,&hunting_payload(*id,state,true)?));
             args.extend(script::integer(if state.completed>0 {COMPLETED}else{UNDERWAY}));
             events.push(script::private_call(UPDATE,&args)?);
         }
@@ -750,16 +743,6 @@ fn exploration_payload(id:u32,state:&crate::exploration_quests::State,fx:bool)->
     word(&mut b,0);b.extend(0f64.to_le_bytes());b.extend(0f64.to_le_bytes());word(&mut b,u32::from(fx));Ok(b)
 }
 
-fn hunting_payload(id:u32,state:&crate::hunting_quests::State,fx:bool)->Result<Vec<u8>,WorldError> {
-    let q=crate::hunting_quests::profile(id).ok_or(WorldError::InvalidValue)?;
-    let mut b=Vec::new();word(&mut b,id);b.extend(world::literal_name(&q.title)?);
-    b.extend(world::literal_name(&q.text)?);word(&mut b,ICON);
-    word(&mut b,if state.completed>0 {COMPLETED}else{UNDERWAY});
-    word(&mut b,if state.completed>0 {0}else{u32::from(state.count)+1});
-    b.extend(world::literal_name(&crate::hunting_quests::Book::guidance(q,state))?);word(&mut b,u32::from(q.level));
-    b.extend((state.started as f64).to_le_bytes());b.extend((if state.completed>0{state.completed as f64}else{-1.}).to_le_bytes());
-    word(&mut b,0);b.extend(0f64.to_le_bytes());b.extend(0f64.to_le_bytes());word(&mut b,u32::from(fx));Ok(b)
-}
 
 fn recovered_payload(id:u32,state:&crate::recovered_quests::State,fx:bool)->Result<Vec<u8>,WorldError> {
     let q=crate::recovered_quests::profiles().iter().find(|q|q.id==id).ok_or(WorldError::InvalidValue)?;

@@ -147,16 +147,6 @@ impl Store {
         let c=self.characters.get_mut(&id).unwrap();c.quests.exploration=result.book;c.progression=state;Ok(())
     }
     /// Version-two NPC hunt progression and its XP are one durable event.
-    pub fn hunting_conversation(&mut self,account:&str,id:u64,entity:u32,time:u64)->io::Result<()> {
-        let c=self.characters.get(&id).filter(|c|c.account==account&&!c.deleted&&c.progression.alive())
-            .ok_or_else(||invalid("Quest owner unavailable"))?;
-        let result=c.quests.hunting.converse(entity,&c.progression,time)?;
-        if result.book==c.quests.hunting {return Ok(());}
-        let state=if result.xp>0 {c.progression.apply(&crate::progression::Command::AwardXp(result.xp)).map_err(io::Error::other)?}
-            else {c.progression.clone()};
-        self.touch(id);
-        let c=self.characters.get_mut(&id).unwrap();c.quests.hunting=result.book;c.progression=state;Ok(())
-    }
     /// Commit the canonical inferred delivery exchange and its quest journal together.
     pub fn recovered_delivery(&mut self,account:&str,id:u64,npc:u32,time:u64)->io::Result<()> {
         let first=self.next_item_id()?;
@@ -179,18 +169,16 @@ impl Store {
         self.touch(id);
         let c=self.characters.get_mut(&id).unwrap();c.inventory=bag;c.quests.recovered=book;Ok(())
     }
-    /// Moves each character's state of a retired hunt (`hunting_quests::retired`) onto the data
-    /// quest of the same journal id: an accepted run keeps its
-    /// start time at the stage of its kills (1 + kills; the report stage at the goal), a solved one
-    /// is the completed stage with its solve time, and the hunting book drops it. Run at start,
-    /// after loading; returns how many characters moved.
-    pub fn migrate_retired_hunts(&mut self)->io::Result<usize> {
+    /// Moves each character's state of the quests that were code onto the data quests of the
+    /// same journal id (`legacy_quests::commands`). Run at start, after the quest tables are
+    /// installed; returns how many characters moved.
+    pub fn migrate_legacy_quests(&mut self, tables: &crate::quest_emotes::Tables)->io::Result<usize> {
         let mut moved=0;
         let ids:Vec<u64>=self.characters.keys().copied().collect();
         for id in ids {
             let c=&self.characters[&id];
             if c.deleted {continue;}
-            let commands=retired_hunt_commands(&c.quests);
+            let commands=crate::legacy_quests::commands(&c.quests,tables);
             if commands.is_empty() {continue;}
             let book=commands.iter().try_fold(c.quests.clone(),|b,q|b.apply(q)).map_err(io::Error::other)?;
             self.touch(id);
@@ -243,7 +231,6 @@ impl Store {
         let mut quests=character.quests.record_kill(entity);
         let (recovered,xp)=quests.recovered.kill(entity,character.progression.level().number,time);
         quests.recovered=recovered;
-        quests.hunting=quests.hunting.kill(entity,time);
         for command in &kill_quests {quests=quests.apply(command).map_err(io::Error::other)?;}
         let mut progression=character.progression.clone();
         for command in commands.iter().chain(&kill_xp) {progression=progression.apply(command).map_err(io::Error::other)?;}

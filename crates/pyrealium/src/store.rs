@@ -549,25 +549,6 @@ fn apply_emote(c:&Character,first:u64,quests:&[crate::quests::Command],items:&[c
         else {crate::player_transaction::candidate(&c.inventory,&c.progression,items,changes,Some(first))?};
     Ok((book,inventory,progression))
 }
-/// The quest commands that move a book's retired hunts onto their data quests.
-fn retired_hunt_commands(book:&crate::quests::Book)->Vec<crate::quests::Command> {
-    use crate::quests::Command as Q;
-    let mut out=Vec::new();
-    for (quest,state) in &book.hunting.0 {
-        if !crate::hunting_quests::retired(*quest) {continue;}
-        let Some(q)=crate::hunting_quests::profile(*quest) else {continue};
-        let goal=u8::try_from(q.goal).unwrap_or(u8::MAX - 2);
-        out.push(Q::Started{quest:*quest,at:state.started});
-        if state.completed>0 {
-            out.push(Q::Stage{quest:*quest,stage:goal+2});
-            out.push(Q::Solved{quest:*quest,at:state.completed});
-        } else {
-            out.push(Q::Stage{quest:*quest,stage:1+u8::try_from(state.count.min(q.goal)).unwrap_or(goal)});
-        }
-        out.push(Q::RetireHunt{quest:*quest});
-    }
-    out
-}
 /// A kill's quest emotes (`quest_emotes::kill`), credited to the killer: the stage and counter
 /// commands and the experience (its items are the encounter's loot).
 /// `time` is the kill's (Unix seconds): a quest's time limit and the run's solve time go by it.

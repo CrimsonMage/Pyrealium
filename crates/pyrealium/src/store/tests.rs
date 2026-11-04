@@ -89,25 +89,28 @@
         {let s=Store::open(&dir).unwrap();assert!(s.characters[&saved.id].quests.quest_effects(2000).is_empty());}
     }
     #[test]
-    fn retired_hunts_migrate_once_and_the_migration_replays() {
+    fn legacy_hunts_migrate_once_and_the_migration_replays() {
+        let t=crate::quest_emotes::shipped();
         let dir=crate::db::testdb::fresh();
-        let marsh=0x4000fc20;
+        let (marsh,mucor)=(0x4000fc20,0x4000fc23);
         let saved;
         {
             let mut s=Store::open(&dir).unwrap();let c=s.create_native("local",&request("Hunt Mover")).unwrap();
-            // State an older server left for retired hunts.
-            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(marsh,crate::hunting_quests::State{count:3,started:500,completed:0,rewarded_xp:0});
-            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(0x4000fc23,crate::hunting_quests::State{count:1,started:600,completed:0,rewarded_xp:0});
-            assert_eq!(s.migrate_retired_hunts().unwrap(),1);
-            assert_eq!(s.migrate_retired_hunts().unwrap(),0,"once");
+            // State an older server left for hunts that were code: one now an AC2 Vault quest
+            // (a stage per kill), one now a hand-written hunt (underway / goal met / done).
+            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(marsh,crate::legacy_quests::HuntState{count:3,started:500,completed:0,rewarded_xp:0});
+            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(mucor,crate::legacy_quests::HuntState{count:2,started:600,completed:0,rewarded_xp:0});
+            assert_eq!(s.migrate_legacy_quests(&t).unwrap(),1);
+            assert_eq!(s.migrate_legacy_quests(&t).unwrap(),0,"once");
             saved=s.characters[&c.id].clone();
             assert_eq!((saved.quests.stage(marsh),saved.quests.timer(marsh).started),(4,500));
-            assert!(!saved.quests.hunting.0.contains_key(&marsh) && saved.quests.hunting.0.contains_key(&0x4000fc23));
+            assert_eq!((saved.quests.stage(mucor),saved.quests.count(mucor),saved.quests.timer(mucor).started),(1,2,600));
+            assert!(saved.quests.hunting.0.is_empty());
         }
         // The migration marked the character changed, so its whole state was saved.
         let mut s=Store::open(&dir).unwrap();
         assert_eq!(s.characters[&saved.id],saved);
-        assert_eq!(s.migrate_retired_hunts().unwrap(),0,"once, across a restart");
+        assert_eq!(s.migrate_legacy_quests(&t).unwrap(),0,"once, across a restart");
     }
     #[test]
     fn a_full_bag_refuses_the_scout_without_taking_the_tool() {
@@ -287,34 +290,6 @@
             assert_eq!(s.characters[&1].quests.exploration.0[&referral.id].completed,107);
             s.exploration_conversation("local",1,q.npc,108).unwrap();
             assert_eq!(s.characters[&1].progression.xp,80);
-        }
-    }
-    #[test]
-    fn hunting_quests_replay_acceptance_kills_return_and_exactly_one_reward() {
-        use crate::progression::Command::AwardXp;
-        let dir=crate::db::testdb::fresh();
-        let q=crate::hunting_quests::profile(0x4000fc07).unwrap();
-        let time=crate::recovered_quests::now();let initial=447949214;
-        {
-            let mut s=Store::open(&dir).unwrap();s.create("local","Foundry Hunter").unwrap();
-            s.progression_command("local",1,AwardXp(initial)).unwrap();
-            assert!(s.hunting_conversation("other",1,q.npc,time).is_err());
-            s.hunting_conversation("local",1,q.npc,time).unwrap();
-            for _ in 0..4 {s.encounter_reward("local",1,q.targets[0],0,&[AwardXp(1)]).unwrap();}
-        }
-        {
-            let mut s=Store::open(&dir).unwrap();assert_eq!(s.characters[&1].quests.hunting.0[&q.id].count,4);
-            for _ in 4..10 {s.encounter_reward("local",1,q.targets[0],0,&[AwardXp(1)]).unwrap();}
-            assert_eq!(s.characters[&1].progression.xp,initial+10,"kill must not pay quest XP");
-            s.hunting_conversation("local",1,q.npc,time+1).unwrap();
-            assert_eq!(s.characters[&1].progression.xp,initial+10+q.xp_cap);
-            s.save_now().unwrap();
-            s.hunting_conversation("local",1,q.npc,time+2).unwrap();
-            assert!(!s.dirty());
-        }
-        {
-            let s=Store::open(&dir).unwrap();assert_eq!(s.characters[&1].progression.xp,initial+10+q.xp_cap);
-            assert_eq!(s.characters[&1].quests.hunting.0[&q.id].completed,time+1);
         }
     }
     #[test]

@@ -358,8 +358,8 @@ fn a_retired_hunts_state_moves_onto_its_vault_quest() {
     let marsh = 0x4000fc20; // Thin the Marsh Armoredillos, now v209
     assert_eq!(t.quest("v209").map(|q| q.journal_id), Some(marsh));
     let mut book = Book::default();
-    book.hunting.0.insert(marsh, crate::hunting_quests::State { count: 4, started: 1_000, completed: 0, rewarded_xp: 0 });
-    book.hunting.0.insert(0x4000fc1e, crate::hunting_quests::State { count: 10, started: 50, completed: 900, rewarded_xp: 22_000 });
+    book.hunting.0.insert(marsh, crate::legacy_quests::HuntState { count: 4, started: 1_000, completed: 0, rewarded_xp: 0 });
+    book.hunting.0.insert(0x4000fc1e, crate::legacy_quests::HuntState { count: 10, started: 50, completed: 900, rewarded_xp: 22_000 });
     let records = ["started,4000fc20,1000", "stage,4000fc20,5", "retire,4000fc20",
         "started,4000fc1e,50", "stage,4000fc1e,12", "solved,4000fc1e,900", "retire,4000fc1e"];
     let moved = records.iter().try_fold(book, |b, r| b.apply(&Q::decode(r).unwrap())).unwrap();
@@ -367,7 +367,6 @@ fn a_retired_hunts_state_moves_onto_its_vault_quest() {
     assert_eq!((moved.stage(marsh), moved.timer(marsh).started), (5, 1_000));
     assert_eq!(t.stage_now(&moved, marsh, 1_000 + 604_799), 5, "the Vault's 7 days run from the hunt's start");
     assert!(t.solved(&moved, 0x4000fc1e) && t.stage(0x4000fc1e, 12).unwrap().0);
-    assert!(Q::decode("retire,4000fc23").is_err(), "only a retired hunt can be retired");
 }
 
 /// Sister Nell Palnos' chain (the retired catalog hunts Ulu then Faisi Sclavus, v207 and v208):

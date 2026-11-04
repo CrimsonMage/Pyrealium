@@ -119,11 +119,10 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     store.set_save_interval(config.save_interval);
     // The instance lanes characters hold (`quest_emotes::instances`), from their quest books.
     crate::quest_emotes::instances::rebuild(store.characters.values().filter(|c| !c.deleted).map(|c| &c.quests));
-    // The hunts the AC2 Vault rows replace (`hunting_quests::retired`; `check_runnable` made sure
-    // their rows are loaded): each character's state of them moves onto those rows' quests.
-    if crate::quest_emotes::tables().is_some() {
-        let moved = store.migrate_retired_hunts()?;
-        if moved > 0 { println!("Retired hunts moved onto their AC2 Vault quests for {moved} characters."); }
+    // The state of quests that were code moves onto their data quests (`legacy_quests`).
+    if let Some(tables) = crate::quest_emotes::tables() {
+        let moved = store.migrate_legacy_quests(&tables)?;
+        if moved > 0 { println!("Legacy quest state moved onto the quest tables for {moved} characters."); }
     }
     // UI initialization sends the data's own UI state, so its client must read that data
     // release: converted build-7148 data, or the installed 7230 data for 7230 clients.

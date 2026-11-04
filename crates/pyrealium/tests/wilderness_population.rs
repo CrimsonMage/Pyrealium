@@ -66,12 +66,15 @@ fn wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
     assert_eq!(covered.len(),27);assert!(entities.len()>400);
     let world=Content::load(&installed,Path::new(&data)).unwrap();
     let world_encounters=Encounters::load(Path::new("training"),&world).unwrap();
-    for quest in pyrealium::hunting_quests::profiles() {
-        assert!(world.objects().any(|o|quest.targets.contains(&o.entity) && world_encounters.is_creature(o.id)),
-            "No world hunt targets for {}",quest.title);
-        let speakers=world.objects().filter(|o|o.entity==quest.npc).collect::<Vec<_>>();
-        assert!(!speakers.is_empty(),"Missing hunt giver for {}",quest.title);
-        for npc in speakers {assert!(!world_encounters.is_creature(npc.id),"Quest giver is attackable: {}",quest.title);}
+    // The hunts' givers and targets (the catalogs the hunt quest rows came from).
+    let hunts=hunts();
+    for quest in &hunts {
+        let (title,npc)=(quest["title"].as_str().unwrap(),quest["npc"].as_u64().unwrap() as u32);
+        let targets:Vec<u32>=quest["targets"].as_array().unwrap().iter().map(|t|t.as_u64().unwrap() as u32).collect();
+        assert!(world.objects().any(|o|targets.contains(&o.entity) && world_encounters.is_creature(o.id)),"No world hunt targets for {title}");
+        let speakers=world.objects().filter(|o|o.entity==npc).collect::<Vec<_>>();
+        assert!(!speakers.is_empty(),"Missing hunt giver for {title}");
+        for npc in speakers {assert!(!world_encounters.is_creature(npc.id),"Quest giver is attackable: {title}");}
     }
     // Exercise the actual loot pipeline for every placed creature, including
     // templates absent from the original capture combat catalog.
@@ -170,7 +173,7 @@ fn hunting_camps_use_native_ground_loot_and_group_respawns() {
                 drops+=loot.get(object.id,7,n).unwrap().items.len();loot.remove(object.id);
             }
             assert!(drops>0,"No loot from guide camp");
-        } else {assert!(pyrealium::hunting_quests::supported(object.entity));}
+        } else {assert!(hunts().iter().any(|q|q["npc"].as_u64()==Some(u64::from(object.entity))));}
     }
     let dir = pyrealium::db::testdb::fresh();
     {
@@ -189,4 +192,12 @@ fn hunting_camps_use_native_ground_loot_and_group_respawns() {
         let due=encounters.tick(121000,&scene,&mut store,std::iter::empty(),None).unwrap();
         assert_eq!(due.iter().filter_map(|e|if let Event::Respawn{actor,..}=e {Some(*actor)}else{None}).collect::<Vec<_>>(),vec![first]);
     }
+}
+
+/// The hunting catalogs' quests (the evidence the hunt quest rows came from).
+fn hunts()->Vec<serde_json::Value> {
+    ["hunting-content-v1.json","hunting-content-v2.json"].iter().flat_map(|f| {
+        let v:serde_json::Value=serde_json::from_str(&std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content").join(f)).unwrap()).unwrap();
+        v["quests"].as_array().unwrap().clone()
+    }).collect()
 }
