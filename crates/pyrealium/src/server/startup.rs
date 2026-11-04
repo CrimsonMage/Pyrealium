@@ -558,6 +558,8 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
         diagnosed_queues,
         admin,
         next_resource_cleanup,
+        next_quest_expiry: 0,
+        quest_expiries: BTreeSet::new(),
         now: start,
         now_ms: 0,
     };

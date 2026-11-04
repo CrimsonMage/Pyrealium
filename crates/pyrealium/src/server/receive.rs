@@ -73,6 +73,7 @@ pub(super) fn receive(
                 {
                     if srv.active_characters.get(&character) == Some(&old_addr) {
                         srv.active_characters.remove(&character);
+                        departed(&mut srv.store, character);
                         if let Some(runtime) = &mut srv.encounters {
                             runtime.stop(character);
                         }
@@ -152,6 +153,7 @@ pub(super) fn receive(
             {
                 if srv.active_characters.get(&character) == Some(&addr) {
                     srv.active_characters.remove(&character);
+                    departed(&mut srv.store, character);
                     if let Some(runtime) = &mut srv.encounters {
                         runtime.stop(character);
                     }

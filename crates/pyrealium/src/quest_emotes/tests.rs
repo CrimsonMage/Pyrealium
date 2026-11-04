@@ -218,7 +218,7 @@ fn the_registry_rules_gate_a_run_and_time_it() {
     // Below level 5 the giver's refusal line; the engine itself refuses a start the rows let by.
     let o = play(&t, Trigger::Use, 0x47000001, &Book::default(), &none, &at_level(4), 1000).unwrap();
     assert_eq!((o.tells.as_slice(), o.quests.len()), (&[(0x25000001, 2)][..], 0));
-    assert!(t.perform_set("start", &Book::default(), &none, &at_level(4), ITEM_NAMESPACE + 1, &item).is_err());
+    assert!(t.perform_set("start", &Book::default(), &none, &at_level(4), ITEM_NAMESPACE + 1, 0, &item).is_err());
     // At level 5 the run starts at its time, with a fresh counter.
     let p = at_level(5);
     let o = play(&t, Trigger::Use, 0x47000001, &Book::default(), &none, &p, 1000).unwrap();

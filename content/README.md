@@ -151,38 +151,22 @@ reads `quests.sql` from beside the world table (`--content`; content preparation
   start and solve times are durable quest records (`started`, `solved`); runs recorded before
   them have no times (no time limit runs out for them; a completed stage counts as solved).
 - `quest_stage`: quest, stage, completed (0/1), journal_text, source.
-- `emote_set`: name, priority, owner_entity, owner_iid, trigger (Use, Give, Kill, ItemUsedOn, Enter,
-  QuestSuccess, QuestFailure; an Enter set names the world object it is around in owner_iid and
-  fires when a player's position comes within its range), item, quest, stage_min, stage_max, range (metres, default 4),
-  probability (default 1), source. The first matching set in priority order (then name) runs.
-- `emote_action`: emote_set, ord, action, delay_ms (0; delays are not scheduled yet), p1..p5,
-  source. Actions: Tell (StringInfo table, key), Message (Pyrealium text where retail has none),
-  AwardXP, AwardLevelProportionalXP (percent of the level's experience span, up to two decimals;
-  min; max, empty for none), GiveItem (entity, count), TakeItem
-  (entity, 1), SetStage (quest, stage; prints the stage's journal line), IncrementQuest (quest,
-  capped at its goal), InqStage (quest, min, max, success set, failure set), InqQuestCount
-  (quest, count, success, failure), InqItem (entity, success, failure), InqLevel (quest,
-  success, failure: the player's level against the quest's min_level), InqQuestReady (quest,
-  success, failure: its repeat delay and solve limit), InqSolved (quest, success, failure: a
-  prerequisite), AwardGold (amount), MoveTo (cell, x, y, z, heading), ApplyEffect (an `Effect`
-  state, WState 0x6f DID; seconds: a quest's curse or blessing, durable in the quest book and
-  shown on the client's effect strip through `WM_Effect` 0x17; it outlives a death, Pyrealium policy)
-  and RemoveEffect (the state; `WM_Effect` 0x16). RandomGive (`0x47...:weight,...`: one item drawn by weight from the
-  use's roll), IncrementCounter (quest, counter, cap) and InqCounter (quest, counter, count,
-  success, failure): several counters in one quest. A Crafted set names the crafted item's entity
-  in owner_entity and runs when the player's craft makes that item. The registry's credit
-  `fellowship` also runs a quest's Kill sets for the killer's fellows in the world (quest
-  progress only: items and experience stay the killer's; Pyrealium policy, no range is recovered). The effect carries no stat change of its own
-  here: a row applies what its source gives, and says so. SetKingdom (1 Order, 2 Dominion,
-  3 Shadow; 0 none), InqKingdom (kingdom or 0 for any membership, success, failure),
-  AwardKingdomPoints (points, max; empty or 0 for no cap) and InqKingdomPoints (points, success,
-  failure) keep a character's kingdom and Kingdom Points in the quest book (records `kingdom,N`,
-  `kp,N`; the client's display of either is not traced). StartEscort (`0x47...`) makes the
-  nearest living, unengaged creature of that entity within 30 m follow the player at 2.5 m,
-  rejoining it from past 60 m (a portal); EndEscort releases it; its death runs the quest's
-  EscortLost sets (owner_entity: the escorted entity; distances Pyrealium policy). GiveItem grants any item
-  entity: the Shelter's pinned profiles, or one read from the DATs at start as the tradeskills
-  read theirs (class defaults, the physical record's visual; `quest_emotes::install_items`).
+- `emote_set`: name, priority, owner_entity, owner_iid, trigger, item, quest, stage_min,
+  stage_max, range (metres, default 4), probability (default 1), source. The first matching set
+  in priority order (then name) runs. Triggers: Use, Give, ItemUsedOn and Enter (an object the
+  set names in owner_entity or owner_iid; an Enter set names the world object it is around in
+  owner_iid and fires when a player comes within its range), Kill (the creature's entity; credited
+  to the killer, or the killer's fellows too when the quest's credit is `fellowship`), Crafted and
+  EscortLost (the crafted item's or the escort's entity), QuestSuccess, QuestFailure and Goto
+  (no owner: reached from another set), and PlayerDeath, QuestExpired and Logout (no owner; they
+  name their quest and stages: a death, a run past its time limit, or leaving the world). The
+  last three change quests and talk only: the check refuses one that reaches a reward or a move.
+- `emote_action`: emote_set, ord, action, delay_ms, p1..p5, source. Every action and its
+  parameters is in [`docs/quest-actions.md`](../docs/quest-actions.md) (generated from the
+  engine's list: `pyrealium-content actions`). `delay_ms` (up to an hour) waits before that
+  action and the rest of the set, as ACE's Delay: the server's tick carries the set on, through
+  any branch or Goto it was in. A wait lives in memory only (a restart or a logout drops it); a
+  part that gives, takes, awards or moves waits on until the player is alive and out of combat.
 
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that

@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 1;
+pub const SCHEMA_VERSION: i32 = 2;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS emote_set (
   owner_entity TEXT CHECK (owner_entity GLOB '0x47[0-9a-fA-F]*'),
   owner_iid TEXT CHECK (owner_iid GLOB '0x[0-9a-fA-F]*'),
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
-    'QuestSuccess', 'QuestFailure')),
+    'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*'),
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS emote_action (
   emote_set TEXT NOT NULL REFERENCES emote_set(name) ON UPDATE CASCADE ON DELETE CASCADE,
   ord INTEGER NOT NULL CHECK (ord >= 0),
   action TEXT NOT NULL CHECK (action <> ''),
-  delay_ms INTEGER NOT NULL DEFAULT 0 CHECK (delay_ms >= 0),
+  delay_ms INTEGER NOT NULL DEFAULT 0 CHECK (delay_ms BETWEEN 0 AND 3600000),
   p1 TEXT NOT NULL DEFAULT '',
   p2 TEXT NOT NULL DEFAULT '',
   p3 TEXT NOT NULL DEFAULT '',
@@ -146,7 +146,8 @@ pub fn canonical(text: &str) -> io::Result<String> {
 
 fn check_version(db: &Connection) -> io::Result<()> {
     let version: i32 = db.query_row("PRAGMA user_version", [], |r| r.get(0)).map_err(sql)?;
-    if version != SCHEMA_VERSION && version != 0 {
+    // An older dump reads as this schema (export writes it anew); a newer one is refused.
+    if version > SCHEMA_VERSION {
         return Err(io::Error::other(format!("the quest database is schema {version}; this server reads {SCHEMA_VERSION}")));
     }
     Ok(())
@@ -204,8 +205,8 @@ pub const DATABASE: &str = "quests.sqlite";
 /// file order. The rows are checked as the server checks them.
 pub fn import_tsv(db: &mut Connection, files: [Vec<(String, String)>; 4], family: &str) -> io::Result<()> {
     let tables = [
-        super::all_rows(&files[0], HEADERS[0], 12)?, super::all_rows(&files[1], HEADERS[1], 5)?,
-        super::all_rows(&files[2], HEADERS[2], 11)?, super::all_rows(&files[3], HEADERS[3], 10)?,
+        super::load::all_rows(&files[0], HEADERS[0], 12)?, super::load::all_rows(&files[1], HEADERS[1], 5)?,
+        super::load::all_rows(&files[2], HEADERS[2], 11)?, super::load::all_rows(&files[3], HEADERS[3], 10)?,
     ];
     let tx = db.transaction().map_err(sql)?;
     for shape in SHAPES.iter().rev() {

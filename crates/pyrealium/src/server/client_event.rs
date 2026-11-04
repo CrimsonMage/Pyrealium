@@ -114,6 +114,7 @@ pub(super) fn client_event(
                     events.push(script::private_call(script::COMBAT_STATE,&script::integer(0)).map_err(other)?);
                     events.push(crate::ui::death_notice("You died from a fall.").map_err(other)?);
                     events.push(crate::ui::lock_player(true).map_err(other)?);
+                    events.extend(personal_quests_logged(&mut srv.store, character, crate::quest_emotes::Trigger::PlayerDeath));
                     outbox.deliveries.extend(player_body_alive(peer, &mut srv.scene, character, srv.store.characters[&character].instance, false));
                 }
                 outbox.deliveries.extend(publish_health_story(peer,&mut srv.scene,character,srv.store.characters[&character].instance,character,-((old.health-state.health) as i32)));
@@ -599,6 +600,7 @@ pub(super) fn client_event(
             peer.target = None;
             peer.combat = false;
             srv.active_characters.remove(&character_id);
+            departed(&mut srv.store, character_id);
             outbox.deliveries.extend(srv.scene.remove(character_id));
             let list = world::character_set_for(
                 &peer.client_version,

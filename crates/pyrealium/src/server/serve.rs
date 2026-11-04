@@ -114,6 +114,7 @@ pub(super) fn serve(mut srv: Server, mut peers: BTreeMap<SocketAddr, Peer>, mut 
         let chest_updates=srv.scene.expire_chest_views(srv.now_ms,|id|srv.store.characters.get(&id).is_some_and(|c|!c.deleted && c.progression.alive()))?;
         deliver_scene(chest_updates,&srv.active_characters,&mut peers,&srv.primary,srv.now,&mut srv.failed_peers)?;
         encounter_tick(&mut srv, &mut peers)?;
+        quest_tick(&mut srv, &mut peers)?;
         deliver_scene(srv.projectiles.retire(srv.now_ms), &srv.active_characters, &mut peers, &srv.primary, srv.now, &mut srv.failed_peers)?;
         if srv.now_ms >= srv.next_untraining_tick {
             srv.next_untraining_tick = srv.now_ms + 250;
@@ -194,6 +195,7 @@ pub(super) fn serve(mut srv: Server, mut peers: BTreeMap<SocketAddr, Peer>, mut 
                 {
                     if srv.active_characters.get(&character) == Some(&addr) {
                         srv.active_characters.remove(&character);
+                        departed(&mut srv.store, character);
                         if let Some(runtime) = &mut srv.encounters {
                             runtime.stop(character);
                         }

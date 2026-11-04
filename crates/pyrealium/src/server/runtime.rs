@@ -10,6 +10,10 @@ pub(super) struct Server {
     pub(super) now: Instant,
     pub(super) now_ms: u64,
     pub(super) next_resource_cleanup: u64,
+    /// When the tick next looks for quest runs past their time limit (`quest_events`).
+    pub(super) next_quest_expiry: u64,
+    /// The expired runs whose QuestExpired sets ran: (character, quest, run start).
+    pub(super) quest_expiries: BTreeSet<(u64, u32, u64)>,
     pub(super) admin: Option<crate::admin::Handle>,
     pub(super) diagnosed_queues: BTreeSet<(u16, u32)>,
     pub(super) diagnosed_packet_errors: BTreeSet<String>,

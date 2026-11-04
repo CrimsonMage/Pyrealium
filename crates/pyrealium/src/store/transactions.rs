@@ -201,6 +201,16 @@ impl Store {
     }
     /// A quest emote's outcome (`quest_emotes`): its quest stages, items, experience and move are
     /// one step.
+    /// Quest records of a set that changes quests and talks only (a death, a logout, a run's
+    /// expiry, or a delayed set's quest part): durable whatever the character is doing.
+    pub fn quest_records(&mut self,id:u64,records:&[crate::quests::Command])->io::Result<()> {
+        if records.is_empty() {return Ok(());}
+        let c=self.characters.get(&id).filter(|c|!c.deleted).ok_or_else(||invalid("Quest record owner unavailable"))?;
+        let next=records.iter().try_fold(c.quests.clone(),|b,r|b.apply(r)).map_err(io::Error::other)?;
+        self.touch(id);
+        self.characters.get_mut(&id).unwrap().quests=next;
+        Ok(())
+    }
     pub fn emote_transaction(&mut self,account:&str,id:u64,outcome:&crate::quest_emotes::Outcome)->io::Result<()> {
         let first=self.next_item_id()?;
         let c=self.characters.get(&id).filter(|c|c.account==account && !c.deleted && c.progression.alive())

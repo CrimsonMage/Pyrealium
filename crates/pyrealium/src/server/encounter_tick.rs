@@ -189,6 +189,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                             let previous = c.quests.clone();
                             let account = c.account.clone();
                             if srv.store.emote_transaction(&account, player, &outcome).is_ok() {
+                                crate::quest_emotes::pending::defer_outcome(player, &outcome);
                                 for line in &outcome.lines {
                                     updates.push(crate::scene::Delivery { recipient: player, data: script::chat(line, 1).map_err(other)?.into() });
                                 }
@@ -216,6 +217,7 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                         let previous = c.quests.clone();
                         let account = c.account.clone();
                         if srv.store.emote_transaction(&account, fellow, &outcome).is_err() { continue; }
+                        crate::quest_emotes::pending::defer_outcome(fellow, &outcome);
                         for (table, key) in &outcome.tells {
                             updates.push(crate::scene::Delivery { recipient: fellow, data: crate::quest_emotes::tell(*table, *key).map_err(other)?.into() });
                         }
@@ -320,6 +322,10 @@ pub(super) fn encounter_tick(srv: &mut Server, peers: &mut BTreeMap<SocketAddr, 
                         }
                         if let Some(peer) = srv.active_characters.get(&player).and_then(|addr| peers.get_mut(addr)) {
                             updates.extend(player_body_alive(peer, &mut srv.scene, player, srv.store.characters[&player].instance, false));
+                        }
+                        // A run that a death ends (`quest_emotes` PlayerDeath sets).
+                        for wire in personal_quests_logged(&mut srv.store, player, crate::quest_emotes::Trigger::PlayerDeath) {
+                            updates.push(crate::scene::Delivery { recipient: player, data: wire.into() });
                         }
                     }
                 }

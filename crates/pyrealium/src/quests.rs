@@ -111,6 +111,9 @@ pub enum Command {
     Started { quest: u32, at: u64 },
     /// A data-driven quest solved at `at` (Unix seconds).
     Solved { quest: u32, at: u64 },
+    /// A data-driven quest reset to stage 0: its counters and run start go, its solves stay
+    /// (`quest_emotes` EraseQuest).
+    Erase { quest: u32 },
     /// A retired hunt's state leaves the hunting book (`Store::migrate_retired_hunts`).
     RetireHunt { quest: u32 },
     /// A quest effect (an `Effect` state) put on at `at` until `until` (Unix seconds).
@@ -165,6 +168,7 @@ impl Command {
             Self::Count { quest, count } => format!("count,{quest:08x},{count}"),
             Self::Started { quest, at } => format!("started,{quest:08x},{at}"),
             Self::Solved { quest, at } => format!("solved,{quest:08x},{at}"),
+            Self::Erase { quest } => format!("erase,{quest:08x}"),
             Self::RetireHunt { quest } => format!("retire,{quest:08x}"),
             Self::EffectOn { effect, at, until } => format!("effect,{effect:08x},{at},{until}"),
             Self::EffectOff { effect } => format!("effectoff,{effect:08x}"),
@@ -222,6 +226,11 @@ impl Command {
                 let until = f.next().and_then(|v| v.parse::<u64>().ok()).filter(|u| *u > at).ok_or(QuestError::InvalidRecord)?;
                 if f.next().is_some() { return Err(QuestError::InvalidRecord); }
                 Ok(Self::EffectOn { effect, at, until })
+            }
+            _ if text.starts_with("erase,") => {
+                let hex = &text["erase,".len()..];
+                if hex.len() != 8 { return Err(QuestError::InvalidRecord); }
+                Ok(Self::Erase { quest: u32::from_str_radix(hex, 16).map_err(|_| QuestError::InvalidRecord)? })
             }
             _ if text.starts_with("retire,") => {
                 let hex = &text["retire,".len()..];
@@ -345,6 +354,12 @@ impl Book {
                 next.subcounts.retain(|(q, _), _| q != quest);
             }
             Command::RetireHunt { quest } => { next.hunting.0.remove(quest); }
+            Command::Erase { quest } => {
+                next.stages.remove(quest);
+                next.counts.remove(quest);
+                next.subcounts.retain(|(q, _), _| q != quest);
+                if let Some(t) = next.timers.get_mut(quest) { t.started = 0; }
+            }
             Command::EffectOn { effect, at, until } => { next.effects.insert(*effect, (*at, *until)); }
             Command::EffectOff { effect } => { next.effects.remove(effect); }
             Command::SubCount { quest, counter, count } => { next.subcounts.insert((*quest, *counter), *count); }
