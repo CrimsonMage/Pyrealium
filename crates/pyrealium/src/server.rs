@@ -62,7 +62,17 @@ mod item_actions;
 mod runtime;
 mod startup;
 mod serve;
-use self::{peer::*, travel::*, delivery::*, examine::*, combat_fx::*, quest_use::*, equipment_ops::*, item_service::*, trade_ops::*, group_ops::*, npc_use::*, item_actions::*, runtime::*, startup::*, serve::*};
+mod datagram;
+mod receive;
+mod client_event;
+mod script_call;
+mod script_merchant;
+mod script_items;
+mod script_chat;
+mod script_skill;
+mod script_use;
+mod script_combat;
+use self::{peer::*, travel::*, delivery::*, examine::*, combat_fx::*, quest_use::*, equipment_ops::*, item_service::*, trade_ops::*, group_ops::*, npc_use::*, item_actions::*, runtime::*, startup::*, serve::*, datagram::*, receive::*, client_event::*, script_call::*, script_merchant::*, script_items::*, script_chat::*, script_skill::*, script_use::*, script_combat::*};
 #[cfg(test)]
 mod tests;
 
