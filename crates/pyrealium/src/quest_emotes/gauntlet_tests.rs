@@ -28,9 +28,11 @@ impl Player {
         self.progression = o.changes.iter().try_fold(self.progression.clone(), |p, c| p.apply(c)).unwrap();
         self.bag = o.items.iter().try_fold(self.bag.clone(), |b, c| b.apply(c)).unwrap();
     }
-    fn trigger(&mut self, t: &Tables, trigger: Trigger, entity: u32, now: u64) -> Option<Outcome> {
+    fn trigger(&mut self, t: &Tables, trigger: Trigger, entity: u32, now: u64) -> Option<Outcome> { self.on(t, trigger, entity, 9, now) }
+    /// A trigger on the world object `iid` (a kill's creature).
+    fn on(&mut self, t: &Tables, trigger: Trigger, entity: u32, iid: u64, now: u64) -> Option<Outcome> {
         let first = self.bag.high_water().max(ITEM_NAMESPACE) + 1;
-        let o = t.run(trigger, entity, 9, None, &self.book, &self.bag, &self.progression, first, 0.0, now, &item).unwrap()?;
+        let o = t.run(trigger, entity, iid, None, &self.book, &self.bag, &self.progression, first, 0.0, now, &item).unwrap()?;
         self.take(&o);
         Some(o)
     }
@@ -55,7 +57,8 @@ fn a_gauntlet_run_from_the_offer_to_the_reward() {
     let mut p = Player::new(46);
     let o = p.trigger(t, Trigger::Use, MASTER, 1000).unwrap();
     assert_eq!(o.tells, [(0x2500_7e77, 0x2a6b_091e)]);
-    assert_eq!((p.book.stage(QUEST), p.book.subcount(QUEST, 0)), (12, 6));
+    // Counters won (0) and total (1): five fights in the bracket.
+    assert_eq!((p.book.stage(QUEST), p.book.subcount(QUEST, 0), p.book.subcount(QUEST, 1)), (12, 0, 5));
     // The portal claims an arena, carries the player to fight 12's room and summons its opponent.
     let o = p.trigger(t, Trigger::Use, PORTAL, 1010).unwrap();
     let lane = p.book.lane(arenas).expect("an arena");
@@ -64,8 +67,11 @@ fn a_gauntlet_run_from_the_offer_to_the_reward() {
     instances::committed(1, &o);
     let _ = instances::take_world();
     // Each kill moves the run on; five seconds later the player is in the next room with its opponent.
+    let slot = |fight: usize, lane: u8| SLOT_BASE | (fights[fight - 1].1 << 8) | u64::from(lane);
+    // The same creature anywhere but the arena's slots is no Gauntlet kill.
+    assert!(p.on(t, Trigger::Kill, fights[11].0, 0x8140_0000_0000_0001, 1050).is_none());
     for fight in 12..16 {
-        let kill = p.trigger(t, Trigger::Kill, fights[fight - 1].0, 1100).unwrap();
+        let kill = p.on(t, Trigger::Kill, fights[fight - 1].0, slot(fight, lane), 1100).unwrap();
         assert_eq!(p.book.stage(QUEST), fight as u8 + 1);
         assert_eq!(kill.resume.as_ref().map(|r| r.after_ms), Some(5000));
         let next = p.resume(t, &kill, 1105);
@@ -73,7 +79,7 @@ fn a_gauntlet_run_from_the_offer_to_the_reward() {
         assert!(next.moveto.is_some());
     }
     // The last kill brings the player back to the hub and frees the arena.
-    let kill = p.trigger(t, Trigger::Kill, fights[15].0, 1200).unwrap();
+    let kill = p.on(t, Trigger::Kill, fights[15].0, slot(16, lane), 1200).unwrap();
     assert_eq!(p.book.stage(QUEST), 17);
     let back = p.resume(t, &kill, 1205);
     assert_eq!(back.moveto.map(|m| m.cell), Some(0x049e_0108));
@@ -103,7 +109,8 @@ fn an_early_exit_pays_the_share_won_and_a_death_pays_nothing() {
     assert_eq!(p.book.stage(QUEST), 1);
     let o = p.trigger(t, Trigger::Use, PORTAL, 1001).unwrap();
     instances::committed(2, &o);
-    for (entity, _) in &fights[..4] { p.trigger(t, Trigger::Kill, *entity, 1002).unwrap(); }
+    let lane = p.book.lane(group_id("gauntlet_arenas")).unwrap();
+    for (entity, level) in &fights[..4] { p.on(t, Trigger::Kill, *entity, SLOT_BASE | (level << 8) | u64::from(lane), 1002).unwrap(); }
     let span = p.progression.level_span().unwrap();
     let o = p.trigger(t, Trigger::Use, MASTER, 1100).unwrap();
     assert_eq!(o.tells, [(0x2500_7e77, 0x2968_fd1e)]);

@@ -571,8 +571,8 @@ fn retired_hunt_commands(book:&crate::quests::Book)->Vec<crate::quests::Command>
 /// A kill's quest emotes (`quest_emotes::kill`), credited to the killer: the stage and counter
 /// commands and the experience (its items are the encounter's loot).
 /// `time` is the kill's (Unix seconds): a quest's time limit and the run's solve time go by it.
-fn kill_emotes(c:&Character,entity:u32,time:u64)->(Vec<crate::quests::Command>,Vec<crate::progression::Command>) {
-    crate::quest_emotes::kill(&c.quests,&c.inventory,&c.progression,entity,0,time).map_or((Vec::new(),Vec::new()),|o|(o.quests,o.changes))
+fn kill_emotes(c:&Character,entity:u32,actor:u64,time:u64)->(Vec<crate::quests::Command>,Vec<crate::progression::Command>) {
+    crate::quest_emotes::kill(&c.quests,&c.inventory,&c.progression,entity,actor,time).map_or((Vec::new(),Vec::new()),|o|(o.quests,o.changes))
 }
 
 #[cfg(test)]

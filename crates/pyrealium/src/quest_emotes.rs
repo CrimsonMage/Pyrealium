@@ -109,6 +109,9 @@ pub struct Quest {
 pub struct Set {
     pub id: String, pub owner_entity: Option<u32>, pub owner_iid: Option<u64>, pub trigger: Trigger,
     pub item: Option<u32>, pub quest: Option<u32>, pub stages: (u8, u8), pub range: f32, pub probability: f32,
+    /// An instance group: the set answers for any creature of the group's spawn slots
+    /// (`emote_set.owner_slots`).
+    pub owner_slots: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -150,6 +153,16 @@ pub enum Action {
     MoveToLane(String),
     /// Moves the player to the slot's arrival point in its lane (a room of its own per slot).
     MoveToSlot(String),
+    /// Generate for the group's slot whose step is the quest's current stage.
+    GenerateStep { group: String, quest: u32 },
+    /// MoveToSlot for the group's slot whose step is the quest's current stage.
+    MoveToStep { group: String, quest: u32 },
+    /// SetStage to the quest's current stage plus one.
+    IncrementStage { quest: u32 },
+    /// AwardLevelProportionalXP scaled by counter `part` over counter `whole` of the quest.
+    AwardXpShare { basis_points: u64, quest: u32, part: u8, whole: u8 },
+    /// AwardGold scaled by counter `part` over counter `whole` of the quest.
+    AwardGoldShare { gold: u32, quest: u32, part: u8, whole: u8 },
     SetCounter { quest: u32, counter: u8, value: u16 },
     /// Whether the player's level reaches the quest's `min_level`.
     InqLevel { quest: u32, success: Option<String>, failure: Option<String> },

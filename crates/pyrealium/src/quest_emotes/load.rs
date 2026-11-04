@@ -112,8 +112,11 @@ impl Tables {
             if trigger == Trigger::Enter && f[2].is_empty() {
                 return Err(bad("an Enter set names its point: owner_iid, the world object it is around (range: the radius)"));
             }
+            // The database's owner_slots rides after the TSV columns (`db::rows`).
+            let owner_slots = f.get(11).filter(|v| !v.is_empty()).map(|v| v.to_string());
+            if owner_slots.as_ref().is_some_and(|g| !t.groups.contains_key(g)) { return Err(bad("owner_slots is not an instance_group")); }
             let ownerless = trigger.branch() || trigger.personal();
-            if ownerless == (owner_entity.is_some() || owner_iid.is_some()) {
+            if ownerless == (owner_entity.is_some() || owner_iid.is_some() || owner_slots.is_some()) {
                 return Err(bad("a branch, Goto, PlayerDeath, QuestExpired or Logout set has no owner; every other set names owner_entity or owner_iid"));
             }
             if trigger.personal() && f[5].is_empty() {
@@ -128,7 +131,7 @@ impl Tables {
             let probability = if f[9].is_empty() { 1.0 } else { f[9].parse().ok().filter(|p: &f32| (0.0..=1.0).contains(p) && *p > 0.0).ok_or_else(|| bad("probability must be in (0, 1]"))? };
             if f[0].is_empty() || f[10].is_empty() { return Err(bad("set and source must not be empty")); }
             if lines.insert(f[0].to_owned(), at.clone()).is_some() { return Err(bad("duplicate set")); }
-            t.sets.push(Set { id: f[0].to_owned(), owner_entity, owner_iid, trigger, item, quest, stages, range, probability });
+            t.sets.push(Set { id: f[0].to_owned(), owner_entity, owner_iid, trigger, item, quest, stages, range, probability, owner_slots });
         }
         let mut orders = BTreeMap::<String, Vec<(u32, String, (u32, Action))>>::new();
         for (at, f) in &tables[3] {
@@ -182,7 +185,8 @@ impl Tables {
                 for (_, action) in self.actions.get(set).map_or(&[][..], Vec::as_slice) {
                     let refused = matches!(action, Action::GiveItem { .. } | Action::TakeItem { .. } | Action::RandomGive(_)
                         | Action::AwardXp(_) | Action::AwardLevelProportionalXp { .. } | Action::AwardGold(_) | Action::MoveTo(_)
-                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. });
+                        | Action::StartEscort(_) | Action::Generate(_) | Action::MoveToLane(_) | Action::MoveToSlot(_) | Action::ClaimInstance { .. }
+                        | Action::GenerateStep { .. } | Action::MoveToStep { .. } | Action::AwardXpShare { .. } | Action::AwardGoldShare { .. });
                     if refused {
                         let at = lines.get(start.id.as_str()).map_or("", String::as_str);
                         return Err(io::Error::other(format!("{at}: a {:?} set changes quests and talks only, but reaches {action:?} in set {set}",
@@ -227,8 +231,10 @@ impl Tables {
                 let text = aliases.get(&f[4]).filter(|(k, _)| *k == super::spec::AliasKind::Placement).map_or(f[4].as_str(), |(_, v)| v.as_str());
                 Some(super::spec::placement(text).ok_or_else(|| bad("arrival must be `cell x y z heading` or a placement alias"))?)
             };
-            let slot = self.slots.entry(f[0].clone()).or_insert_with(|| Slot { group: f[2].clone(), iids: BTreeMap::new(), arrivals: BTreeMap::new() });
+            let step = if f[5].is_empty() { None } else { Some(f[5].parse::<u8>().map_err(|_| bad("step must be 0 to 255"))?) };
+            let slot = self.slots.entry(f[0].clone()).or_insert_with(|| Slot { group: f[2].clone(), iids: BTreeMap::new(), arrivals: BTreeMap::new(), step });
             if slot.group != f[2] { return Err(bad("a slot belongs to one instance group")); }
+            if slot.step != step { return Err(bad("every lane of a slot has the same step")); }
             if self.slots.values().any(|s| s.iids.values().any(|i| *i == iid)) { return Err(bad("another slot already holds this iid")); }
             let slot = self.slots.get_mut(&f[0]).unwrap();
             slot.iids.insert(lane, iid);

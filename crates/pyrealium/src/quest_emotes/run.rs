@@ -24,8 +24,9 @@ impl Tables {
         self.stages.get(&(quest, stage)).map(|(c, t)| (*c, t.as_str()))
     }
 
-    fn owned_by(set: &Set, entity: u32, iid: u64) -> bool {
+    fn owned_by(&self, set: &Set, entity: u32, iid: u64) -> bool {
         set.owner_iid.is_none_or(|i| i == iid) && set.owner_entity.is_none_or(|e| e == entity)
+            && set.owner_slots.as_ref().is_none_or(|g| self.slots.values().any(|sl| sl.group == *g && sl.iids.values().any(|i| *i == iid)))
     }
     /// The world objects Enter sets are around, with their radius: a player's position within
     /// it runs the set (`server.rs`, on each position update).
@@ -34,7 +35,7 @@ impl Tables {
     }
     /// Whether the object (entity, iid) has sets for `trigger` at all.
     pub fn reacts(&self, entity: u32, iid: u64, trigger: Trigger) -> bool {
-        self.sets.iter().any(|s| s.trigger == trigger && Self::owned_by(s, entity, iid))
+        self.sets.iter().any(|s| s.trigger == trigger && self.owned_by(s, entity, iid))
     }
 
     /// The quest's stage for a player at `now` (Unix seconds): its recorded stage, or 0 when an
@@ -66,7 +67,7 @@ impl Tables {
 
     #[allow(clippy::too_many_arguments)]
     fn find(&self, trigger: Trigger, entity: u32, iid: u64, item: Option<u32>, book: &Book, roll: f32, now: u64) -> Option<&Set> {
-        self.sets.iter().find(|s| s.trigger == trigger && Self::owned_by(s, entity, iid)
+        self.sets.iter().find(|s| s.trigger == trigger && self.owned_by(s, entity, iid)
             && s.item.is_none_or(|i| Some(i) == item)
             && s.quest.is_none_or(|q| (s.stages.0..=s.stages.1).contains(&self.stage_now(book, q, now)))
             && roll < s.probability)
@@ -267,23 +268,31 @@ impl Tables {
                     if let Some(to) = to { s.outcome.moveto = Some(*to); }
                 }
                 Action::Goto(next) => { if let Some(frames) = self.descend(next, set, i, s, make, depth)? { return Ok(Some(frames)); } }
-                Action::SetStage { quest, stage } => {
-                    let done = |st: u8| self.stage(*quest, st).is_some_and(|(d, _)| d);
-                    let before = self.stage_now(&s.book, *quest, s.now);
-                    let starts = *stage != 0 && !done(*stage) && (before == 0 || done(before));
-                    if starts {
-                        // The registry's rules hold whatever the rows checked first.
-                        if !self.level_ok(&s.progression, *quest) {
-                            return Err(io::Error::other("You are not experienced enough to begin this quest."));
-                        }
-                        if !self.ready(&s.book, *quest, s.now) {
-                            return Err(io::Error::other("You cannot begin this quest again yet."));
-                        }
-                        s.quest(Q::Started { quest: *quest, at: s.now })?;
+                Action::SetStage { quest, stage } => self.set_stage(*quest, *stage, s)?,
+                Action::IncrementStage { quest } => {
+                    let next = self.stage_now(&s.book, *quest, s.now).saturating_add(1);
+                    self.set_stage(*quest, next, s)?;
+                }
+                Action::GenerateStep { group, quest } => {
+                    if let Some(iid) = self.step_slot(group, *quest, s).and_then(|(sl, lane)| sl.iids.get(&lane).copied()) {
+                        s.outcome.world.push(super::instances::WorldOp::Generate(iid));
                     }
-                    s.quest(Q::Stage { quest: *quest, stage: *stage })?;
-                    if done(*stage) && !done(before) { s.quest(Q::Solved { quest: *quest, at: s.now })?; }
-                    if let Some((_, text)) = self.stage(*quest, *stage) { s.outcome.lines.push(text.to_owned()); }
+                }
+                Action::MoveToStep { group, quest } => {
+                    if let Some(to) = self.step_slot(group, *quest, s).and_then(|(sl, lane)| sl.arrivals.get(&lane).copied()) {
+                        s.outcome.moveto = Some(to);
+                    }
+                }
+                Action::AwardXpShare { basis_points, quest, part, whole } => {
+                    let (part, whole) = (u64::from(s.book.subcount(*quest, *part)), u64::from(s.book.subcount(*quest, *whole)));
+                    let span = s.progression.level_span().unwrap_or(0);
+                    let xp = span.saturating_mul(*basis_points).saturating_mul(part.min(whole)).checked_div(10_000 * whole).unwrap_or(0);
+                    if xp > 0 { s.change(crate::progression::Command::AwardXp(xp))?; }
+                }
+                Action::AwardGoldShare { gold, quest, part, whole } => {
+                    let (part, whole) = (u64::from(s.book.subcount(*quest, *part)), u64::from(s.book.subcount(*quest, *whole)));
+                    let paid = (u64::from(*gold) * part.min(whole)).checked_div(whole).unwrap_or(0);
+                    if paid > 0 { s.change(crate::progression::Command::AwardGold(paid as u32))?; }
                 }
                 Action::IncrementQuest { quest } => {
                     let goal = self.quests.get(quest).map_or(0, |q| q.goal);
@@ -348,6 +357,34 @@ impl Tables {
             }
         }
         Ok(None)
+    }
+    /// Moves `quest` to `stage` for the player: a start (leaving stage 0 or a completed stage) is
+    /// held to the registry's level, repeat and solve rules; a completed stage solves it; the
+    /// stage's journal line is said.
+    fn set_stage(&self, quest: u32, stage: u8, s: &mut State) -> io::Result<()> {
+        let done = |st: u8| self.stage(quest, st).is_some_and(|(d, _)| d);
+        let before = self.stage_now(&s.book, quest, s.now);
+        let starts = stage != 0 && !done(stage) && (before == 0 || done(before));
+        if starts {
+            // The registry's rules hold whatever the rows checked first.
+            if !self.level_ok(&s.progression, quest) {
+                return Err(io::Error::other("You are not experienced enough to begin this quest."));
+            }
+            if !self.ready(&s.book, quest, s.now) {
+                return Err(io::Error::other("You cannot begin this quest again yet."));
+            }
+            s.quest(Q::Started { quest, at: s.now })?;
+        }
+        s.quest(Q::Stage { quest, stage })?;
+        if done(stage) && !done(before) { s.quest(Q::Solved { quest, at: s.now })?; }
+        if let Some((_, text)) = self.stage(quest, stage) { s.outcome.lines.push(text.to_owned()); }
+        Ok(())
+    }
+    /// The group's slot whose step is `quest`'s current stage, and the player's lane of the group.
+    fn step_slot(&self, group: &str, quest: u32, s: &State) -> Option<(&super::instances::Slot, u8)> {
+        let lane = s.book.lane(self.groups.get(group)?.id)?;
+        let stage = self.stage_now(&s.book, quest, s.now);
+        self.slots.values().find(|sl| sl.group == group && sl.step == Some(stage)).map(|sl| (sl, lane))
     }
     /// Sends away the creatures of `group`'s slots in `lane`.
     fn dismiss_lane(&self, group: &str, lane: u8, s: &mut State) {

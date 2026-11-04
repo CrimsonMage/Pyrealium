@@ -198,21 +198,23 @@ Names instead of numbers, and shapes written once:
 Instances (parallel copies of a place a quest hands out one per player, `quest_emotes/instances.rs`):
 
 - `instance_group` (name, doc), `instance_lane` (instance_group, lane 0-255, entry: `cell x y z
-  heading` or a placement alias), `spawn_slot` (name, instance_group, lane, iid): a slot is one
-  world placement per lane (its iid in the world table) held back until a quest summons it; it
-  never regenerates.
+  heading` or a placement alias), `spawn_slot` (name, lane, instance_group, iid, arrival, step): a
+  slot is one world placement per lane (its iid in the world table) held back until a quest
+  summons it; it never regenerates. `arrival` is where MoveToSlot puts the player (a room of its
+  own); `step` ties the slot to a quest stage, for GenerateStep and MoveToStep (a chain of rooms
+  or waves). A set's `owner_slots` (an instance group) answers for any creature of its slots.
 - ClaimInstance takes a free lane for the player (durable in its quest book, so a restart keeps
   it), MoveToLane moves the player to its lane's entry, Generate summons a slot's creature in the
   player's lane, DismissSlots sends the lane's creatures away, ReleaseInstance does that and frees
   the lane. A death, logout or expiry set may release and dismiss (not claim, summon or move), so
   a run that ends that way can free its lane: give every instanced quest such sets.
 
-The Gauntlet (Cragstone Excavation) is the `gauntlet` family, written by
-`tools/author_gauntlet_quest.py` from `gauntlet-content-v1.json` and imported with
-`pyrealium-content import-sql OUT.sql gauntlet` (the script's docstring has its evidence and
-policy). Its 128 opponent placements are the world pack `gauntlet-world-v1.tsv`
-(`examples/gauntlet_authoring.rs`), held as the `gauntlet_arenas` spawn slots. It is plain rows:
-edit them in the database as any quest's, or change the script and import again.
+The Gauntlet (Cragstone Excavation) is plain hand-written rows (its sets are named
+`gauntlet_*`): the Master's offer by level bracket, one portal set and one kill set for all 16
+fights (the `gauntlet_arenas` slots carry each fight's room and opponent as their `step`, the
+quest's stage), the reward, the early exit (AwardXPShare / AwardGoldShare of the `won` and
+`total` counters) and the death, expiry and logout rows. Each row's `source` cites its evidence.
+Its 128 opponent placements are the world pack `gauntlet-world-v1.tsv`.
 
 A generator writes its rows as the old four TSVs (`<table>-<family>.tsv`, the column order
 above) and imports them with `pyrealium-content import-tsv DIR FAMILY`, which replaces only that

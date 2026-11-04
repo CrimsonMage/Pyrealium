@@ -195,11 +195,11 @@
             assert!(crate::apparel::aspects(&s.characters[&1].inventory,1,0x1000).iter().any(|(_,a,v)|*a==2&&(*v-0.731).abs()<0.0001));
             before=s.characters[&1].progression.xp;
             let normal=[P::AwardXp(1)];
-            s.encounter_reward("local",1,q.kill_starters[0],&normal).unwrap();
-            for _ in 0..q.goal {s.encounter_reward("local",1,q.targets[0],&normal).unwrap();}
+            s.encounter_reward("local",1,q.kill_starters[0],0,&normal).unwrap();
+            for _ in 0..q.goal {s.encounter_reward("local",1,q.targets[0],0,&normal).unwrap();}
             assert_eq!(s.characters[&1].progression.xp,before+u64::from(q.goal)+1+q.xp);
             finished=s.characters[&1].quests.recovered.0[&q.id].clone();assert!(finished.completed>0);
-            s.encounter_reward("local",1,q.kill_starters[0],&normal).unwrap();
+            s.encounter_reward("local",1,q.kill_starters[0],0,&normal).unwrap();
             assert_eq!(s.characters[&1].quests.recovered.0[&q.id],finished);
             for offset in 2..=3 {
                 let elixir=Item{roll:None,id:ITEM_NAMESPACE+offset,definition:0x47000f43,visual:0x1f0001cf,
@@ -300,11 +300,11 @@
             s.progression_command("local",1,AwardXp(initial)).unwrap();
             assert!(s.hunting_conversation("other",1,q.npc,time).is_err());
             s.hunting_conversation("local",1,q.npc,time).unwrap();
-            for _ in 0..4 {s.encounter_reward("local",1,q.targets[0],&[AwardXp(1)]).unwrap();}
+            for _ in 0..4 {s.encounter_reward("local",1,q.targets[0],0,&[AwardXp(1)]).unwrap();}
         }
         {
             let mut s=Store::open(&dir).unwrap();assert_eq!(s.characters[&1].quests.hunting.0[&q.id].count,4);
-            for _ in 4..10 {s.encounter_reward("local",1,q.targets[0],&[AwardXp(1)]).unwrap();}
+            for _ in 4..10 {s.encounter_reward("local",1,q.targets[0],0,&[AwardXp(1)]).unwrap();}
             assert_eq!(s.characters[&1].progression.xp,initial+10,"kill must not pay quest XP");
             s.hunting_conversation("local",1,q.npc,time+1).unwrap();
             assert_eq!(s.characters[&1].progression.xp,initial+10+q.xp_cap);
@@ -531,7 +531,7 @@
             let mut s=Store::open(&dir).unwrap();let c=s.create_native("local",&request("Kill Time")).unwrap();
             let id=s.next_item_id().unwrap();
             let items=[crate::inventory::Command::Grant(crate::item_services::potion(id,0))];
-            s.encounter_transaction("local",c.id,0x4700158b,&items,&[crate::progression::Command::AwardXp(5)]).unwrap();
+            s.encounter_transaction("local",c.id,0x4700158b,0,&items,&[crate::progression::Command::AwardXp(5)]).unwrap();
             saved=s.characters[&c.id].clone();
         }
         let s=Store::open(&dir).unwrap();assert_eq!(s.characters[&saved.id],saved);

@@ -9,6 +9,8 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `AwardXP` | p1 xp: whole number, at least 1 | Gives experience. |
 | `AwardLevelProportionalXP` | p1 percent: percent (up to 2 decimals)<br>[p2 min: whole number, at least 0]<br>[p3 max: whole number, at least 0] | Gives a percent of the experience the player's current level spans, at least min and at most max (empty: no limit). |
 | `AwardGold` | p1 gold: whole number, at least 1 | Gives coins. |
+| `AwardXPShare` | p1 percent: percent (up to 2 decimals)<br>p2 quest: quest name<br>p3 part: counter (0-255, or its quest_counter name)<br>p4 whole: counter (0-255, or its quest_counter name) | Gives the percent of the level's experience span times counter part over counter whole of the quest (a share of a reward: fights won of fights). |
+| `AwardGoldShare` | p1 gold: whole number, at least 1<br>p2 quest: quest name<br>p3 part: counter (0-255, or its quest_counter name)<br>p4 whole: counter (0-255, or its quest_counter name) | Gives the coins times counter part over counter whole of the quest. |
 | `GiveItem` | p1 item: entity DID (0x47...) or entity alias<br>p2 count: whole number 1-16 | Gives items (one bag slot each). The whole set fails when the bag is full. |
 | `TakeItem` | p1 item: entity DID (0x47...) or entity alias<br>p2 count: whole number 1-16 | Takes items from the bag. The whole set fails when the player has fewer. |
 | `RandomGive` | p1 items: 0x47...:weight,... | Gives one item drawn by weight. |
@@ -17,6 +19,7 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `ApplyEffect` | p1 effect: Effect state DID (0x6f...) or effect alias<br>p2 seconds: whole number 1-31536000 | Puts an Effect state on the player for a time (a quest's curse or blessing); it shows on the effect strip. |
 | `RemoveEffect` | p1 effect: Effect state DID (0x6f...) or effect alias | Takes an Effect state off the player. |
 | `SetStage` | p1 quest: quest name<br>p2 stage: stage (0-255) | Moves the quest to a stage and prints its journal line. Leaving stage 0 (or a completed stage) starts a run: refused below the quest's min_level, before its repeat delay, or past its solve limit. Reaching a completed stage solves it. |
+| `IncrementStage` | p1 quest: quest name | SetStage to the quest's current stage plus one (with SetStage's start and solve rules and journal line). |
 | `EraseQuest` | p1 quest: quest name | Resets the quest to stage 0: its counters and run start go; its solves stay (they count for repeats). |
 | `IncrementQuest` | p1 quest: quest name | Counts one more on the quest's kill counter, up to its goal. |
 | `IncrementCounter` | p1 quest: quest name<br>p2 counter: counter (0-255, or its quest_counter name)<br>p3 cap: whole number 1-65535 | Counts one more on a counter, up to cap. |
@@ -40,6 +43,8 @@ Generated from `crates/pyrealium/src/quest_emotes/spec.rs` (`pyrealium-content a
 | `Generate` | p1 slot: spawn slot name | Summons the slot's creature in the player's lane of its group (an earlier one's corpse goes first); nothing without a lane. |
 | `DismissSlots` | p1 group: instance group name | Sends away the creatures, alive or dead, of the group's slots in the player's lane. |
 | `MoveToLane` | p1 group: instance group name | Moves the player to the entry of its lane of the group. |
+| `GenerateStep` | p1 group: instance group name<br>p2 quest: quest name | Generate for the group's slot whose step (spawn_slot.step) is the quest's current stage: a chain of rooms or waves by stage. |
+| `MoveToStep` | p1 group: instance group name<br>p2 quest: quest name | MoveToSlot for the group's slot whose step is the quest's current stage. |
 | `MoveToSlot` | p1 slot: spawn slot name | Moves the player to the slot's arrival point in its lane (spawn_slot.arrival: a room of its own per slot). |
 | `MoveTo` | p1 cell: hex (0x...) or alias<br>p2 x: number<br>p3 y: number<br>p4 z: number<br>p5 heading: stage (0-255) | Moves the player to a place (heading 0-255, clockwise from north). |
 | `StartEscort` | p1 creature: entity DID (0x47...) or entity alias | The nearest free creature of the entity starts following the player. |

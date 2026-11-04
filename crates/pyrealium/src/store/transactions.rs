@@ -227,6 +227,7 @@ impl Store {
         account: &str,
         id: u64,
         entity: u32,
+        actor: u64,
         commands: &[crate::progression::Command],
     ) -> io::Result<()> {
         if commands.is_empty() || commands.len() > 8 {
@@ -238,7 +239,7 @@ impl Store {
             .filter(|c| c.account == account && !c.deleted && c.progression.alive())
             .ok_or_else(|| invalid("encounter reward character unavailable"))?;
         let time=crate::recovered_quests::now();
-        let (kill_quests,kill_xp)=kill_emotes(character,entity,time);
+        let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
         let mut quests=character.quests.record_kill(entity);
         let (recovered,xp)=quests.recovered.kill(entity,character.progression.level().number,time);
         quests.recovered=recovered;
@@ -258,6 +259,7 @@ impl Store {
         account: &str,
         id: u64,
         entity: u32,
+        actor: u64,
         items: &[crate::inventory::Command],
         changes: &[crate::progression::Command],
     ) -> io::Result<()> {
@@ -283,7 +285,7 @@ impl Store {
         )?;
         // The kill's time is recorded (`ek1`): the quest emotes' time limits and solve times go by it.
         let time=crate::recovered_quests::now();
-        let (kill_quests,kill_xp)=kill_emotes(character,entity,time);
+        let (kill_quests,kill_xp)=kill_emotes(character,entity,actor,time);
         let progression=kill_xp.iter().try_fold(progression,|p,c|p.apply(c)).map_err(io::Error::other)?;
         let quests=kill_quests.iter().try_fold(character.quests.record_kill(entity),|b,c|b.apply(c)).map_err(io::Error::other)?;
         self.touch(id);

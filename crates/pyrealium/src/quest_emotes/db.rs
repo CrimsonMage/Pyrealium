@@ -20,7 +20,7 @@ use rusqlite::types::{Value, ValueRef};
 use super::{FILES, HEADERS, Row, Tables};
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 6;
+pub const SCHEMA_VERSION: i32 = 7;
 
 /// The tables, in dump order. Hex identifiers are text (`0x4700157d`), as they are written
 /// everywhere else; blank optional fields are NULL.
@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS emote_set (
   trigger TEXT NOT NULL CHECK (trigger IN ('Use', 'Give', 'Kill', 'ItemUsedOn', 'Enter', 'Crafted', 'EscortLost',
     'QuestSuccess', 'QuestFailure', 'Goto', 'PlayerDeath', 'QuestExpired', 'Logout', 'EscortAbandoned')),
   item TEXT CHECK (item GLOB '0x[0-9a-fA-F]*' OR item GLOB '[a-z]*'),
+  owner_slots TEXT REFERENCES instance_group(name) ON UPDATE CASCADE,
   quest TEXT REFERENCES quest(name) ON UPDATE CASCADE,
   stage_min INTEGER CHECK (stage_min BETWEEN 0 AND 255),
   stage_max INTEGER CHECK (stage_max BETWEEN 0 AND 255),
@@ -168,6 +169,7 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
   lane INTEGER NOT NULL,
   iid TEXT NOT NULL CHECK (iid GLOB '0x[0-9a-fA-F]*'),
   arrival TEXT,
+  step INTEGER CHECK (step BETWEEN 0 AND 255),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (name, lane),
@@ -180,7 +182,17 @@ CREATE TABLE IF NOT EXISTS spawn_slot (
 /// leading columns are its key.
 pub(super) struct Shape { pub(super) table: &'static str, pub(super) columns: &'static [&'static str], order: &'static str, key: usize }
 /// Optional columns added after a table's first schema, which an older dump lacks.
-const OPTIONAL_SINCE: [(&str, &str); 1] = [("spawn_slot", "arrival")];
+const OPTIONAL_SINCE: [(&str, &str); 3] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots")];
+/// `emote_set`'s columns beyond the TSV's (the database's own), in dump order after its name.
+const SET_EXTRA: [&str; 2] = ["priority", "owner_slots"];
+/// A table's columns as the database holds them: `emote_set`'s extras after its name, then
+/// `family`.
+fn db_columns(shape: &Shape) -> Vec<&'static str> {
+    let mut columns: Vec<&str> = shape.columns.to_vec();
+    if shape.table == "emote_set" { for (i, c) in SET_EXTRA.iter().enumerate() { columns.insert(1 + i, c); } }
+    columns.push("family");
+    columns
+}
 /// The TSV tables (`FILES` order) are SHAPES[..TSV].
 const TSV: usize = 4;
 pub(super) const SHAPES: [Shape; 10] = [
@@ -208,7 +220,7 @@ const SHAPES_TAIL: [Shape; 5] = [
     Shape { table: "template_arg", order: "use_name, param", key: 2, columns: &["use_name", "param", "value", "source"] },
     Shape { table: "instance_group", order: "name", key: 1, columns: &["name", "doc", "source"] },
     Shape { table: "instance_lane", order: "instance_group, lane", key: 2, columns: &["instance_group", "lane", "entry", "source"] },
-    Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "lane", "instance_group", "iid", "arrival", "source"] },
+    Shape { table: "spawn_slot", order: "instance_group, name, lane", key: 2, columns: &["name", "lane", "instance_group", "iid", "arrival", "step", "source"] },
 ];
 /// Every table, in dump order.
 pub(super) fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()) }
@@ -236,8 +248,7 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
     for shape in shapes() {
         let mut statement = db.prepare(&format!("PRAGMA table_info({})", shape.table)).map_err(sql)?;
         let mut have: Vec<String> = statement.query_map([], |r| r.get::<_, String>(1)).map_err(sql)?.collect::<Result<_, _>>().map_err(sql)?;
-        let mut want: Vec<String> = shape.columns.iter().map(|c| c.to_string()).chain(["family".to_owned()]).collect();
-        if shape.table == "emote_set" { want.push("priority".to_owned()); }
+        let mut want: Vec<String> = db_columns(shape).iter().map(|c| c.to_string()).collect();
         // An older dump's table lacks the optional columns added since: they are added empty
         // (export writes the table anew).
         for column in want.iter().filter(|c| !have.contains(c)).cloned().collect::<Vec<_>>() {
@@ -317,7 +328,8 @@ pub struct QuestRows {
 
 pub fn rows(db: &Connection) -> io::Result<QuestRows> {
     let expanded = super::templates::expand(db)?;
-    let mut sets: Vec<(i64, Row)> = table(db, &SHAPES[2], &["priority"])?.into_iter().map(|mut f| {
+    // A set's owner_slots rides after its TSV columns (`Tables::parse_all` reads it there).
+    let mut sets: Vec<(i64, Row)> = table(db, &SHAPES[2], &["owner_slots", "priority"])?.into_iter().map(|mut f| {
         let priority = f.pop().and_then(|p| p.parse().ok()).unwrap_or(0);
         (priority, (format!("quests emote_set {}", f[0]), f))
     }).collect();
@@ -411,9 +423,7 @@ pub fn export(db: &Connection) -> io::Result<String> {
         -- edit quests.sqlite (`pyrealium-content build`) or these rows, then export again.\n\
         PRAGMA user_version = {SCHEMA_VERSION};\n{SCHEMA}");
     for shape in shapes() {
-        let mut columns: Vec<&str> = shape.columns.to_vec();
-        if shape.table == "emote_set" { columns.insert(1, "priority"); }
-        columns.push("family");
+        let columns = db_columns(shape);
         if shape.table != "emote_action" && !SHAPES[..TSV].iter().any(|s| s.table == shape.table) {
             // The later tables are written only when they have rows.
             let count: i64 = db.query_row(&format!("SELECT COUNT(*) FROM {}", shape.table), [], |r| r.get(0)).map_err(sql)?;
@@ -506,9 +516,7 @@ pub struct Merged { pub text: String, pub conflicts: Vec<String> }
 
 /// Every row of a table by its key, with every column (`family` and `priority` included).
 fn keyed(db: &Connection, shape: &Shape) -> io::Result<std::collections::BTreeMap<String, Vec<Value>>> {
-    let mut columns: Vec<&str> = shape.columns.to_vec();
-    if shape.table == "emote_set" { columns.push("priority"); }
-    columns.push("family");
+    let columns = db_columns(shape);
     let mut statement = db.prepare(&format!("SELECT {} FROM {}", columns.join(", "), shape.table)).map_err(sql)?;
     let mut found = statement.query([]).map_err(sql)?;
     let mut out = std::collections::BTreeMap::new();
@@ -536,9 +544,7 @@ pub fn merge(base: &str, shipped: &str, overlay: &str) -> io::Result<Merged> {
     for shape in shapes() {
         let (b, s, o) = (keyed(&base, shape)?, keyed(&shipped, shape)?, keyed(&overlay, shape)?);
         let keys: std::collections::BTreeSet<&String> = b.keys().chain(s.keys()).chain(o.keys()).collect();
-        let mut columns: Vec<&str> = shape.columns.to_vec();
-        if shape.table == "emote_set" { columns.push("priority"); }
-        columns.push("family");
+        let columns = db_columns(shape);
         let marks: Vec<String> = (1..=columns.len()).map(|i| format!("?{i}")).collect();
         let mut insert = out.prepare(&format!("INSERT INTO {} ({}) VALUES ({})", shape.table, columns.join(", "), marks.join(", "))).map_err(sql)?;
         for key in keys {
