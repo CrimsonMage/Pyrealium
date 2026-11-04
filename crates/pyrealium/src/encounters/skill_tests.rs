@@ -643,3 +643,18 @@ fn an_escort_follows_its_player_rejoins_from_afar_and_is_lost_on_death() {
     drop(store);
 
 }
+
+
+/// A creature's walked positions rest its body on the floor as the client's collision does: the
+/// Banderling Thrasher's lowest collision sphere reaches below its origin, so its rest height
+/// lifts a floor point by that depth (`creature_motion::rest_height`).
+#[test]
+fn a_creature_rests_on_its_lowest_sphere() {
+    let Ok(dir) = std::env::var("AC2_TEST_GAME_DATA") else { return };
+    let store = ac2_db::ResourceStore::new(ac2_dat::DatDataset::open(ac2_dat::DatOpenOptions::new(std::path::Path::new(&dir))).unwrap());
+    let height = crate::creature_motion::rest_height(&store, 0x1f00_0075, 1.0).unwrap();
+    assert!((0.03..0.2).contains(&height), "{height}");
+    assert!((crate::creature_motion::rest_height(&store, 0x1f00_0075, 2.0).unwrap() - 2.0 * height).abs() < 1e-4);
+    let floor = Placement { cell: 0x0299_0109, coordinates: [59.06, 242.7, -45.01], heading: 0 };
+    assert_eq!(rested(floor, height).coordinates[2], -45.01 + height);
+}

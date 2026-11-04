@@ -35,12 +35,20 @@ pub struct Profile {
     pub scale: f32,
     pub peace: Pace,
     pub combat: Pace,
+    /// How far the body's origin rests above the floor: the depth of its lowest collision sphere
+    /// below the origin (the visual's root Setup spheres, `ac2_physics::load_body_shape`, scaled
+    /// as the body is), 0 when no sphere reaches below it. The client places a creature by its
+    /// own collision (`CPhysicsObj::SetPositionSimple` with sliding, which the interpolation's
+    /// `Blip` uses): a position on the bare floor puts that sphere into the ground and is
+    /// refused, so the client body stalled where its walk caught on a bump and never reached
+    /// the creature. Retail's server ran the same physics, so its positions rested the body.
+    pub rest_height: f32,
 }
 impl Default for Profile {
     // Compatibility for synthetic/no-DAT fixtures only. The live server loads
     // every combat actor from its actual visual before starting simulation.
     fn default() -> Self {
-        Self {descriptor:0,scale:1.,peace:Pace{speed:2.,acceleration:12.},combat:Pace{speed:2.,acceleration:12.}}
+        Self {descriptor:0,scale:1.,peace:Pace{speed:2.,acceleration:12.},combat:Pace{speed:2.,acceleration:12.},rest_height:0.}
     }
 }
 #[derive(Default)]
@@ -88,7 +96,7 @@ impl Catalog {
             }
             Ok(Pace{speed,acceleration})
         };
-        Ok(Some(Profile{descriptor:did.raw(),scale:total,peace:pace(crate::combat_visual::PEACE)?,combat:pace(0x41000012)?}))
+        Ok(Some(Profile{descriptor:did.raw(),scale:total,peace:pace(crate::combat_visual::PEACE)?,combat:pace(0x41000012)?,rest_height:0.}))
     }
 }
 
@@ -119,4 +127,16 @@ mod tests {
             assert!(half.combat.acceleration>=12.,"small bodies retain native acceleration");
         }
     }
+}
+
+/// [`Profile::rest_height`] of visual `visual` at instance scale `scale`.
+pub fn rest_height(store: &ac2_db::ResourceStore, visual: u32, scale: f32) -> io::Result<f32> {
+    let Some(shape) = ac2_physics::load_body_shape(store, DataId::new(visual)).map_err(io::Error::other)? else {
+        return Ok(0.);
+    };
+    let scale = f64::from(shape.scale) * f64::from(scale);
+    let lowest = shape.spheres.iter()
+        .map(|s| (f64::from(s.center.z) - f64::from(s.radius)) * scale)
+        .fold(0f64, f64::min);
+    Ok((-lowest) as f32)
 }

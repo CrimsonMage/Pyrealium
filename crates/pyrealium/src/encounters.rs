@@ -417,6 +417,8 @@ fn approach(from:Placement,target:Placement,stop:f32,budget:f32)->Option<Placeme
 }
 /// Spend a distance budget through the same short, collision-checked segments
 /// used before variable speed. Retain every segment for safe homeward retracing.
+/// A walked floor point raised to where the body rests on it ([`crate::creature_motion::Profile::rest_height`]).
+fn rested(mut floor:Placement,height:f32)->Placement {floor.coordinates[2]+=height;floor}
 fn advance(from:Placement,target:Placement,stop:f32,mut budget:f32,route:&mut Vec<Placement>,
     mut walk:impl FnMut(Placement,Placement)->Option<Placement>)->Option<Placement> {
     let mut point=from;
@@ -554,10 +556,15 @@ impl Encounters {
     pub fn load_motion(&mut self,content:&Content,directory:&Path)->io::Result<()> {
         let mut dat=crate::dat::Dat::open(directory.join("portal.dat"))?;
         let mut catalog=crate::creature_motion::Catalog::default();
+        let store=ac2_db::ResourceStore::new(ac2_dat::DatDataset::open(ac2_dat::DatOpenOptions::new(directory)).map_err(io::Error::other)?);
+        let mut rest=BTreeMap::<(u32,u32),f32>::new();
         for (&id,actor) in &mut self.actors {
             let object=content.object(id).ok_or_else(||invalid("Movement actor missing content"))?;
             actor.movement=catalog.resolve(&mut dat,object.visual,object.scale)?
                 .ok_or_else(||io::Error::other(format!("Missing native movement for creature {id:016x}, visual {:08x}",object.visual)))?;
+            let key=(object.visual,object.scale.to_bits());
+            let height=match rest.get(&key) {Some(h)=>*h,None=>{let h=crate::creature_motion::rest_height(&store,object.visual,object.scale)?;rest.insert(key,h);h}};
+            actor.movement.rest_height=height;
         }
         self.native_motion=true;
         Ok(())
@@ -1411,7 +1418,7 @@ impl Encounters {
                         let budget=actor.movement.peace.distance(&mut actor.velocity,elapsed);
                         match advance(from,to,ESCORT_DISTANCE,budget,&mut actor.route,|from,to|
                             geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35))) {
-                            Some(next)=>events.push(Event::Move{actor:id,placement:next}),
+                            Some(next)=>events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)}),
                             None=>actor.velocity=0.,
                         }
                     }
@@ -1474,7 +1481,7 @@ impl Encounters {
                             let route=if actor.patrol.is_some(){&mut patrol_route}else{&mut actor.route};
                             if let Some(next)=advance(point,goal,0.2,budget,route,|from,to|
                                 geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35))) {
-                                events.push(Event::Move{actor:id,placement:next});continue;
+                                events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)});continue;
                             }
                         }
                         actor.wander_goal=None;
@@ -1490,7 +1497,7 @@ impl Encounters {
                     let budget=actor.movement.peace.distance(&mut actor.velocity,elapsed);
                     if let Some(next)=retreat(point,budget,&mut actor.route,|from,to|
                         geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35))) {
-                        events.push(Event::Move{actor:id,placement:next});
+                        events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)});
                     } else {actor.velocity=0.;}
                     if actor.route.is_empty(){actor.evading=false;actor.velocity=0.;actor.engaged_at=None;}
                 }
@@ -1546,7 +1553,7 @@ impl Encounters {
                     let step=advance(from,player,(actor.rule.range-0.5).max(0.5),budget,&mut actor.route,|from,to|
                         geometry.as_deref_mut().and_then(|world|world.walk_step(from,to,0.35)));
                     if let Some(next)=step {
-                        events.push(Event::Move{actor:id,placement:next});
+                        events.push(Event::Move{actor:id,placement:rested(next,actor.movement.rest_height)});
                     } else {
                         actor.velocity=0.;
                         if let Some(turned)=facing(from,player).filter(|p|p.heading!=from.heading) {
