@@ -25,22 +25,26 @@ vault_id	field	key	value	source
 22	step	2	kill 5 Banderling Thrashers	AC2 Vault quests/db 22 walkthrough: 'Kill 5 Banderling Ravers / Kill 5 Banderling Thrashers ... return to the Spinekeeper to get your reward' (the parsed 'loot Ravers' is the prose 'the Ravers in the area', not an item); DAT wsl_elispinekeeper.entity name 'Eli Spinekeeper'
 22	step	3	talk Eli Spinekeeper	AC2 Vault quests/db 22 walkthrough: 'Kill 5 Banderling Ravers / Kill 5 Banderling Thrashers ... return to the Spinekeeper to get your reward' (the parsed 'loot Ravers' is the prose 'the Ravers in the area', not an item); DAT wsl_elispinekeeper.entity name 'Eli Spinekeeper'
 22	line	turn	0x2500119a:0xbbe318f5	DAT elispinekeeper.stt (2500119a) key bbe318f5: Eli's reward line 'Trunks and hoofs, you did it! ... Take one as a reward - use it and it will hatch a Dillo of your own!' (the egg is the reward)
+22	line	busy	0x2500119a:0x8b6b186f	DAT string table 0x2500119a key 0x8b6b186f: Eli's 'not done yet' line: 'No! You haven't killed enough of the Rustlers yet. Go back and finish the job, or no reward for you!'
+22	line	weak	0x2500119a:0xc4f9188e	DAT string table 0x2500119a (elispinekeeper.stt) key c4f9188e: Eli's refusal to a player too weak: 'You can't help us. You'll get pounded even worse than we would. We need someone strong!' (Vault: Level 29+)
+22	line	wait	0x2500119a:0x68a07c4d	DAT string table 0x2500119a key 68a07c4d: 'That's all right. We couldn't ask you for your help again so soon.' (Vault: wait 2 Days before repeating)
 39	ignore	crafting	yes	AC2 Vault quests/db 39 walkthrough: 'You will need a mushroom ... to make each potion' is the recipe the quest teaches afterwards, not a quest step
 39	step	1	kill 1 Degenerate Mucor Sporesower	AC2 Vault quests/db 39 walkthrough: 'Kill the sporesowers until you obtain a gland as a trophy drop'; DAT wsl_mucordegeneratesporesower.entity 0x47001749
 39	step	2	loot Degenerate Mucor Gland	AC2 Vault quests/db 39 walkthrough: 'Kill the sporesowers until you obtain a gland'; DAT wsl_trophymucordegenerategland.entity 0x47001747
 39	step	3	give Degenerate Mucor Gland to Adesar the Mushroom Collector	AC2 Vault quests/db 39 walkthrough: 'return to Adesar in Ankoro. After you give him the gland'; DAT wsl_tumerokmucormushroomcollector.entity 0x4700174b
-39	step	4	kill 1 Devolved Mucor Sporesower	AC2 Vault quests/db 39 walkthrough: 'Adesar will next ask you to find and return a devolved mucor gland... Kill the sporesowers'; DAT wsl_mucordevolvedsporesower.entity 0x4700174a
-39	step	5	loot Devolved Mucor Gland	AC2 Vault quests/db 39 walkthrough: 'Kill the sporesowers until you get a gland as a trophy drop'; DAT wsl_trophymucordevolvedgland.entity 0x47001748
-39	step	6	give Devolved Mucor Gland to Adesar the Mushroom Collector	AC2 Vault quests/db 39 walkthrough: 'return the gland to Adesar for a recipe to make a health potion'
+39	step	4	learn 0x6f001f18	AC2 Vault quests/db 39 walkthrough: the first gland teaches the vigor over time recipe (as this quest's existing reward_recipe row had it); DAT rcp_mucormushroomvigor.wc (names 6f001f18); Adesar d92f1935 'Allow me to teach you a recipe to turn those mushrooms into a refreshing potion' is spoken at that hand-in
+39	step	5	kill 1 Devolved Mucor Sporesower	AC2 Vault quests/db 39 walkthrough: 'Adesar will next ask you to find and return a devolved mucor gland... Kill the sporesowers'; DAT wsl_mucordevolvedsporesower.entity 0x4700174a
+39	step	6	loot Devolved Mucor Gland	AC2 Vault quests/db 39 walkthrough: 'Kill the sporesowers until you get a gland as a trophy drop'; DAT wsl_trophymucordevolvedgland.entity 0x47001748
+39	step	7	give Devolved Mucor Gland to Adesar the Mushroom Collector	AC2 Vault quests/db 39 walkthrough: 'return the gland to Adesar for a recipe to make a health potion'
 39	line	offer	0x250017fb:0x2ae6122c	DAT table 250017fb (Adesar) key 2ae6122c: Adesar's offer ('Greetings. Do you know much about the Mucor?')
 39	line	3	0x250017fb:0xf2b69daa	DAT table 250017fb key f2b69daa: 'Ah, you have the Mucor Sporesower's gland!' (step 3 hand-in)
 39	line	3	0x250017fb:0xd92f1935	DAT table 250017fb key d92f1935: 'Wonderful work! ... refreshing potion' (first gland reward; the vigor recipe)
 39	line	3	0x250017fb:0xd92f19f5	DAT table 250017fb key d92f19f5: 'can you also fetch the gland of a Devolved Mucor Sporesower' (walkthrough: Adesar next asks for the devolved gland)
-39	line	6	0x250017fb:0xf2869daa	DAT table 250017fb key f2869daa: 'I see you have the Devolved Mucor Sporesower's gland!' (step 6 hand-in)
+39	line	7	0x250017fb:0xf2869daa	DAT table 250017fb key f2869daa: 'I see you have the Devolved Mucor Sporesower's gland!' (step 6 hand-in)
 39	line	turn	0x250017fb:0x0b015d5a	DAT table 250017fb key 0b015d5a: 'Wonderful work! ... revitalizing potion' (second gland reward; the health recipe)
-39	reward_recipe	Mucor Mushroom Vigor Potion	0x6f001f18	DAT rcp_mucormushroomvigor.wc (names 6f001f18); walkthrough: first gland teaches the vigor over time recipe (granted at completion here, see notes)
+39	line	weak	0x250017fb:0x5bdbfe19	DAT tumerokmucormushroomcollector.stt (250017fb) key 5bdbfe19: Adesar's refusal to a player below the level, 'I don't think that you can be of any help to me in my research. Please come back some other time' (its text, and the key appears in the same role in other NPC tables)
 39	reward_recipe	Mucor Mushroom Health Potion	0x6f001f17	DAT rcp_mucormushroomhealth.wc (names 6f001f17); walkthrough: second gland teaches the health over time recipe
-39	reward_note	Recipe: Mucor Mushroom Vigor Potion	recipe, not an item	reward_recipe 0x6f001f18 above
+39	reward_note	Recipe: Mucor Mushroom Vigor Potion	recipe, not an item	learn step 4 above (0x6f001f18)
 39	reward_note	Recipe: Mucor Mushroom Health Potion	recipe, not an item	reward_recipe 0x6f001f17 above
 41	ignore	chest	yes	AC2 Vault quests/db 41 walkthrough: the Shrethwarden Key/Door (wsl_keyshrethwarden, wsl_doorshrethwarden) only gate the dungeon route; the quest steps are the kill and the head
 41	ignore	crafting	yes	AC2 Vault quests/db 41 reward: the Shrethbane Recipe is a reward (DAT eff_bestowrecipeshrethwarden), not a step
@@ -51,6 +55,7 @@ vault_id	field	key	value	source
 41	step	3	give Head of the Burun Shrethwarden to Kiral	AC2 Vault quests/db 41 walkthrough: 'Take the head back to Kiral in Rakani to complete the quest'
 41	line	offer	0x250017ea:0x2ae6122c	DAT tumerokshrethwardenquest.stt (0x250017ea) 2ae6122c 'There are foul things at work in this world ... bring me back the head of the creature'
 41	line	turn	0x250017ea:0x68a07c4d	DAT tumerokshrethwardenquest.stt (0x250017ea) 68a07c4d 'Well done. You have helped to defend us all from a dire threat...'
+41	line	busy	0x250017ea:0xf2ae9daa	DAT tumerokshrethwardenquest.stt (0x250017ea) key f2ae9daa: Kiral's 'Have you sought out the Shrethwarden Spawn yet?' while the kill is underway (the quest has one underway stage, the kill)
 41	reward_recipe		0x6f001f16	DAT rcp_shrethbanecoating.wc (WSTATE 0x6f001f16, in names); eff_bestowrecipeshrethwarden.stt (0x250017eb) 912eff1d 'You have learned the Shrethbane Coating recipe!'; AC2 Vault quests/db 41 reward 'Shrethbane Recipe'
 41	reward_note	Shrethbane Recipe (Gives a weapon +25 bonus damage against shreth) and attunes the weapon to the person who applied the shrethbane.	the recipe is taught by the reward_recipe row (rcp_shrethbanecoating.wc); the +25 damage and attunement are the recipe's effect, not an item	DAT rcp_shrethbanecoating.wc / eff_shrethbanecoat.stt; AC2 Vault quests/db 41 reward
 49	start_npc	entity	0x47001900	DAT wsl_karuarmorsmithslament.entity (name string 'Karu Geddon, Apprentice Armorsmith[nm]' in karuarmorsmithslament.stt 25006db8); AC2 Vault quests/db 49 start NPC Karu Geddon
@@ -63,6 +68,7 @@ vault_id	field	key	value	source
 49	step	3	receive Golden Thread from Darvain Geddon	AC2 Vault quests/db 49 walkthrough: Darvain gives the golden thread ('Take this golden thread as a token'); DAT 251c6db7 bc8db3a2
 49	step	4	give Golden Thread to Karu Geddon	AC2 Vault quests/db 49 walkthrough: 'You are given a Gold Thread to take back to Karu'; DAT karuarmorsmithslament.stt 25126db8 8fa01c85
 49	step	5	give Tyrant's Claw to Karu Geddon	AC2 Vault quests/db 49 walkthrough: 'When you give the Tyrant Claw to Karu'; DAT karuarmorsmithslament.stt 25146db8 0b697c3d
+49	line	weak	0x25066db8:0x5bdbfe19	DAT karuarmorsmithslament.stt overlay 25066db8 5bdbfe19: Karu's own refusal to a player below the level ('I'm sorry, but you do not appear to be strong enough to be of assistance to me.')
 49	line	offer	0x25086db8:0x2ae6122c	DAT karuarmorsmithslament.stt overlay 25086db8: Karu's offer (identical to the Vault walkthrough quote)
 49	line	2	0x251c6db7:0xbc8db3a2	DAT darvainarmorsmithslament.stt overlay 251c6db7: Darvain on receiving the Worn Note ('I knew Karu would be safe. Take this golden thread...')
 49	line	4	0x25126db8:0x8fa01c85	DAT karuarmorsmithslament.stt overlay 25126db8: Karu on the thread ('I am reassured knowing he is still alive... Bring me the claw from a tyrant.')
@@ -181,6 +187,7 @@ vault_id	field	key	value	source
 83	line	turn	0x2500734c:0x6b6b987c	DAT vargil.stt (0x2500734c) 6b6b987c 'Thank you! The sword is whole! ... Please wait while I perform this short ritual....'
 83	line	turn	0x2500734c:0xa844e8b9	DAT vargil.stt (0x2500734c) a844e8b9 'Vargil makes a series of arcane passes over the sword.' (the emote between the two spoken lines)
 83	line	turn	0x2500734c:0x6b6b987a	DAT vargil.stt (0x2500734c) 6b6b987a 'The sword has been cleansed. My brother's spirit is free at last! Please accept the blade'
+83	line	busy	0x2500734c:0xcde80ff2	DAT vargil.stt (0x2500734c) key cde80ff2: Vargil's 'Please rescue my brother's soul!' while the Warath kill is underway
 83	journal	1	0x25007248:0x2e5f1e52	DAT questdoomsword.stt (0x25007248) 2e5f1e52 'Slay the Empowered Warath.' (QuestDoomsword phase 2 in native-quests.json)
 83	journal	turn	0x25007248:0x2e5e1e52	DAT questdoomsword.stt (0x25007248) 2e5e1e52 'Return the sword to Vargil Darkener.' (QuestDoomsword phase 3 in native-quests.json)
 87	ignore	pet	yes	The Mosswart 'pet' of the walkthrough is the escort itself (DAT mosswartrescuemosswartpet.stt: 'The bewildered Mosswart runs to you for cover'); the reward is 4000000 XP only (AC2 Vault quests/db 87 reward)
@@ -190,6 +197,7 @@ vault_id	field	key	value	source
 87	step	1	escort Bewildered Mosswart	AC2 Vault quests/db 87 walkthrough: 'Protect the mosswart at all costs, if he dies you all fail'; DAT wsl_mosswartrescuemosswartpet.entity (name string 'Bewildered Mosswart')
 87	step	2	arrive Mosswart Hut	AC2 Vault quests/db 87 walkthrough: 'journey east to 18.8N, 42.6W where you will find a fenced off area that contains a Mosswart Hut ... double click on the Mosswart to finish'; DAT mosswartrescuehut.stt (Mosswart Hut) e094fecf 'You have indicated to the Mosswart that this hut is safe'
 87	line	offer	0x2500737c:0xe9447f99	DAT mosswartrescuefungalhut.stt (0x2500737c) e9447f99: 'You gently rap on the roof of the hut. A bewildered Mosswart peeks out of the hut and immediately begins following you.' (the start)
+87	line	2	0x2500737d:0xe094fecf	DAT mosswartrescuehut.stt (0x2500737d, the end hut 0x4700204c) key e094fecf: 'You have indicated to the Mosswart that this hut is safe and that he is finally free! ...' said on arriving at that hut
 89	item	Dead Drudge Bouquet	0x470021b2	DAT wsl_deaddrudgebouquet.entity (name string 'Dead Drudge Bouquet')
 89	object	Brom's Grave	0x470021c2	DAT wsl_bromsgrave.entity (name string "Brom's Grave")
 89	reward_item	Pumpkin Head Helm	0x470021b3	DAT wsl_pumpkinhead.entity (pumpkinhead.stt: three 'Pumpkin Head' names, one per race; Ikkabod: 'Here is Great Big Pumpkin of your own')
@@ -205,7 +213,12 @@ vault_id	field	key	value	source
 90	step	5	talk Lupe	AC2 Vault quests/db 90 walkthrough: 'Return to Lupe and talk with her'; DAT wsl_lupe.entity 0x470021b7
 90	line	offer	0x250074b1:0x83a89cdb	DAT lupe.stt (250074b1) key 83a89cdb: 'Sometimes, the best way to track your prey is by scent...' (the Scent of the Prey offer)
 90	line	turn	0x250074b1:0xf1af023a	DAT lupe.stt key f1af023a: 'So which stink was your favorite? ... Here's your gold.' (the reward line paired with the 83a89cdb offer)
+90	journal	1	0x250074b5:0x317aa21d	DAT questlupe.stt (250074b5) key 317aa21d 'First, Lupe wants you to track and kill a Fetid Moarsman.' (kill stage 1, in the offer's order)
+90	journal	2	0x250074b5:0xb17aa21c	DAT questlupe.stt (250074b5) key b17aa21c 'Next, Lupe wants you to track and kill a Rank Moarsman.' (kill stage 2, in the offer's order)
+90	journal	3	0x250074b5:0x317aa21c	DAT questlupe.stt (250074b5) key 317aa21c 'Next, Lupe wants you to track and kill a Foul Moarsman.' (kill stage 3, in the offer's order)
+90	journal	4	0x250074b5:0xb17aa21f	DAT questlupe.stt (250074b5) key b17aa21f 'Next, Lupe wants you to track and kill a Putrid Moarsman.' (kill stage 4, in the offer's order)
 90	journal	turn	0x250074b5:0x317aa21f	DAT questlupe.stt (250074b5) key 317aa21f: 'Success! Return to Lupe for your reward.' (replaces the importer's 'Return to Lupe and see if she knows of a cure.', which is the Mucor Plague quest's line ee18d9f4)
+90	kills	ordered	yes	DAT lupe.stt (250074b1) 83a89cdb 'a Fetid Moarsman, a Rank Moarsman, a Foul Moarsman, and a Putrid Moarsman ... in order'; questlupe.stt (250074b5) has one stage line per moarsman in that order (317aa21d first Fetid, b17aa21c next Rank, 317aa21c next Foul, b17aa21f next Putrid)
 91	item	Scarred Shreth Rawhide	0x470021b1	DAT wsl_scarredshrethrawhide.entity (scarredshrethrawhide.stt 0x250074b6 'Scarred Shreth Rawhide')
 91	item	Scarred Shreth Leather	0x470021b0	DAT wsl_scarredshrethleather.entity (scarredshrethleather.stt 0x250074bf 'Scarred Shreth Leather')
 91	item	Tallow	0x470027a7	DAT wsl_mote_tallow.entity (mote_tallow.stt 0x2500797e 'Tallow[E]'); the butchered trait tallow, crates/pyrealium butchery.rs Trait::Tallow
@@ -255,13 +268,14 @@ vault_id	field	key	value	source
 93	journal	2	0x250074b5:0xb17a821c	DAT questlupe.stt (0x250074b5) key 0xb17a821c: 'Lupe still needs you to bring her two Moarsman Fins.'
 93	journal	turn	0x250074b5:0x317a821c	DAT questlupe.stt (0x250074b5) key 0x317a821c: 'Lupe wants you to bring her one last Moarsman Fin.'
 94	item	Shreth-Hunter's Guide	0x470021af	DAT wsl_shrethhuntersguide.entity (name string "The Shreth-Hunter's Guide To Omishan") (the step uses the short name because the grammar splits on ' to ')
-94	step	1	craft Shreth-Hunter's Guide	DAT questlupe.stt (250074b5) 317a621d 'Complete Lupe's manuscript by adding copies of each quest scroll from the Warders of Omishan, using the quest recipe she gave you.'; DAT shrethhuntersguide.stt/rcp_tasknpc2_shrethhuntersguide.stt 'You have assembled a copy of the Shreth-Hunter's Guide To Omishan!'
-94	step	2	talk Lupe	AC2 Vault quests/db 94 walkthrough: 'Return to Lupe he then tells you to take it to Gallus'; DAT lupe 250074b1 71869368 'Looks great. Now hurry and deliver this to my friend Gallus in Whitebay.'
-94	step	3	give Shreth-Hunter's Guide to Gallus	DAT questlupe.stt (250074b5) b17a621c 'Deliver the Shreth-Hunter's Guide to Lupe's friend Gallus in Whitebay.'; AC2 Vault quests/db 94 'Giving the guide to Gallus will end the quest'
+94	step	1	learn 0x6f001fdf	DAT rcp_tasknpc2_shrethhuntersguide.wc (0x6f001fdf); eff_bestowrecipe_tasknpc2_shrethhuntersguide.stt 912eff1d 'You have received a recipe...': Lupe gives the recipe with the offer (pass-2 batch 7 notes)
+94	step	2	craft Shreth-Hunter's Guide	DAT questlupe.stt (250074b5) 317a621d 'Complete Lupe's manuscript by adding copies of each quest scroll from the Warders of Omishan, using the quest recipe she gave you.'; DAT shrethhuntersguide.stt/rcp_tasknpc2_shrethhuntersguide.stt 'You have assembled a copy of the Shreth-Hunter's Guide To Omishan!'
+94	step	3	talk Lupe	AC2 Vault quests/db 94 walkthrough: 'Return to Lupe he then tells you to take it to Gallus'; DAT lupe 250074b1 71869368 'Looks great. Now hurry and deliver this to my friend Gallus in Whitebay.'
+94	step	4	give Shreth-Hunter's Guide to Gallus	DAT questlupe.stt (250074b5) b17a621c 'Deliver the Shreth-Hunter's Guide to Lupe's friend Gallus in Whitebay.'; AC2 Vault quests/db 94 'Giving the guide to Gallus will end the quest'
 94	line	offer	0x250074b1:0x83989cdb	DAT lupe (250074b1) 83989cdb: 'Good news! I've almost completed my book, the Shreth-Hunter's Guide To Omishan. I just want to include copies of those scrolls that the Warders hand out...'
-94	line	2	0x250074b1:0x71869368	DAT lupe (250074b1) 71869368: 'Looks great. Now hurry and deliver this to my friend Gallus in Whitebay.'
+94	line	3	0x250074b1:0x71869368	DAT lupe (250074b1) 71869368: 'Looks great. Now hurry and deliver this to my friend Gallus in Whitebay.'
 94	line	turn	0x250074b0:0x4b5fc8f5	DAT gallus.stt (250074b0) 4b5fc8f5: 'Is this Lupe's book? Wonderful!... Here's a pouch of gold for your trouble...'
-94	journal	1	0x250074b5:0x317a621d	DAT questlupe.stt 250074b5 317a621d: the craft phase line
+94	journal	2	0x250074b5:0x317a621d	DAT questlupe.stt 250074b5 317a621d: the craft phase line
 94	journal	turn	0x250074b5:0xb17a621c	DAT questlupe.stt 250074b5 b17a621c: 'Deliver the Shreth-Hunter's Guide to Lupe's friend Gallus in Whitebay.'
 102	kill_target	Loyalist Lord Hierarch	0x470021cb	DAT wsl_undeadlordhierarchloyalist.entity (name 'Loyalist Undead Lord Hierarch'); interventionhahnain.stt 71c6cdbe 'slay one of the loyalist Hierarchs' (Archon Intervention III)
 102	start_npc	entity	0x470021d4	DAT wsl_interventionhahnain.entity (name 'Hahnain[mn]', interventionhahnain.stt 70c6cdbe: 'destroy 10 loyalist servants of Geraine' = Archon Intervention I)
@@ -288,17 +302,21 @@ vault_id	field	key	value	source
 103	journal	2	0x250074b5:0x317a221d	DAT questlupe.stt (250074b5) key 317a221d 'She has given you a letter for Kiral, a learned scholar in Rakani.'
 103	journal	5	0x250074b5:0x317a221f	DAT questlupe.stt (250074b5) key 317a221f 'Return the Tiny Wooden Talisman to the scholar Kiral.'
 103	journal	turn	0x250074b5:0xb17a221e	DAT questlupe.stt (250074b5) key b17a221e 'Kiral gave you a Blessed Talisman of Rest to cure Lupe's disturbed dreams.'
+103	journal	4.1	0x250074b5:0xb17a221c	DAT questlupe.stt 0x250074b5 key b17a221c: the 1-th count stage of 'kill 3 Ero-Bals' (slay three, as the text says)
+103	journal	4.2	0x250074b5:0x317a221c	DAT questlupe.stt 0x250074b5 key 317a221c: the 2-th count stage of 'kill 3 Ero-Bals' (slay two more, as the text says)
+103	journal	4.3	0x250074b5:0xb17a221f	DAT questlupe.stt 0x250074b5 key b17a221f: the 3-th count stage of 'kill 3 Ero-Bals' (slay one final, as the text says)
 104	item	Tempered Clawblade	0x47002336	DAT wsl_clawbladetempered.entity (name string 'Tempered Clawblade'); DAT quest table 0x250074b5: 'Return the repaired Tempered Clawblade to Lupe.'
 104	item	Tempered Clawblade Fragments	0x47002335	DAT wsl_clawbladetemperedfragments.entity (names 47002335; table clawbladetemperedfragments.stt)
 104	step	1	talk Akkilea	AC2 Vault quests/db 104 walkthrough: 'Next go to Zu and talk to Akkilea'; DAT questlupe.stt (250074b5) 317a021d 'Retrieve her Tempered Clawblade from Akkilea'
 104	step	2	receive Tempered Clawblade Fragments from Akkilea	AC2 Vault quests/db 104 walkthrough: 'Akkilea will then give you Tempered Clawblade Fragments and a recipe'; DAT wsl_clawbladetemperedfragments.entity 47002335
-104	step	3	craft Tempered Clawblade	AC2 Vault quests/db 104 walkthrough: 'use the recipe and repair the clawblade'; DAT recipe table 250075fd (rcp_tasknpc2_clawbladetempered.wc 6f001fe3): 'Reforge the shattered fragments of Lupe's Tempered Clawblade.'
-104	step	4	give Tempered Clawblade to Lupe	AC2 Vault quests/db 104 walkthrough: 'Return to Lupe, hand her the clawblade'; DAT questlupe.stt 317a021c 'Return the repaired Tempered Clawblade to Lupe.'
+104	step	3	learn 0x6f001fe3	AC2 Vault quests/db 104 walkthrough: 'Akkilea will then give you Tempered Clawblade Fragments and a recipe'; DAT rcp_tasknpc2_clawbladetempered.wc (names 6f001fe3; recipe table 250075fd 'Reforge the shattered fragments of Lupe's Tempered Clawblade'); questlupe.stt b17a021c 'Use your new quest recipe to re-forge the clawblade'
+104	step	4	craft Tempered Clawblade	AC2 Vault quests/db 104 walkthrough: 'use the recipe and repair the clawblade'; DAT recipe table 250075fd (rcp_tasknpc2_clawbladetempered.wc 6f001fe3): 'Reforge the shattered fragments of Lupe's Tempered Clawblade.'
+104	step	5	give Tempered Clawblade to Lupe	AC2 Vault quests/db 104 walkthrough: 'Return to Lupe, hand her the clawblade'; DAT questlupe.stt 317a021c 'Return the repaired Tempered Clawblade to Lupe.'
 104	line	offer	0x250074b1:0x83809cdb	DAT lupe.stt (250074b1) key 83809cdb: 'Lately, I've been trying to improve the balance and edge of the traditional clawblade...'
 104	line	1	0x25006ff9:0xe930b784	DAT akkilea.stt (25006ff9) key e930b784: 'You've come for Lupe's Tempered Clawblade? I am ashamed to admit this, but... it's broken.'
 104	line	turn	0x250074b1:0xb1af023b	DAT lupe.stt key b1af023b: 'Yes, this is one of my Clawblades! ...'
 104	journal	1	0x250074b5:0x317a021d	DAT questlupe.stt (250074b5) key 317a021d: 'Retrieve her Tempered Clawblade from Akkilea, the Factotum of Zu.'
-104	journal	3	0x250074b5:0xb17a021c	DAT questlupe.stt key b17a021c: 'Akkilea admitted that he shattered Lupe's Tempered Clawblade ... Use your new quest recipe to re-forge the clawblade.'
+104	journal	4	0x250074b5:0xb17a021c	DAT questlupe.stt key b17a021c: 'Akkilea admitted that he shattered Lupe's Tempered Clawblade ... Use your new quest recipe to re-forge the clawblade.'
 104	journal	turn	0x250074b5:0x317a021c	DAT questlupe.stt key 317a021c: 'Return the repaired Tempered Clawblade to Lupe.'
 106	kill_target	Rabbit	0x470012b7,0x47002325,0x47002327	AC2 Vault quests/db 106 walkthrough: 'Kill the brown, black and grey rabbits'; DAT wsl_rabbitbrown.entity ('Brown Rabbit'), wsl_rabbitblack.entity ('Black Rabbit'), wsl_rabbitgrey.entity ('Grey Rabbit')
 106	step	1	kill 10 Rabbit	DAT lupe.stt (250074b1) key 83f89cdb 'if you can hunt down ten of the little beasts'; AC2 Vault quests/db 106 walkthrough: 'Kill 10 rabbits of them and return for your reward'
@@ -306,6 +324,16 @@ vault_id	field	key	value	source
 106	line	offer	0x250074b1:0x83f89cdb	DAT lupe.stt (0x250074b1) 83f89cdb 'An adorable new menace has struck the Farali Wastes ... hunt down ten of the little beasts'; questlupe.stt title 3fff6a07 'Long-Eared Menace'
 106	line	turn	0x250074b1:0x71af0238	DAT lupe.stt 71af0238 'Well done, brave adventurer. Unfortunately, I fear this is a losing battle ... Here's a reward'
 106	journal	turn	0x250074b5:0x007be21d	DAT questlupe.stt (0x250074b5) 007be21d 'Report your heroic bunny-slaying achievements to Lupe.' (the Long-Eared Menace report phase)
+106	journal	1.1	0x250074b5:0x317be21d	DAT questlupe.stt (0x250074b5) key 0x317be21d 'Slay ten more of the menacing bunnies to slow their population boom.': the ten-left bunny countdown string (text agrees with stage 1.1 of the 10 kills)
+106	journal	1.2	0x250074b5:0xb17be21c	DAT questlupe.stt (0x250074b5) key 0xb17be21c 'Slay nine more of the menacing bunnies to slow their population boom.': the nine-left bunny countdown string (text agrees with stage 1.2 of the 10 kills)
+106	journal	1.3	0x250074b5:0x317be21c	DAT questlupe.stt (0x250074b5) key 0x317be21c 'Slay eight more of the menacing bunnies to slow their population boom.': the eight-left bunny countdown string (text agrees with stage 1.3 of the 10 kills)
+106	journal	1.4	0x250074b5:0xb17be21f	DAT questlupe.stt (0x250074b5) key 0xb17be21f 'Slay seven more of the menacing bunnies to slow their population boom.': the seven-left bunny countdown string (text agrees with stage 1.4 of the 10 kills)
+106	journal	1.5	0x250074b5:0x317be21f	DAT questlupe.stt (0x250074b5) key 0x317be21f 'Slay six more of the menacing bunnies to slow their population boom.': the six-left bunny countdown string (text agrees with stage 1.5 of the 10 kills)
+106	journal	1.6	0x250074b5:0xb17be21e	DAT questlupe.stt (0x250074b5) key 0xb17be21e 'Slay five more of the menacing bunnies to slow their population boom.': the five-left bunny countdown string (text agrees with stage 1.6 of the 10 kills)
+106	journal	1.7	0x250074b5:0x317be21e	DAT questlupe.stt (0x250074b5) key 0x317be21e 'Slay four more of the menacing bunnies to slow their population boom.': the four-left bunny countdown string (text agrees with stage 1.7 of the 10 kills)
+106	journal	1.8	0x250074b5:0xb17be219	DAT questlupe.stt (0x250074b5) key 0xb17be219 'Slay three more of the menacing bunnies to slow their population boom.': the three-left bunny countdown string (text agrees with stage 1.8 of the 10 kills)
+106	journal	1.9	0x250074b5:0x317be219	DAT questlupe.stt (0x250074b5) key 0x317be219 'Slay two more of the menacing bunnies to slow their population boom.': the two-left bunny countdown string (text agrees with stage 1.9 of the 10 kills)
+106	journal	1.10	0x250074b5:0x017be21d	DAT questlupe.stt (0x250074b5) key 0x017be21d 'Slay one last menacing, yet adorable, bunny.': the one-left bunny countdown string (text agrees with stage 1.10 of the 10 kills)
 107	npc	Akkilea	0x47001a98	DAT wsl_akkilea.entity (name string 'Akkilea')
 107	step	1	kill 1 Devolved Mucor Plaguebearer	AC2 Vault quests/db 107 walkthrough: 'Kill a Devolved Mucor Plaguebearer'
 107	step	2	effect 0x6f001d45 7200	AC2 Vault quests/db 107 walkthrough: 'you will be then cursed with the Mucor Plague'; DAT eff_mucorplague.wc (portal.dat 0x6f001d45, name eff_mucorplague.stt 'Mucor Plague'): its duration float 7200.0 at the same record field as eff_burundeceit.wc's 86400.0 (quest 17 precedent)
@@ -343,6 +371,7 @@ vault_id	field	key	value	source
 116	line	turn	0x25001198:0x34cc0a92	DAT lodrogforsaken.stt 34cc0a92 'Impressive, you have found fragments of all of our important writings. ...' (the reward line; order of the reward lines read from their text)
 116	line	turn	0x25001198:0x34cd0a92	DAT lodrogforsaken.stt 34cd0a92 'For you though, I will give you a vial of Paper Flesh. ...' (the reward line)
 116	line	turn	0x25001198:0x34ca0a92	DAT lodrogforsaken.stt 34ca0a92 'Know that this will only work on the first enemy attacked, and there is only enough potion in the vial for one weapon.' (the vial's warning, after the gift)
+116	line	busy	0x25001198:0xef02365b	DAT string table 0x25001198 key 0xef02365b: Lodrog's 'not done yet' line for this quest: 'Why do you stand here without completing the task I have given you? Do you fear what lies in Goarata's undercrofts?'
 121	start_npc	entity	0x47002009	DAT wsl_thorstencragstonebughunt.entity (name 'Thorsten Cragstone[mn]'); thorstencragstonebughunt.stt a1e0a2e7 sends the player into the Olthoi hives (Bug Hunt)
 122	item	Wand of Cleansing	0x47002572	DAT entity name 'Wand of Cleansing' 0x47002572; AC2 Vault quests/db 122: 'He hands you the Cleansing Wand'
 122	npc	Shrine to Brother Volkama	0x47002313	DAT entity name 'Shrine to Brother Volkama' 0x47002313; AC2 Vault quests/db 122 walkthrough: 'Volkama (Northeast Naderu 37.8N 62.2E)'
@@ -429,6 +458,13 @@ vault_id	field	key	value	source
 123	line	turn	0x25006ff9:0xf1af023a	DAT akkilea.stt 25006ff9 f1af023a: 'Interesting. The spirit is bound to the weapon, yet its song is twisted with hatred...'
 123	reward_note	Burun Slayer Imbue on Your Unaro Weapon	imbue applied to the handed-in weapon: no item reward; engine gap (a reward that modifies the player-chosen item)	AC2 Vault quests/db 123 reward
 123	reward_note	Does 60 extra damage to burun each hit.	the stat line of the imbue (reward_note above), not a reward item	AC2 Vault quests/db 123 reward
+123	item	Drum of Unaro	0x4700117d	DAT wsl_drumunaro.entity (name string 'Drum of Unaro[E]', table 250012db)
+123	item	Scepter of Unaro	0x4700117e	DAT wsl_scepterunaro.entity (name string 'Scepter of Unaro[E]', table 250012e0)
+123	item	Staff of Unaro	0x4700117f	DAT wsl_staffunaro.entity (name string 'Staff of Unaro[E]', table 250012e1)
+123	item	Celestrum of Unaro	0x47004249	DAT wsl_handunaro.entity (name string 'Celestrum of Unaro[E]', table 25008a8f)
+123	step	1	give Drum of Unaro|Scepter of Unaro|Staff of Unaro|Celestrum of Unaro to Akkilea	DAT akkilea.stt 25006ff9 83a89cdb: 'Bring me a weapon possessed of that spirit'; DAT questakkilea 2500707d 317aa21d 'Find a weapon of Unaro and give it to Akkilea.'; the four Unaro weapon entities (drum, scepter, staff, celestrum) are the weapons of Unaro (pass-2 batch 7 notes)
+123	journal	1	0x2500707d:0x317aa21d	DAT questakkilea.stt 2500707d 317aa21d: 'Find a weapon of Unaro and give it to Akkilea.'
+123	hold	reason	the reward imbues the handed-in weapon (engine gap): shipping would take the player's Unaro weapon and give nothing back	pass-2 batch 7 notes (imbue engine gap); remove when a reward that imbues the handed-in item exists
 125	start_npc	entity	0x4700265b	DAT wsl_eshivonmaps.entity (name string "Eshivon Ugim" in eshivonmaps.stt 2500786e; the Vault/AC2Hero spell it Ugin); AC2 Vault quests/db 125: Eshivon Ugin in the Arcanum Vault
 127	kill_target	Ascended Chaos Golem	0x47002706	DAT wsl_golemchaosascendant.entity (name 'Ascendant Chaos Golem'); AC2 Vault quests/db 127 Platform Two: 'kill the Ascended Chaos Golem'
 127	npc	Hammer of Light	0x470026f7	DAT wsl_hammeroflight.entity (name 'Hammer Of Light[E]')
@@ -475,11 +511,25 @@ vault_id	field	key	value	source
 129	line	turn	0x25000e4d:0xe89abc8b	DAT rashan twoblades (0x25000e4d) key 0xe89abc8b: 'Hehehe! You did it! Wonderful! ...here is your reward.'
 129	journal	2	0x25007952:0x2e5c1e52	DAT 7230 quest table 0x25007952 (Rashan's Last Word) key 0x2e5c1e52: 'Place Rashan's Drudgebane sword on the Drudge Shrine.'
 129	journal	turn	0x25007952:0x2e5f1e52	DAT 7230 quest table 0x25007952 key 0x2e5f1e52: 'Return to Rashan Twoblades for your reward.'
+129	line	busy	0x25000e4d:0x0a788e51	DAT Rashan table 0x25000e4d key 0x0a788e51 'No, no, no! You must go back, and desecrate the Drudges' Hero Shrine. I cannot rest until your mission is complete!': Rashan's line while the shrine is not yet desecrated
+129	line	2	0x25007976:0x23c165ee	DAT Drudge Shrine of Transcendence table 0x25007976 key 0x23c165ee 'You place Rashan's sword on the shrine. It looks a bit out of place, but you leave it there anyway.': the shrine's reply to Rashan's sword
 131	kill_target	Gurog Ancients	0x4700278f,0x47002790,0x47002791	DAT QuestSlayAncients summary (questslayancients.stt 0x25007968 6c459364): 'Slay some combination of 12 Ancients, Ancient Mages, or Ancient Archmages'; names: wsl_gurogancient / wsl_gurogancientmagus / wsl_gurogancientarchmage (their a8607cec 'Gurog Ancient', 'Gurog Ancient Magus', 'Gurog Ancient Archmage')
 131	journal	turn	0x25007968:0x2e5c7852	DAT questslayancients.stt phase 13 of QuestSlayAncients: 'Return to the Gurog Supreme Warlord for your reward.'
 131	line	turn	0x25007971:0xef616600	DAT gurogsupremewarlord.stt (0x25007971) ef616600: 'Very well done, very well done indeed! Here, take this sack of treasure as your reward.' (the Treasure Sack turn-in; ef616000 is the Undying One series' reward)
 131	step	1	kill 12 Gurog Ancients	AC2 Vault quests/db 131 walkthrough: 'You must now slay 12 Gurog Ancients'; DAT QuestSlayAncients summary 'Slay some combination of 12 Ancients, Ancient Mages, or Ancient Archmages'
 131	step	2	talk Gurog Supreme Warlord	AC2 Vault quests/db 131: 'When you are done return for your reward'; DAT QuestSlayAncients phase 13 'Return to the Gurog Supreme Warlord for your reward.'
+131	journal	1.1	0x25007968:0x2e5c1e52	DAT questslayguroganancients table 0x25007968 key 2e5c1e52 'You must slay 12 Ancient(s).': the count stage with 12 kill(s) left (text counts down 12..1)
+131	journal	1.2	0x25007968:0x2e5f1e52	DAT questslayguroganancients table 0x25007968 key 2e5f1e52 'You must slay 11 Ancient(s).': the count stage with 11 kill(s) left (text counts down 12..1)
+131	journal	1.3	0x25007968:0x2e5e1e52	DAT questslayguroganancients table 0x25007968 key 2e5e1e52 'You must slay 10 Ancient(s).': the count stage with 10 kill(s) left (text counts down 12..1)
+131	journal	1.4	0x25007968:0x2e591e52	DAT questslayguroganancients table 0x25007968 key 2e591e52 'You must slay 9 Ancient(s).': the count stage with 9 kill(s) left (text counts down 12..1)
+131	journal	1.5	0x25007968:0x2e581e52	DAT questslayguroganancients table 0x25007968 key 2e581e52 'You must slay 8 Ancient(s).': the count stage with 8 kill(s) left (text counts down 12..1)
+131	journal	1.6	0x25007968:0x2e5b1e52	DAT questslayguroganancients table 0x25007968 key 2e5b1e52 'You must slay 7 Ancient(s).': the count stage with 7 kill(s) left (text counts down 12..1)
+131	journal	1.7	0x25007968:0x2e5a1e52	DAT questslayguroganancients table 0x25007968 key 2e5a1e52 'You must slay 6 Ancient(s).': the count stage with 6 kill(s) left (text counts down 12..1)
+131	journal	1.8	0x25007968:0x2e551e52	DAT questslayguroganancients table 0x25007968 key 2e551e52 'You must slay 5 Ancient(s).': the count stage with 5 kill(s) left (text counts down 12..1)
+131	journal	1.9	0x25007968:0x2e541e52	DAT questslayguroganancients table 0x25007968 key 2e541e52 'You must slay 4 Ancient(s).': the count stage with 4 kill(s) left (text counts down 12..1)
+131	journal	1.10	0x25007968:0x2e5c7e52	DAT questslayguroganancients table 0x25007968 key 2e5c7e52 'You must slay 3 Ancient(s).': the count stage with 3 kill(s) left (text counts down 12..1)
+131	journal	1.11	0x25007968:0x2e5c7c52	DAT questslayguroganancients table 0x25007968 key 2e5c7c52 'You must slay 2 Ancient(s).': the count stage with 2 kill(s) left (text counts down 12..1)
+131	journal	1.12	0x25007968:0x2e5c7a52	DAT questslayguroganancients table 0x25007968 key 2e5c7a52 'You must slay one more Ancient(s).': the count stage with 1 kill(s) left (text counts down 12..1)
 132	kill_target	Undying One	0x4700279d	DAT wsl_gurogancientundyingone.entity (name string 'Undying One')
 132	step	1	kill 1 Undying One	DAT questslayundyingone.stt (2500796b) 2e5c1e52 'Slay the Undying One.'; AC2 Vault quests/db 132: 'You must slay the Gurog Undying One'
 132	step	2	talk Gurog Supreme Warlord	DAT questslayundyingone.stt (2500796b) 2e5f1e52 'Return to the Gurog Supreme Warlord for your reward.'
@@ -490,6 +540,18 @@ vault_id	field	key	value	source
 132	journal	turn	0x2500796b:0x2e5f1e52	DAT questslayundyingone.stt (2500796b) key 2e5f1e52 'Return to the Gurog Supreme Warlord for your reward.'
 133	kill_target	Blood Lords	0x4700278c,0x4700278d,0x4700278e	DAT questslaybloodlords.stt description: 'Slay some combination of 12 Blood Lords, Blood Lord Champions, and Blood Lord Chieftains'; entities wsl_gurogbloodlord / champion / chieftain
 133	line	turn	0x25007963:0xef616600	DAT Gurog High Shaman table 25007963 key ef616600: 'Ha, well done! Take this sack of treasure as your reward.' (the Treasure Sack hand-out)
+133	journal	1.1	0x25007969:0x2e5c1e52	DAT questslaybloodlords.stt (0x25007969) key 2e5c1e52 'You must slay 12 Blood Lords.' (count stage 1 of 12: 12 left)
+133	journal	1.2	0x25007969:0x2e5f1e52	DAT questslaybloodlords.stt (0x25007969) key 2e5f1e52 'You must slay 11 Blood Lords.' (count stage 2 of 12: 11 left)
+133	journal	1.3	0x25007969:0x2e5e1e52	DAT questslaybloodlords.stt (0x25007969) key 2e5e1e52 'You must slay 10 Blood Lords.' (count stage 3 of 12: 10 left)
+133	journal	1.4	0x25007969:0x2e591e52	DAT questslaybloodlords.stt (0x25007969) key 2e591e52 'You must slay 9 Blood Lords.' (count stage 4 of 12: 9 left)
+133	journal	1.5	0x25007969:0x2e581e52	DAT questslaybloodlords.stt (0x25007969) key 2e581e52 'You must slay 8 Blood Lords.' (count stage 5 of 12: 8 left)
+133	journal	1.6	0x25007969:0x2e5b1e52	DAT questslaybloodlords.stt (0x25007969) key 2e5b1e52 'You must slay 7 Blood Lords.' (count stage 6 of 12: 7 left)
+133	journal	1.7	0x25007969:0x2e5a1e52	DAT questslaybloodlords.stt (0x25007969) key 2e5a1e52 'You must slay 6 Blood Lords.' (count stage 7 of 12: 6 left)
+133	journal	1.8	0x25007969:0x2e551e52	DAT questslaybloodlords.stt (0x25007969) key 2e551e52 'You must slay 5 Blood Lords.' (count stage 8 of 12: 5 left)
+133	journal	1.9	0x25007969:0x2e541e52	DAT questslaybloodlords.stt (0x25007969) key 2e541e52 'You must slay 4 Blood Lords.' (count stage 9 of 12: 4 left)
+133	journal	1.10	0x25007969:0x2e5c7e52	DAT questslaybloodlords.stt (0x25007969) key 2e5c7e52 'You must slay 3 Blood Lords.' (count stage 10 of 12: 3 left)
+133	journal	1.11	0x25007969:0x2e5c7c52	DAT questslaybloodlords.stt (0x25007969) key 2e5c7c52 'You must slay 2 Blood Lords.' (count stage 11 of 12: 2 left)
+133	journal	1.12	0x25007969:0x2e5c7a52	DAT questslaybloodlords.stt (0x25007969) key 2e5c7a52 'You must slay one more Blood Lord.' (count stage 12 of 12: 1 left)
 133	journal	turn	0x25007969:0x2e5c7852	DAT questslaybloodlords.stt (25007969) key 2e5c7852: 'Return to the Gurog High Shaman for your reward.'
 134	kill_target	Gurog Harren Oathbreaker	0x4700279c	DAT wsl_gurogbloodlordoathbreaker.entity (name 'Harren Oathbreaker[mn]'); guroghighshaman.stt 2a6b097a 'Slay the great warrior-chief Harren Oathbreaker'
 134	step	1	kill 1 Gurog Harren Oathbreaker	AC2 Vault quests/db 134 walkthrough: 'You must slay the Gurog Harren Oathbreaker'; DAT questslayoathbreaker.stt 2e5c1e52 'Slay the Oathbreaker.'
@@ -523,19 +585,22 @@ vault_id	field	key	value	source
 140	step	1	talk Matto Olvidan	AC2 Vault quests/db 140: 'Now visit Matto Olvidan (17.8S, 17.9W). He gives you Carrots'
 140	step	2	receive Carrots from Matto Olvidan	AC2 Vault quests/db 140: 'He gives you Carrots to help you get back loofy'; DAT mattoolvidan.stt fb544d4a 'Here, take these carrots... they may help'
 140	step	3	use Carrots on Loofy	AC2 Vault quests/db 140: 'Get close enough and use carrots like a key on loofy'; DAT carrots.stt a7a02acf 'Loofy begins to eat the carrots, allowing you to pick him up by the nape of the neck.'
-140	step	4	give Brown Rabbit to Mayala Olvidan	AC2 Vault quests/db 140: 'Turn brown Rabbit into Mayala Olvidan to complete this quest'; the rabbit comes into the pack from the use (no step form gives an item at a use: engine gap)
+140	step	4	receive Brown Rabbit from Loofy	AC2 Vault quests/db 140: 'You receive Brown rabbit in your pack' right after the carrots are used on Loofy (the rabbit comes from the use)
 140	line	offer	0x250079ee:0x05b14d6c	DAT mayalaolvidan.stt 05b14d6c: 'Loofy's gone! He's my rabbit! He ran away! ... he loves carrots.' (the offer)
 140	line	1	0x250079ed:0xfb544d4a	DAT mattoolvidan.stt 250079ed fb544d4a: '... Here, take these carrots... they may help' (Matto's visit)
 140	line	turn	0x250079ee:0xc1fa3991	DAT mayalaolvidan.stt c1fa3991: 'Loofy! You're back! I'm never going to let you go again!' (the hand-in)
 140	journal	1	0x250079e2:0x2e5c1e52	DAT questimperatorwildhare.stt 2e5c1e52 'Find, capture and return Loofy the Rabbit.' (phase 1 by key order 2e5c, 2e5f, 2e5e as QuestSlayAncients' phases 1-3)
 140	journal	3	0x250079e2:0x2e5f1e52	DAT questimperatorwildhare.stt 2e5f1e52 'These carrots may be helpful.' (phase 2: after Matto gives the carrots, the stage of the use step)
 140	journal	turn	0x250079e2:0x2e5e1e52	DAT questimperatorwildhare.stt 2e5e1e52 'Return Loofy to Mayala before he gets away.' (phase 3: after the capture, the stage of the hand-in)
+140	step	5	give Brown Rabbit to Mayala Olvidan	AC2 Vault quests/db 140: 'Turn brown Rabbit into Mayala Olvidan to complete this quest'
+140	line	3	0x25007a10:0xa7a02acf	DAT carrots.stt (0x25007a10) key a7a02acf: 'Loofy begins to eat the carrots, allowing you to pick him up by the nape of the neck.' (the carrots' use text; the first sourced for step 3 in the old rows)
+140	line	busy	0x250079ee:0xf46840a9	DAT string table 0x250079ee key 0xf46840a9: Mayala's 'not done yet' line: 'Did you get Loofy back yet? Did you? Did you?'
 141	item	Black Dye Plant	0x4700171b	DAT wsl_dyeplantblack.entity (stem dyeplantblack; its name string is 'Thananim Plant'); quest line 'Find a black dye plant'. Medium confidence: the DAT never calls it 'black dye plant'
 141	step	1	talk Adesar the Mushroom Collector	AC2 Vault quests/db 141 walkthrough: 'Talk to Adesar the Mushroom collector (Ankoro 28.6N, 71.8E)'; DAT questimperatorgreenthumb.stt 2e5c1e52 'Find a cure for black mucor blight.'
 141	step	2	give Black Dye Plant to Adesar the Mushroom Collector	AC2 Vault quests/db 141 walkthrough: 'Turn in black plant to Adesar'; DAT questimperatorgreenthumb.stt 2e5f1e52 'Find a black dye plant and bring it back to Adesar.'
 141	step	3	receive Dark Syrup from Adesar the Mushroom Collector	AC2 Vault quests/db 141 walkthrough: 'You recieve Dark Syrup from Adesar'; DAT wsl item Dark Syrup 0x4700289a
 141	step	4	use Dark Syrup on Mucor Mushroom	AC2 Vault quests/db 141 walkthrough: 'Use Dark Syrup on Mushroom'; DAT questimperatorgreenthumb.stt 2e5e1e52 'Apply the dark syrup to a mucor mushroom'
-141	step	5	receive Mucor Slime from the smeared Mucor Mushroom	AC2 Vault quests/db 141 walkthrough: 'You receive Mucor Slime in backpack' (the syrup on the mushroom yields it); ENGINE GAP: the importer cannot hand an item on an item-use, so this step does not resolve and the quest stays unshipped
+141	step	5	receive Mucor Slime from Mucor Mushroom	AC2 Vault quests/db 141 walkthrough: 'You receive Mucor Slime in backpack' (using the syrup on the mushroom yields it: merged into the use visit); DAT mucorsweat.stt 25007a3d name 'Mucor Slime'
 141	step	6	give Mucor Slime to Adesar the Mushroom Collector	AC2 Vault quests/db 141 walkthrough: 'Give Mucor Slime to Adesar'; DAT questimperatorgreenthumb.stt 2e5e1e52 'bring it back to Adesar'
 141	step	7	receive Black Mucor Blight Cure from Adesar the Mushroom Collector	AC2 Vault quests/db 141 walkthrough: 'You recieve the Black Mucor Blight Cure'
 141	step	8	use Black Mucor Blight Cure on Black Mucor Blight Excrescence	AC2 Vault quests/db 141 walkthrough: 'Go back to field and use on Mucors in field'; DAT questimperatorgreenthumb.stt 2e591e52 'Apply the cure to the black mucor blight excrescences'
@@ -546,12 +611,36 @@ vault_id	field	key	value	source
 141	line	6	0x250017fb:0x39af6f92	DAT tumerokmucormushroomcollector.stt (250017fb) key 39af6f92: 'Phew, that stuff is foul, isn't it? ... Black Mucor Blight Cure.'
 141	line	6	0x250017fb:0xfdaf2916	DAT tumerokmucormushroomcollector.stt (250017fb) key fdaf2916: 'Good luck with the blight!' (Adesar after the cure is handed over)
 141	line	turn	0x250079ed:0x99355cb0	DAT mattoolvidan.stt (250079ed) key 99355cb0: 'The blight! It's gone! You've saved our crops! Well done!'
+141	line	8	0x25007a0e:0xe94d7f9a	DAT blackmucorblightcure.stt 25007a0e e94d7f9a: the message on using the cure on an excrescence ('You smear the cure on the fetid excrescence, and it quickly withers away!')
 141	journal	1	0x250079dd:0x2e5c1e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e5c1e52 'Find a cure for black mucor blight.'
 141	journal	2	0x250079dd:0x2e5f1e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e5f1e52 'Find a black dye plant and bring it back to Adesar.'
 141	journal	4	0x250079dd:0x2e5e1e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e5e1e52 'Apply the dark syrup to a mucor mushroom. Collect a dram of its poisonous slime, and then bring it back to Adesar.'
 141	journal	6	0x250079dd:0x2e5e1e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e5e1e52 (same phase: slime collected, bring it back to Adesar)
 141	journal	8	0x250079dd:0x2e591e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e591e52 'Apply the cure to the black mucor blight excrescences ...'
 141	journal	turn	0x250079dd:0x2e581e52	DAT questimperatorgreenthumb.stt (250079dd) key 2e581e52 'Report your success to Matto Olvidan.'
+143	start_npc	entity	0x47002888	DAT wsl_wimbulolvidan.entity (names 47002888; table wimbulolvidan.stt 250079f9); the Vault: 'speak with Wimbul Olvidan'
+143	npc	Wimbul Olvidan	0x47002888	DAT wsl_wimbulolvidan.entity (placed once in the prepared world)
+143	npc	Matto Olvidan	0x47002887	DAT wsl_mattoolvidan.entity (placed once in the prepared world)
+143	npc	Travelling Peddler	0x47002891	DAT wsl_travellingpeddler.entity (placed once in the prepared world)
+143	item	Peddler's Net	0x47002892	DAT wsl_peddlersnet.entity (peddlersnet.stt 25007a17)
+143	item	Magic Toy Ball	0x47002889	DAT wsl_magictoyball.entity (magictoyball.stt 25007a39)
+143	object	Magic Toy Ball	0x47002889	DAT wsl_magictoyball.entity; NOT placed in the prepared world (the one blocker: the ball needs a placement)
+143	step	1	talk Matto Olvidan	AC2 Vault quests/db 143 walkthrough: 'Talk to Matto Olvidan'; DAT mattoolvidan.stt 84626066
+143	step	2	pay 1000 to Travelling Peddler	AC2 Vault quests/db 143 walkthrough: 'Give 1000 coins to peddler'; DAT travellingpeddler.stt fe965113 'I will sell you the means, for just 1,000 coins!'
+143	step	3	receive Peddler's Net from Travelling Peddler	AC2 Vault quests/db 143 walkthrough: 'Quest Advances and you recieve Peddler's Net'; DAT travellingpeddler.stt 7d6418d1 'Here you go!'
+143	step	4	use Peddler's Net on Magic Toy Ball	AC2 Vault quests/db 143 walkthrough: 'Use Peddler's net on Magic toy Ball'; DAT questimperatorbouncingball.stt 2e5e1e52 'try to use the peddler's net to catch the ball'
+143	step	5	receive Magic Toy Ball from Magic Toy Ball	AC2 Vault quests/db 143 walkthrough: 'Net disappears and Magic Toy Ball is received in your pack'
+143	step	6	give Magic Toy Ball to Wimbul Olvidan	AC2 Vault quests/db 143 walkthrough: 'Give ball to Wimbul'; DAT questimperatorbouncingball.stt 2e591e52 'Return the toy ball to Wimbul.'
+143	xp	percent	0.5	AC2 Vault quests/db 143 reward: 'XP is .5% Needed to level (14 mil @ 57)' - a percentage of the level's span; 14 mil is the observation at level 57 (as quest 141)
+143	line	offer	0x250079f9:0x366d4fe4	DAT wimbulolvidan.stt (250079f9) key 366d4fe4: 'My ball! It's gone! Who took my ball!' (the Vault quotes it as the start)
+143	line	1	0x250079ed:0x84626066	DAT mattoolvidan.stt (250079ed) key 84626066: 'Wimbul loved that toy ball ...' (the Vault quotes it)
+143	line	2	0x250079f6:0x7d6418d1	DAT travellingpeddler.stt (250079f6) key 7d6418d1: 'Here you go! You can also catch butterflies with it.' (spoken as the net changes hands; fe965113, the pitch before payment, has no place in a paid step)
+143	line	4	0x25007a17:0x367b0d95	DAT peddlersnet.stt (25007a17) key 367b0d95: 'You easily snare the magic ball with the net.' (the net's use text)
+143	line	turn	0x250079f9:0xcbdaf6e1	DAT wimbulolvidan.stt (250079f9) key cbdaf6e1: 'My magic ball! Hooray!' (the Vault quotes it)
+143	journal	1	0x250079da:0x2e5c1e52	DAT questimperatorbouncingball.stt (250079da) key 2e5c1e52 'Find Wimbul's toy ball.'
+143	journal	2	0x250079da:0x2e5c1e52	DAT questimperatorbouncingball.stt (250079da) key 2e5c1e52 'Find Wimbul's toy ball.' (still before the net is in hand)
+143	journal	4	0x250079da:0x2e5e1e52	DAT questimperatorbouncingball.stt (250079da) key 2e5e1e52 'This time, try to use the peddler's net to catch the ball.'
+143	journal	turn	0x250079da:0x2e591e52	DAT questimperatorbouncingball.stt (250079da) key 2e591e52 'Return the toy ball to Wimbul.'
 144	ignore	chest	yes	AC2 Vault quests/db 144 walkthrough: the guard bribe, key and doors are the optional left-hand route ('You do not have to pay him'), not a quest step
 144	step	1	kill 1 Banderling Herdkeeper	AC2 Vault quests/db 144 walkthrough: 'Kill Banderling Herdkeeper 1900 hp'; DAT 'Banderling Herdkeeper' 0x47002922
 144	step	2	talk Ulafa Olvidan	AC2 Vault quests/db 144 walkthrough: 'Return to ulafa Olvidan to complete quest.'
@@ -586,6 +675,8 @@ vault_id	field	key	value	source
 145	journal	6	0x250079df:0x2e5a1e52	DAT 0x250079df key 0x2e5a1e52: Return the Land Claim to Jormun Damuk.
 145	journal	turn	0x250079df:0x2e551e52	DAT 0x250079df key 0x2e551e52: Report your success to Almahra Olvidan.
 145	npc	Eater of Souls	0x8140d635c0f7aaf6	world-2516529122.tsv placement of wsl_eaterofsouls (entity 0x470023e7) at 10.06S 29.94W, the one beside Linvak Tukal's Jormun Damuk (10.05S 31.43W); the walkthrough ('Take the ashes to the eater of souls') names no town, so the nearest of the 5 placements is chosen
+145	line	busy	0x250079e7:0x9df49bfc	DAT Almahra table 0x250079e7 key 0x9df49bfc 'How you doing on that Land Claim thing? We sure could use your help.': her progress question about this quest
+145	line	3	0x250079e9:0x2a0f7fb9	DAT Damaged Shelves table 0x250079e9 key 0x2a0f7fb9 'All the documents which were once filed on these shelves ... you do find a handful of sodden ashes.': the reply on opening
 146	item	Steppe Armoredillo Egg	0x47001181	DAT wsl_eggarmoredillosteppeguardian.entity (name string 'Steppe Armoredillo Egg[E]'); AC2 Vault quests/db 22 (Dillo Rustlers) reward 'Steppe Armordillo Egg', the egg quest 146 asks for
 146	line	offer	0x250079ef:0xdfc8e7bc	DAT odaba (250079ef) dfc8e7bc: 'You've been making yourself handy about the place... Maybe you can find us a new stud dillo to add to the herd, or at least a quality egg?'
 146	line	turn	0x250079ef:0x6ab95077	DAT odaba (250079ef) 6ab95077: 'Ol' Eli really thinks this will work? ... Thank you kindly for the egg'
@@ -633,29 +724,33 @@ vault_id	field	key	value	source
 164	journal	3	0x2500804b:0xb65cf7ef	DAT questwfrescue.stt (2500804b) key b65cf7ef (same phase line: one wand use per refugee)
 164	journal	4	0x2500804b:0xb65cf7ef	DAT questwfrescue.stt (2500804b) key b65cf7ef (same phase line: one wand use per refugee)
 164	journal	turn	0x2500804b:0x2e591e52	DAT questwfrescue.stt (2500804b) key 2e591e52 'Return to Araton.'
+164	line	2	0x2500805f:0x284e68f9	DAT wandofrescue.stt (0x2500805f) key 284e68f9: 'You invoke the power of the wand!' (the wand's use text)
+164	line	3	0x2500805f:0x284e68f9	DAT wandofrescue.stt (0x2500805f) key 284e68f9: 'You invoke the power of the wand!' (the wand's use text)
+164	line	4	0x2500805f:0x284e68f9	DAT wandofrescue.stt (0x2500805f) key 284e68f9: 'You invoke the power of the wand!' (the wand's use text)
+164	line	busy	0x25008048:0x4267c0d5	DAT string table 0x25008048 key 0x4267c0d5: Araton's 'not done yet' line: 'Please rescue all my friends!'
 165	item	Wagon Wheel	0x47003564	DAT wsl_wagonwheel.entity (name string 'Wagon Wheel[e]')
 165	item	Wheel Spoke	0x4700356a	DAT wsl_wheelspoke.entity (names 4700356a; name 'Wheel Spoke' in wheelspoke.stt 25008063)
 165	item	Wheel Rim	0x47003565	DAT wsl_wheelrim.entity (names 47003565; 'Wheel Rim' in wheelrim.stt 25008062)
 165	item	Wheel Hub	0x47003566	DAT wsl_wheelhub.entity (names 47003566; 'Wheel Hub' in wheelhub.stt 25008061)
-165	step	1	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 1 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	2	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 2 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	3	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 3 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	4	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 4 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	5	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 5 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	6	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 6 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	7	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 7 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	8	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 8 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	9	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 9 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	10	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 10 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	11	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 11 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	12	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 12 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
-165	step	13	craft Wheel Rim	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub'; recipe rcp_questwfwheelrim.wc 6f00361c
-165	step	14	craft Wheel Hub	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub'; recipe rcp_questwfwheelhub.wc 6f00361e
-165	step	15	craft Wagon Wheel	AC2 Vault quests/db 165 walkthrough: 'Once you have crafted the wheel'; DAT questwfwheel.stt 2e5c1e52 'Assemble the wheel'; recipe rcp_questwfwheel.wc 6f003618
-165	step	16	give Wagon Wheel to Kivun	DAT questwfwheel.stt 2e5c1e52 'return the completed wheel to Kivun'; kivun.stt 398eebac 'Yes! That wheel is perfect!' (wsl_kivun.entity 0x47003563)
-165	journal	1	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
-165	journal	2	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
-165	journal	3	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
+165	step	1	learn 0x6f00361a	AC2 Vault quests/db 165 walkthrough: 'He needs his wagons wheel fixed. He gives you the recipes for the parts needed' (spokes, rim, hub); DAT rcp_questwfwheelspoke.wc (names 6f00361a), taught with the offer
+165	step	2	learn 0x6f00361c	AC2 Vault quests/db 165 walkthrough: 'He needs his wagons wheel fixed. He gives you the recipes for the parts needed' (spokes, rim, hub); DAT rcp_questwfwheelrim.wc (names 6f00361c), taught with the offer
+165	step	3	learn 0x6f00361e	AC2 Vault quests/db 165 walkthrough: 'He needs his wagons wheel fixed. He gives you the recipes for the parts needed' (spokes, rim, hub); DAT rcp_questwfwheelhub.wc (names 6f00361e), taught with the offer
+165	step	4	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 1 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	5	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 2 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	6	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 3 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	7	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 4 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	8	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 5 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	9	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 6 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	10	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 7 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	11	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 8 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	12	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 9 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	13	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 10 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	14	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 11 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	15	craft Wheel Spoke	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub' (spoke 12 of 12; recipe rcp_questwfwheelspoke.wc 6f00361a)
+165	step	16	craft Wheel Rim	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub'; recipe rcp_questwfwheelrim.wc 6f00361c
+165	step	17	craft Wheel Hub	DAT questwfwheel.stt (2500804d) 2e5c1e52 'Craft a dozen spokes, a hub, and a rim. Assemble the wheel, then return the completed wheel to Kivun.'; AC2 Vault quests/db 165 walkthrough '12 spokes ... 1 rim ... 1 hub'; recipe rcp_questwfwheelhub.wc 6f00361e
+165	step	18	craft Wagon Wheel	AC2 Vault quests/db 165 walkthrough: 'Once you have crafted the wheel'; DAT questwfwheel.stt 2e5c1e52 'Assemble the wheel'; recipe rcp_questwfwheel.wc 6f003618
+165	step	19	give Wagon Wheel to Kivun	DAT questwfwheel.stt 2e5c1e52 'return the completed wheel to Kivun'; kivun.stt 398eebac 'Yes! That wheel is perfect!' (wsl_kivun.entity 0x47003563)
 165	journal	4	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
 165	journal	5	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
 165	journal	6	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
@@ -668,8 +763,12 @@ vault_id	field	key	value	source
 165	journal	13	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
 165	journal	14	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
 165	journal	15	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
+165	journal	16	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
+165	journal	17	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
+165	journal	18	0x2500804d:0x2e5c1e52	DAT questwfwheel.stt (2500804d) key 2e5c1e52, the quest's only phase line
 165	line	offer	0x2500804f:0x89455431	DAT kivun.stt (2500804f) key 89455431: 'Curse it! If I don't get this wheel replaced...'
 165	line	turn	0x2500804f:0x398eebac	DAT kivun.stt key 398eebac: 'Yes! That wheel is perfect! Thanks very much for your help.'
+165	line	busy	0x2500804f:0x403ebfee	DAT kivun.stt (2500804f) key 403ebfee: Kivun's 'Making any progress with that wheel?' while the crafting is underway
 166	start_npc	entity	0x47003567	AC2Hero hero_npcs 'Jayna (42.6N_6.5W)' related quest 'Trumped'; DAT wsl_jayna.entity 'Jayna' 0x47003567 (Vault: 'Gypsy Jayna (Arwic 42.6N, 6.5W)')
 168	reward_item	Ero-Bal Egg (Vigor Potion)	0x470032b6	DAT wsl_purifiedspiritegg.entity (purifiedspiritegg.stt 0x25007eee: 'This golden egg contains a spirit blessed by Ezheret'; Valentaua 0x25007ef1 key 0x17ab8e33: 'This egg is a blessing of Ezheret. Use it with reverence.'); the Vault's 'Vigor Potion' effect is the egg's use and is not in the DAT text
 169	item	Dark Lattice	0x47003281	DAT wsl_latticetemplelight.entity (name string 'Dark Lattice' in latticetemplelight.stt 25007eb3; latticetriggertemplelight is a separate entity)
@@ -677,6 +776,7 @@ vault_id	field	key	value	source
 169	start_npc	entity	0x47003499	DAT wsl_kathyrtemplelight.entity (name string 'Empyrean Scholar Kathyr'); questtemplelight.stt 6c459364 'The Empyrean Scholar Kathyr has given you permission to enter the Temple of Elemental Light'
 169	step	1	use Dark Lattice on Well of Elemental Light	DAT questtemplelight.stt (25007eb0) 2e5e1e52 'use the artifact on it' (a source of pure light); AC2 Vault quests/db 169: 'Hand the Dark Lattice to the Well of Energy'
 169	step	2	talk Empyrean Scholar Kathyr	DAT questtemplelight.stt (25007eb0) 2e591e52 'Return to Kathyr and tell her of the artifact you found.'
+169	line	1	0x25007ec0:0x8888466f	DAT table 25007ec0 8888466f: the message on placing the dark lattice near the Well of Elemental Light
 169	line	offer	0x25007fea:0x3485edf1	DAT kathyrtemplelight.stt 25007fea 3485edf1 (offer, keys 3485/3486/3487edf1 are consecutive)
 169	line	offer	0x25007fea:0x3486edf1	DAT kathyrtemplelight.stt 25007fea 3486edf1
 169	line	offer	0x25007fea:0x3487edf1	DAT kathyrtemplelight.stt 25007fea 3487edf1 'Here, I'll give you permission to enter the site.'
@@ -684,6 +784,7 @@ vault_id	field	key	value	source
 169	line	turn	0x25007fea:0xc0169c85	DAT kathyrtemplelight.stt 25007fea c0169c85 'Excellent job! Use that artifact well in the fights to come!'
 169	journal	1	0x25007eb0:0x2e5e1e52	DAT questtemplelight.stt 25007eb0 2e5e1e52: 'The ancient artifact you found... Find such a source of pure light and use the artifact on it.'
 169	journal	turn	0x25007eb0:0x2e591e52	DAT questtemplelight.stt 25007eb0 2e591e52: 'Return to Kathyr and tell her of the artifact you found.'
+169	hold	reason	the parsed steps skip the pillar puzzle and the lattice pickup the walkthrough has; it would ship shortened once the Well of Elemental Light is placed	pass-2 audit (batch 7 notes)
 172	start_npc	entity	0x4700343c	AC2 Vault quests/db 172: 'Speak to the tumerok Lataua in Zu to begin the quest'; DAT 'Lataua' 0x4700343c
 172	step	2	talk Dark Agent	AC2Hero quest 'Path of Light': 'Seek out the Dark Agent... speak to her and remain steadfast. Return to me afterwards.'
 172	step	3	talk Lataua	AC2Hero quest 'Path of Light': 'Return to Lataua in Zu'
@@ -718,20 +819,68 @@ vault_id	field	key	value	source
 193	step	2	talk Eliza Dumach	AC2 Vault quests/db 193 walkthrough: return to Eliza Dumach for the reward
 193	line	offer	0x25008b0f:0x2ae6124e	DAT ling_eliza.stt (25008b0f) key 2ae6124e: Eliza's Lumna Niffis offer ('... a pod of Lumna Niffis ... If you could help cull their numbers'); 2ae61248 is the Veinu Niffis quest's
 193	line	turn	0x25008b0f:0x68a04d4d	DAT ling_eliza.stt (25008b0f) key 68a04d4d: 'Fantastic! I knew you could do it. Here is your reward.' (first of Eliza's two reward lines, matching progress line cdeb1fb2 'the Lumna Niffis')
+193	journal	1.1	0x250072a5:0x2e5c1e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5c1e52 'Kill 10 Lumna Niffis.': the count stage with 10 left (text counts down 10..1)
+193	journal	1.2	0x250072a5:0x2e5f1e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5f1e52 'Kill 9 Lumna Niffis.': the count stage with 9 left (text counts down 10..1)
+193	journal	1.3	0x250072a5:0x2e5e1e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5e1e52 'Kill 8 Lumna Niffis.': the count stage with 8 left (text counts down 10..1)
+193	journal	1.4	0x250072a5:0x2e591e52	DAT questkillniffislumna.stt 0x250072a5 key 2e591e52 'Kill 7 Lumna Niffis.': the count stage with 7 left (text counts down 10..1)
+193	journal	1.5	0x250072a5:0x2e581e52	DAT questkillniffislumna.stt 0x250072a5 key 2e581e52 'Kill 6 Lumna Niffis.': the count stage with 6 left (text counts down 10..1)
+193	journal	1.6	0x250072a5:0x2e5b1e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5b1e52 'Kill 5 Lumna Niffis.': the count stage with 5 left (text counts down 10..1)
+193	journal	1.7	0x250072a5:0x2e5a1e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5a1e52 'Kill 4 Lumna Niffis.': the count stage with 4 left (text counts down 10..1)
+193	journal	1.8	0x250072a5:0x2e551e52	DAT questkillniffislumna.stt 0x250072a5 key 2e551e52 'Kill 3 Lumna Niffis.': the count stage with 3 left (text counts down 10..1)
+193	journal	1.9	0x250072a5:0x2e541e52	DAT questkillniffislumna.stt 0x250072a5 key 2e541e52 'Kill 2 Lumna Niffis.': the count stage with 2 left (text counts down 10..1)
+193	journal	1.10	0x250072a5:0x2e5c7e52	DAT questkillniffislumna.stt 0x250072a5 key 2e5c7e52 'Kill 1 Lumna Niffis.': the count stage with 1 left (text counts down 10..1)
+193	line	busy	0x25008b0f:0xcdeb1fb2	DAT string table 0x25008b0f key 0xcdeb1fb2: Eliza's 'not done yet' line for the Lumna Niffis quest (paired with its offer 2ae6124e and reward 68a04d4d): 'I asked you to dispose of the Lumna Niffis ...'
 194	step	1	kill 10 Veinu Niffis	AC2 Vault quests/db 194 walkthrough: 'You must kill 10 Veinu Niffis and return to Eliza.'
 194	step	2	talk Eliza Dumach	AC2 Vault quests/db 194 walkthrough: 'and return to Eliza'; start 'Speak to Eliza Dumach'
 194	line	offer	0x25008b0f:0x2ae61248	DAT eliza dumach table 25008b0f key 2ae61248: '... a pod of Veinu Niffis ... Puncture 10 Veinu Niffis' (the Veinu offer)
 194	line	turn	0x25008b0f:0x68a04e4d	DAT table 25008b0f key 68a04e4d: 'Great news! I can hear my crew's mining songs already...' (the reward line paired with the Veinu offer; 68a04d4d is the Lumna reward)
+194	line	busy	0x25008b0f:0xcdeb2fb2	DAT ling_eliza.stt (25008b0f) key cdeb2fb2: Eliza's 'I asked you to dispose of the Veinu Niffis that are terrorizing the Shaper's miners' (cdeb1fb2 is the same line for the Lumna quest)
+194	journal	1.1	0x25008b05:0x4d4c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 4d4c19ee '10 Veinu Niffis' (count stage 1 of 10: 10 left)
+194	journal	1.2	0x25008b05:0x4b4c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 4b4c19ee '9 Veinu Niffis' (count stage 2 of 10: 9 left)
+194	journal	1.3	0x25008b05:0x494c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 494c19ee '8 Veinu Niffis' (count stage 3 of 10: 8 left)
+194	journal	1.4	0x25008b05:0x474c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 474c19ee '7 Veinu Niffis' (count stage 4 of 10: 7 left)
+194	journal	1.5	0x25008b05:0x454c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 454c19ee '6 Veinu Niffis' (count stage 5 of 10: 6 left)
+194	journal	1.6	0x25008b05:0x434c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 434c19ee '5 Veinu Niffis' (count stage 6 of 10: 5 left)
+194	journal	1.7	0x25008b05:0x414c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 414c19ee '4 Veinu Niffis' (count stage 7 of 10: 4 left)
+194	journal	1.8	0x25008b05:0x5f4c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 5f4c19ee '3 Veinu Niffis' (count stage 8 of 10: 3 left)
+194	journal	1.9	0x25008b05:0x5d4c19ee	DAT questling2_veinuniffis.stt (0x25008b05) key 5d4c19ee '2 Veinu Niffis' (count stage 9 of 10: 2 left)
+194	journal	1.10	0x25008b05:0x4f4c19ef	DAT questling2_veinuniffis.stt (0x25008b05) key 4f4c19ef '1 Veinu Niffis' (count stage 10 of 10: 1 left)
+194	journal	turn	0x25008b05:0x4d4c19ef	DAT questling2_veinuniffis.stt (25008b05) key 4d4c19ef 'Report to Eliza Dumach.' (the stage after the tenth kill)
 195	line	offer	0x25008b0e:0x2ae6124e	DAT linf_vreema.stt (0x25008b0e) 2ae6124e, the Bone Golem offer (NPC_GROUPS offer/reward/progress 2ae6124e/68a04d4d/cdeb1fb2)
 195	line	turn	0x25008b0e:0x68a04d4d	DAT linf_vreema.stt (0x25008b0e) 68a04d4d 'Our mining crews thank you. Here is your reward. The Bone Golems are not the only threat ...'
+195	line	busy	0x25008b0e:0xcdeb1fb2	DAT linf_vreema.stt (25008b0e) key cdeb1fb2: Vreema's 'The Bone Golems must be smashed to smithereens!' (cdeb2fb2 / cdeb3fb2 are the Rime and Uncharneled Golem quests' lines)
+195	journal	1.1	0x25008b01:0xb18090df	DAT questlinf1_bonegolem.stt (0x25008b01) key b18090df '10 Bone Golems' (count stage 1 of 10: 10 left)
+195	journal	1.2	0x25008b01:0xb180915f	DAT questlinf1_bonegolem.stt (0x25008b01) key b180915f '9 Bone Golems' (count stage 2 of 10: 9 left)
+195	journal	1.3	0x25008b01:0xb18091df	DAT questlinf1_bonegolem.stt (0x25008b01) key b18091df '8 Bone Golems' (count stage 3 of 10: 8 left)
+195	journal	1.4	0x25008b01:0xb180925f	DAT questlinf1_bonegolem.stt (0x25008b01) key b180925f '7 Bone Golems' (count stage 4 of 10: 7 left)
+195	journal	1.5	0x25008b01:0xb18092df	DAT questlinf1_bonegolem.stt (0x25008b01) key b18092df '6 Bone Golems' (count stage 5 of 10: 6 left)
+195	journal	1.6	0x25008b01:0xb180935f	DAT questlinf1_bonegolem.stt (0x25008b01) key b180935f '5 Bone Golems' (count stage 6 of 10: 5 left)
+195	journal	1.7	0x25008b01:0xb18093df	DAT questlinf1_bonegolem.stt (0x25008b01) key b18093df '4 Bone Golems' (count stage 7 of 10: 4 left)
+195	journal	1.8	0x25008b01:0xb180945f	DAT questlinf1_bonegolem.stt (0x25008b01) key b180945f '3 Bone Golems' (count stage 8 of 10: 3 left)
+195	journal	1.9	0x25008b01:0xb18094df	DAT questlinf1_bonegolem.stt (0x25008b01) key b18094df '2 Bone Golems' (count stage 9 of 10: 2 left)
+195	journal	1.10	0x25008b01:0xb180d05f	DAT questlinf1_bonegolem.stt (0x25008b01) key b180d05f '1 Bone Golem' (count stage 10 of 10: 1 left)
+195	journal	turn	0x25008b01:0xb180d0df	DAT questlinf1_bonegolem.stt (25008b01) key b180d0df 'Report to Vreema.' (the stage after the tenth kill)
 196	line	offer	0x25008b0e:0x2ae61248	DAT linf_vreema.stt (0x25008b0e) 2ae61248 'The Rime Golems on Arramora's winter slopes ... Kill 10 Rime Golems, and I will reward you.' (Vreema's Bone / Rime / Uncharneled offers are 2ae6124e / 2ae61248 / 2ae6124a)
 196	line	turn	0x25008b0e:0x68a04e4d	DAT vreema.stt 68a04e4d 'Well done! Your efforts to clear out the Rime Golems from the Arramoran slopes ...'
+196	journal	1.1	0x25008b02:0xb98696bf	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb98696bf '10 Rime Golems': the countdown string for 10 left (text agrees with the stage)
+196	journal	1.2	0x25008b02:0xb986973f	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb986973f '9 Rime Golems': the countdown string for 9 left (text agrees with the stage)
+196	journal	1.3	0x25008b02:0xb98697bf	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb98697bf '8 Rime Golems': the countdown string for 8 left (text agrees with the stage)
+196	journal	1.4	0x25008b02:0xb986943f	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb986943f '7 Rime Golems': the countdown string for 7 left (text agrees with the stage)
+196	journal	1.5	0x25008b02:0xb98694bf	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb98694bf '6 Rime Golems': the countdown string for 6 left (text agrees with the stage)
+196	journal	1.6	0x25008b02:0xb986953f	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb986953f '5 Rime Golems': the countdown string for 5 left (text agrees with the stage)
+196	journal	1.7	0x25008b02:0xb98695bf	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb98695bf '4 Rime Golems': the countdown string for 4 left (text agrees with the stage)
+196	journal	1.8	0x25008b02:0xb986923f	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb986923f '3 Rime Golems': the countdown string for 3 left (text agrees with the stage)
+196	journal	1.9	0x25008b02:0xb98692bf	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb98692bf '2 Rime Golems': the countdown string for 2 left (text agrees with the stage)
+196	journal	1.10	0x25008b02:0xb986d63f	DAT quest table "Fracture the Rime Golems" (0x25008b02) key 0xb986d63f '1 Rime Golem': the countdown string for 1 left (text agrees with the stage)
+196	journal	turn	0x25008b02:0xb986d6bf	DAT quest table 0x25008b02 (title 'Fracture the Rime Golems') key 0xb986d6bf 'Report to Vreema.'
+196	line	busy	0x25008b0e:0xcdeb2fb2	DAT Vreema table 0x25008b0e key 0xcdeb2fb2 'The Rime Golems must be smashed to smithereens!': the Rime hunt's progress line (the importer pairs 2ae61248 / 68a04e4d / cdeb2fb2 as this hunt's offer / reward / progress)
 198	prerequisite		187	AC2 Vault quests/db 198 requirements: 'Must have completed Exterminate the Olthoi Harvesters and Exterminate the Olthoi Worker Nymphs'; 187 is 'Exterminate the Olthoi Harvesters'
 198	prerequisite		192	AC2 Vault quests/db 198 requirements (as above); 192 is 'Exterminate the Olthoi Worker Nymphs'
 199	step	1	kill 10 Darkenfowl Strays	AC2 Vault quests/db 199 walkthrough: 'You must kill 10 Darkenfowl Strays and return to Karin'
 205	step	1	kill 10 Parfal Nefanes	AC2 Vault quests/db 205 walkthrough: 'You must kill 10 Parfal Nefanes and return to Baliga.'
 205	step	2	talk Baliga	AC2 Vault quests/db 205 walkthrough: 'return to Baliga' (no item is handed over)
 212	start_npc	entity	0x470042fe	DAT wsl_ikh_laurikhe.entity (name string "Laurikhe", ikh_laurikhe.stt; its key 2ae61248 asks to puncture 10 Opor Nephanes; the Vault spells it Lauriche)
+214	hold	reason	the walkthrough's Gear Sentinel test and tunnel dungeon have no step form; a talk-only quest would skip them	pass-1 merge review
 215	start_npc	entity	0x47003c67	AC2 Vault quests/db 215: 'Speak with Leftenant Jassel to start the quest'; DAT wsl_jasselto.entity 'Leftenant Jassel' 0x47003c67
 218	start_npc	entity	0x47003ce4	DAT wsl_malatawa.entity (name string "Malatawa", malatawa.stt 25008387); questlegionofdoom.stt 6c459364 "Malatawa has a mission for you."; AC2 Vault quests/db 218: Speak with Malatwa
 220	start_npc	entity	0x47003ccb	DAT wsl_vendor17mh.entity (name string 'Vendor 17[mn]'); AC2 Vault quests/db 220: 'Speak with Vendor 17 (Inside the Fort)'
@@ -783,10 +932,53 @@ vault_id	field	key	value	source
 221	line	turn	0x25008367:0x1e63d936	DAT vendor 18 (25008367) 1e63d936 'All ingredients for Cream of Mushroom Stew have been registered. Stand by for stew recipe and sample.'
 226	line	offer	0x25008984:0x2ae6122c	DAT kq4i_alainn.stt (0x25008984) 2ae6122c 'Our initial scouting ... Kill 20 Linthes Divinators'
 226	line	turn	0x25008984:0x68a07c4d	DAT kq4i_alainn.stt (0x25008984) 68a07c4d 'Well done, adventurer! Your help has been invaluable to us.'
+226	journal	1.1	0x25008972:0xc23f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc23f66f8 '20 Linthes Divinators': the countdown string for 20 left (text agrees with the stage)
+226	journal	1.2	0x25008972:0xc2ff66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc2ff66f8 '19 Linthes Divinators': the countdown string for 19 left (text agrees with the stage)
+226	journal	1.3	0x25008972:0xc2bf66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc2bf66f8 '18 Linthes Divinators': the countdown string for 18 left (text agrees with the stage)
+226	journal	1.4	0x25008972:0xc37f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc37f66f8 '17 Linthes Divinators': the countdown string for 17 left (text agrees with the stage)
+226	journal	1.5	0x25008972:0xc33f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc33f66f8 '16 Linthes Divinators': the countdown string for 16 left (text agrees with the stage)
+226	journal	1.6	0x25008972:0xc3ff66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc3ff66f8 '15 Linthes Divinators': the countdown string for 15 left (text agrees with the stage)
+226	journal	1.7	0x25008972:0xc3bf66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc3bf66f8 '14 Linthes Divinators': the countdown string for 14 left (text agrees with the stage)
+226	journal	1.8	0x25008972:0xc07f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc07f66f8 '13 Linthes Divinators': the countdown string for 13 left (text agrees with the stage)
+226	journal	1.9	0x25008972:0xc03f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xc03f66f8 '12 Linthes Divinators': the countdown string for 12 left (text agrees with the stage)
+226	journal	1.10	0x25008972:0xe27f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe27f66f8 '11 Linthes Divinators': the countdown string for 11 left (text agrees with the stage)
+226	journal	1.11	0x25008972:0xe23f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe23f66f8 '10 Linthes Divinators': the countdown string for 10 left (text agrees with the stage)
+226	journal	1.12	0x25008972:0xe2ff66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe2ff66f8 '9 Linthes Divinators': the countdown string for 9 left (text agrees with the stage)
+226	journal	1.13	0x25008972:0xe2bf66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe2bf66f8 '8 Linthes Divinators': the countdown string for 8 left (text agrees with the stage)
+226	journal	1.14	0x25008972:0xe37f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe37f66f8 '7 Linthes Divinators': the countdown string for 7 left (text agrees with the stage)
+226	journal	1.15	0x25008972:0xe33f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe33f66f8 '6 Linthes Divinators': the countdown string for 6 left (text agrees with the stage)
+226	journal	1.16	0x25008972:0xe3ff66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe3ff66f8 '5 Linthes Divinators': the countdown string for 5 left (text agrees with the stage)
+226	journal	1.17	0x25008972:0xe3bf66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe3bf66f8 '4 Linthes Divinators': the countdown string for 4 left (text agrees with the stage)
+226	journal	1.18	0x25008972:0xe07f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe07f66f8 '3 Linthes Divinators': the countdown string for 3 left (text agrees with the stage)
+226	journal	1.19	0x25008972:0xe03f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0xe03f66f8 '2 Linthes Divinators': the countdown string for 2 left (text agrees with the stage)
+226	journal	1.20	0x25008972:0x827f66f8	DAT quest table "Eliminate the Linthes Divinators" (0x25008972) key 0x827f66f8 '1 Linthes Divinators': the countdown string for 1 left (text agrees with the stage)
+226	journal	turn	0x25008972:0x823f66f8	DAT quest table 0x25008972 key 0x823f66f8 'Report to Alainn Russmad.'
+226	line	busy	0x25008984:0xcde80fb2	DAT Alainn Russmad table 0x25008984 key 0xcde80fb2 'Good to see you again. Have you finished the task I set for you?': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 227	line	offer	0x25008983:0x2ae6122c	DAT brela shon table 0x25008983 key 0x2ae6122c: 'The Grievvers of this region are vicious beasts ... Should you kill twenty Toxic Grievvers, report back to me and I shall reward you.'
 227	line	turn	0x25008983:0x68a07c4d	DAT table 0x25008983 key 0x68a07c4d: 'Congratulations on a job well done. I shall now award you in the name of the Knorr Expeditionary Forces.'
 227	journal	turn	0x25008971:0x34cfc405	DAT 7230 table 0x25008971 (Exterminate the Toxic Grievvers[E]) key 0x34cfc405: 'Report to Brela Shon.'
 227	journal	done	0x25008971:0x6c459364	DAT 7230 table 0x25008971 key 0x6c459364 (the quest summary: Brela Shon's offer text), the completed line the DAT hunts' generator uses (quests 184, 197, 234)
+227	journal	1.1	0x25008971:0x34c7c405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7c405 '20 Toxic Grievvers': the countdown string for 20 left (text agrees with the stage)
+227	journal	1.2	0x25008971:0x34c7dc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7dc05 '19 Toxic Grievvers': the countdown string for 19 left (text agrees with the stage)
+227	journal	1.3	0x25008971:0x34c7d405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7d405 '18 Toxic Grievvers': the countdown string for 18 left (text agrees with the stage)
+227	journal	1.4	0x25008971:0x34c7ec05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7ec05 '17 Toxic Grievvers': the countdown string for 17 left (text agrees with the stage)
+227	journal	1.5	0x25008971:0x34c7e405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7e405 '16 Toxic Grievvers': the countdown string for 16 left (text agrees with the stage)
+227	journal	1.6	0x25008971:0x34c7fc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7fc05 '15 Toxic Grievvers': the countdown string for 15 left (text agrees with the stage)
+227	journal	1.7	0x25008971:0x34c7f405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c7f405 '14 Toxic Grievvers': the countdown string for 14 left (text agrees with the stage)
+227	journal	1.8	0x25008971:0x34c78c05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c78c05 '13 Toxic Grievvers': the countdown string for 13 left (text agrees with the stage)
+227	journal	1.9	0x25008971:0x34c78405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c78405 '12 Toxic Grievvers': the countdown string for 12 left (text agrees with the stage)
+227	journal	1.10	0x25008971:0x34c3cc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3cc05 '11 Toxic Grievvers': the countdown string for 11 left (text agrees with the stage)
+227	journal	1.11	0x25008971:0x34c3c405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3c405 '10 Toxic Grievvers': the countdown string for 10 left (text agrees with the stage)
+227	journal	1.12	0x25008971:0x34c3dc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3dc05 '9 Toxic Grievvers': the countdown string for 9 left (text agrees with the stage)
+227	journal	1.13	0x25008971:0x34c3d405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3d405 '8 Toxic Grievvers': the countdown string for 8 left (text agrees with the stage)
+227	journal	1.14	0x25008971:0x34c3ec05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3ec05 '7 Toxic Grievvers': the countdown string for 7 left (text agrees with the stage)
+227	journal	1.15	0x25008971:0x34c3e405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3e405 '6 Toxic Grievvers': the countdown string for 6 left (text agrees with the stage)
+227	journal	1.16	0x25008971:0x34c3fc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3fc05 '5 Toxic Grievvers': the countdown string for 5 left (text agrees with the stage)
+227	journal	1.17	0x25008971:0x34c3f405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c3f405 '4 Toxic Grievvers': the countdown string for 4 left (text agrees with the stage)
+227	journal	1.18	0x25008971:0x34c38c05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c38c05 '3 Toxic Grievvers': the countdown string for 3 left (text agrees with the stage)
+227	journal	1.19	0x25008971:0x34c38405	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34c38405 '2 Toxic Grievvers': the countdown string for 2 left (text agrees with the stage)
+227	journal	1.20	0x25008971:0x34cfcc05	DAT quest table "Exterminate the Toxic Grievvers" (0x25008971) key 0x34cfcc05 '1 Toxic Grievvers': the countdown string for 1 left (text agrees with the stage)
+227	line	busy	0x25008983:0xcde80fb2	DAT Brela Shon table 0x25008983 key 0xcde80fb2 'The Toxic Grievvers are a constant threat. Good luck, adventurer.': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 228	start_npc	entity	0x47003fc1	AC2Hero hero_npcs 'Sia Jorlorn (51.8S, 39.0E)' (Vault spells Sia Jorlon, Fort Strathelar); DAT 'Sia Jorlorn' 0x47003fc1
 229	step	1	kill 1 Swarm Gardener Nymphet	AC2 Vault quests/db 229 walkthrough: 'You must kill the Swarm Gardener Nymphet at 46.3S 37.4E'; DAT quest_bm4a_terminatetheswarm.stt 2e5c1e52 'Find and destroy the Swarm Gardener Nymphet.'
 229	step	2	talk Daranua	AC2 Vault quests/db 229: 'and then return to Daranua'; DAT quest_bm4a_terminatetheswarm.stt 2e5f1e52 'Return to Daranua.'
@@ -796,17 +988,20 @@ vault_id	field	key	value	source
 229	journal	1	0x250089e7:0x2e5c1e52	DAT quest_bm4a_terminatetheswarm.stt 2e5c1e52 'Find and destroy the Swarm Gardener Nymphet.'
 229	journal	turn	0x250089e7:0x2e5f1e52	DAT quest_bm4a_terminatetheswarm.stt 2e5f1e52 'Return to Daranua.'
 229	ignore	chest	yes	the walkthrough's chest is the one the NPC's key opens (DAT bm4a_daranua.stt 8b6b1869 'help yourself to whatever pleases you from this chest'); the key is the reward item, the chest is not a quest step
+229	line	busy	0x250089ec:0x8b6b186f	DAT string table 0x250089ec key 0x8b6b186f: Daranua's 'not done yet' line: 'Were you able to destroy the Swarm Gardener Nymphet?'
 231	ignore	chest	yes	The chest is a world object that the quest key opens; no source lists its contents (DAT bm4b_illior.stt 8b6b1869: 'you are welcome to whatever you find inside')
 231	npc	Illior	0x4700409b	DAT wsl_bm4b_illior.entity (name string 'Illior Yalaern', bm4b_illior.stt 250089ed)
 231	reward_item	Loot from Illior's chest	0x4700409d	DAT bm4b_illior.stt key 8b6b1869 'Take this key ... It opens this chest beside me'; the reward is the key wsl_key_quest_bm4b.entity (key_quest_bm4.stt 'Illior's Key'); AC2Hero quest 'Clense the Standing Stones' reward: 'Illior's Key'. Match bm4b entity to Illior by the shared bm4b prefix (medium confidence); the chest's contents are in no source
 231	xp	percent	0.5	AC2Hero quest 'Clense the Standing Stones' reward: '% based XP - 0.5% XP needed to level'
 231	line	offer	0x250089ed:0x2ae6122c	DAT illior table 250089ed key 2ae6122c: 'There are many sites on this continent that revealed their sacred power to my people...' (the offer)
 231	line	turn	0x250089ed:0x8b6b1869	DAT table 250089ed key 8b6b1869: 'The Resuscitated Urkhad has been destroyed! ... Take this key as a token of my appreciation'
+231	line	busy	0x250089ed:0x8b6b186f	DAT giver table 0x250089ed key 8b6b186f: the giver's 'not done yet' line for the kill (Have you driven the Rususciteated Urkhad from the standing stones yet?...) while the quest is underway
 231	journal	1	0x250089e8:0x2e5c1e52	DAT quest_bm4b_cleansethestandingstones.stt (250089e8) key 2e5c1e52: 'Find and destroy the Resuscitated Urkhad.'
 231	journal	turn	0x250089e8:0x2e5f1e52	DAT quest_bm4b_cleansethestandingstones.stt key 2e5f1e52: 'Return to Illior Yalaern.'
 232	step	1	kill 1 Benshii Felsister	AC2 Vault quests/db 232 walkthrough: 'You must kill the Benshii Felsister at 43.6s 43.4e, and then return to Shrill Angostara'
 232	line	offer	0x250089ef:0x2ae6122c	DAT bm4e_angostara.stt (0x250089ef) 2ae6122c 'You know, it wasn't long after I took residence here at the Aerie ...' (the quest summary 6c459364 of quest_bm4e_afellplot.stt quotes it)
 232	line	turn	0x250089ef:0x8b6b1869	DAT bm4e_angostara.stt (0x250089ef) 8b6b1869 'Well done, adventurer! You've certainly helped to secure the Aerie by taking that Benshii Crone out of the picture ... here's the key.'
+232	line	busy	0x250089ef:0x8b6b186f	DAT giver table 0x250089ef key 8b6b186f: the giver's 'not done yet' line for the kill (The Felsisters are still up to their plots and schemes, adventurer. I ...) while the quest is underway
 232	journal	1	0x250089eb:0x2e5c1e52	DAT quest_bm4e_afellplot.stt (0x250089eb) 2e5c1e52 'Find and destroy Benshii Felsister.'
 232	journal	turn	0x250089eb:0x2e5f1e52	DAT quest_bm4e_afellplot.stt (0x250089eb) 2e5f1e52 'Return to Shrill Angostara.'
 232	reward_item	Angostara's Key	0x470040a6	DAT wsl_key_quest_bm4e.entity (names; bm4e = bm4e_angostara.stt NPC); key_quest_bm4.stt (0x25008b36) 9e027acc "Angostara's Key[E]"; bm4e_angostara.stt 8b6b1869 'And oh - here's the key.'
@@ -817,38 +1012,46 @@ vault_id	field	key	value	source
 233	journal	turn	0x250089e9:0x2e5f1e52	DAT quest_bm4c_lostitkhanda.stt 2e5f1e52 'Return to Telemanua.'
 233	line	offer	0x250089ee:0x2ae6122c	DAT bm4c_telemanua.stt (0x250089ee) 2ae6122c 'In the years after the mortal races subdued the Olthoi ... Itkhanda'
 233	line	turn	0x250089ee:0x8b6b1869	DAT bm4c_telemanua.stt 8b6b1869 'My ancestral home is now secured, thanks to you ... reward you with this key'
+233	line	busy	0x250089ee:0x8b6b186f	DAT Telemanua table 0x250089ee key 0x8b6b186f 'Have you destroyed the Kaeru Akii?': the quest's own progress question, beside its turn line 0x8b6b1869
 234	kill_target	Sandstone Colossi	0x47003a8a	DAT wsl_colossussandstone.entity, name string 'Sandstone Colossus' (Vault plural 'Sandstone Colossi'); AC2 Vault quests/db 234 walkthrough: 'kill 20 Sandstone Colossi'
 238	ignore	chest	yes	The chest is a world object that the quest key opens; no source lists its contents (DAT bm1a_tiamary.stt 8b6b1869: 'you may take whatever reward you like from it')
 238	npc	Tiamary	0x47004002	DAT wsl_bm1a_tiamary.entity (name string 'Tiamary Graziel', bm1a_tiamary.stt 250089a0)
 238	reward_item	Key to loot chest	0x47004001	DAT bm1a_tiamary.stt key 8b6b1869 'Here is the key to my chest'; key entity wsl_key_quest_bm1a.entity (key_quest_bm1.stt has 'Tiamary's Key'); AC2Hero quest Tree Avenger reward: 'Tiamary's Key (Used to open the chest next to her)'. Matched by the shared bm1a prefix (medium confidence)
 238	line	offer	0x250089a0:0x2ae6122c	DAT tiamary table 250089a0 key 2ae6122c: 'Thank the heavens, help has arrived! ... Cunning Tom' (the offer)
 238	line	turn	0x250089a0:0x8b6b1869	DAT table 250089a0 key 8b6b1869: 'Ah, the savior of my precious trees returns! ... Here is the key to my chest'
+238	line	busy	0x250089a0:0x8b6b186f	DAT giver table 0x250089a0 key 8b6b186f: the giver's 'not done yet' line for the kill (Quickly! You must find and destroy Cunning Tom, before he returns to d...) while the quest is underway
 238	journal	1	0x2500899a:0x2e5c1e52	DAT quest_bm1a_treeavenger.stt (2500899a) key 2e5c1e52: 'Find and destroy Cunning Tom.'
 238	journal	turn	0x2500899a:0x2e5f1e52	DAT quest_bm1a_treeavenger.stt key 2e5f1e52: 'Return to Tiamary Graziel.'
 239	step	1	kill 1 Iridescent Stinger	AC2 Vault quests/db 239 walkthrough: 'you must find and kill the Iridescent Stinger'; DAT quest_bm1d_iridescentstinger.stt 2e5c1e52 'Find and destroy the Iridescent Stinger.'
 239	line	offer	0x250089a3:0x2ae6122c	DAT bm1d_muriona.stt (0x250089a3) 2ae6122c 'You seem like just the right person to help me ...' (the quest summary quotes it)
 239	line	turn	0x250089a3:0x8b6b1869	DAT bm1d_muriona.stt (0x250089a3) 8b6b1869 'You've returned in one piece ... Please, accept the key to my chest as a reward.'
+239	line	busy	0x250089a3:0x8b6b186f	DAT giver table 0x250089a3 key 8b6b186f: the giver's 'not done yet' line for the kill (The wasps here sure are a menace, aren't they?...) while the quest is underway
 239	journal	1	0x2500899d:0x2e5c1e52	DAT quest_bm1d_iridescentstinger.stt (0x2500899d) 2e5c1e52 'Find and destroy the Iridescent Stinger.'
 239	journal	turn	0x2500899d:0x2e5f1e52	DAT quest_bm1d_iridescentstinger.stt (0x2500899d) 2e5f1e52 'Return to Muriona.'
 239	reward_item	Key to loot chest.	0x4700400d	DAT wsl_key_quest_bm1d.entity (bm1d = bm1d_muriona.stt NPC); bm1d_muriona.stt 8b6b1869 'accept the key to my chest as a reward'; AC2 Vault quests/db 239 reward 'Key to loot chest.'
 240	line	offer	0x2500894a:0x2ae6122c	DAT kq1g_savorlin.stt (0x2500894a) 2ae6122c 'Hail, friend! ... Destroy ten Banderling Maulers, and I will reward you handsomely.'
 240	line	turn	0x2500894a:0x68a07c4d	DAT kq1g_savorlin.stt (0x2500894a) 68a07c4d 'The Knorr Expeditionary Forces thank you! Here is your reward.'
+240	line	busy	0x2500894a:0xcde80fb2	DAT Savorlin Gahntar table 0x2500894a key 0xcde80fb2 'Hello again! You'd better get back to your task!': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 241	start_npc	entity	0x47003f69	DAT wsl_kq1h_ivor.entity ('Ivor Stronghand[nm]'); quest table 25008939 'Exterminate the Iridescent Piercers': 'Ivor Stronghand said: ... Destroy ten Iridescent Piercers' (the Vault spells him Strongbow)
 241	line	offer	0x2500894b:0x2ae6122c	DAT kq1h_ivor.stt (0x2500894b) key 0x2ae6122c: 'Our reports lead us to believe that the Phyntos Wasps are getting ready to swarm. Please help us reduce this threat by exterminating them from the countryside.'
 241	line	turn	0x2500894b:0x68a07c4d	DAT kq1h_ivor.stt (0x2500894b) key 0x68a07c4d: 'Well done! I shall reward you for your hard work.'
 241	journal	done	0x25008939:0x6c459364	DAT quest_kq1h_iridescentpiercer.stt (0x25008939) key 0x6c459364 (the quest summary), the completed line the DAT hunts' generator uses (quests 184, 197, 234)
+241	line	busy	0x2500894b:0xcde80fb2	DAT Ivor Stronghand table 0x2500894b key 0xcde80fb2 'Why, hello! Shouldn't you be out exterminating wasps?': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 243	line	offer	0x25008944:0x2ae6122c	DAT kq1j_gwynna.stt (0x25008944) 2ae6122c: 'Those devious Banderlings and their nefarious schemes! ... push them back to their dens' (the offer; the quest table quest_kq1j_banderlingberserker.stt 6c459364 quotes it)
 243	line	turn	0x25008944:0x68a07c4d	DAT kq1j_gwynna.stt (0x25008944) 68a07c4d: 'The Knorr Expeditionary Forces thank you! Here is your reward.' (the turn-in)
+243	line	busy	0x25008944:0xcde80fb2	DAT string table 0x25008944 key 0xcde80fb2: Gwynna's 'not done yet' line (the 2ae6122c offer's progress key): 'Good luck with your task!'
 245	ignore	chest	yes	The chest is a world object that the quest key opens; no source lists its contents (DAT bm2a_gerald.stt 8b6b1869)
 245	npc	Gerald	0x47004050	DAT wsl_bm2a_gerald.entity (name string 'Gerald Maquail', bm2a_gerald.stt 250089c7)
 245	reward_item	Loot from the nearby chest	0x4700401d	DAT bm2a_gerald.stt key 8b6b1869 'Please take this key. Whatever you find within this chest is yours'; key entity wsl_key_quest_bm2a.entity (key_quest_bm2.stt has 'Gerald's Key'); AC2Hero quest Release Uncle Finiel reward: 'Gerald Maquail's Loot Chest Key'. Matched by the shared bm2a prefix (medium confidence)
 245	line	offer	0x250089c7:0x2ae6122c	DAT gerald table 250089c7 key 2ae6122c: 'Greetings, traveler. Perhaps you can help me with a rather... delicate family matter.' (the offer)
 245	line	turn	0x250089c7:0x8b6b1869	DAT table 250089c7 key 8b6b1869: 'Poor Uncle Finiel. May he find rest... Please take this key.'
+245	line	busy	0x250089c7:0x8b6b186f	DAT giver table 0x250089c7 key 8b6b186f: the giver's 'not done yet' line for the kill (I think I saw Uncle Finiel lurking in the shadows last night. Have you...) while the quest is underway
 245	journal	1	0x250089c0:0x2e5c1e52	DAT quest_bm2a_releaseunclefiniel.stt (250089c0) key 2e5c1e52: 'Find and release Uncle Finiel.'
 245	journal	turn	0x250089c0:0x2e5f1e52	DAT quest_bm2a_releaseunclefiniel.stt key 2e5f1e52: 'Return to Gerald Maquail.'
 246	step	1	kill 10 Cursed Bones	AC2 Vault quests/db 246 walkthrough: 'You must kill 10 Cursed Bones and then speak to Brelar for your reward' ('Cursed' is the creature's name, no curse effect is written)
 247	line	offer	0x25008958:0x2ae6122c	DAT kq2b_illiana.stt (0x25008958) 2ae6122c 'The Knorr Expeditionary Forces sent me here to find brave adventurers ...' (the quest summary of quest_kq2b_skeletonlieutenant.stt quotes it)
 247	line	turn	0x25008958:0x68a07c4d	DAT kq2b_illiana.stt (0x25008958) 68a07c4d 'Congratulations! Here is your reward.'
+247	line	busy	0x25008958:0xcde80fb2	DAT kq2b_illiana.stt (25008958) key cde80fb2: Illiana's 'Back so soon? You should be out protecting the towns from the undead!' while the kills are underway
 248	kill_target	Bar Nobla	0x4700431d	DAT wsl_mumiyahwarriornoblabm.entity (the only entity with 'nobla'; table mumiyah_knorr.stt has 'Bar Nobla[Nm]'; entity picked by its stem)
 248	npc	Old Harringer	0x47004052	DAT wsl_bm2b_herrigar.entity ('Old Herrigar[vfn]')
 248	start_npc	entity	0x47004052	DAT wsl_bm2b_herrigar.entity ('Old Herrigar[vfn]'; quest_bm2b_bloodfeud.stt 'Old Herrigar said: ... Bar Nobla'); the Vault spells her Harringer
@@ -858,6 +1061,7 @@ vault_id	field	key	value	source
 248	journal	turn	0x250089c1:0x2e5f1e52	DAT quest_bm2b_bloodfeud.stt 2e5f1e52 'Return to Old Herrigar.'
 248	line	offer	0x250089c8:0x2ae6122c	DAT bm2b_herrigar.stt (0x250089c8) 2ae6122c 'It's a dark day indeed that I should need to call upon the help of one of your kind'
 248	line	turn	0x250089c8:0x8b6b1869	DAT bm2b_herrigar.stt 8b6b1869 'I have no doubt that the Mu-miyah shall seek their own petty revenge ... Take whatever you like from my chest'
+248	line	busy	0x250089c8:0x8b6b186f	DAT Old Herrigar table 0x250089c8 key 0x8b6b186f 'I still sense Bar Nobla's presence in yonder vale. Have you not finished the task I set before you?': the quest's own progress question, beside its turn line 0x8b6b1869
 253	step	1	kill 10 Skeleton Lancers	AC2 Vault quests/db 253 walkthrough: 'You must kill 10 Skeleton Lancers and then return to Moira Len'
 253	step	2	talk Moira Len	AC2 Vault quests/db 253 walkthrough: 'return to Moira Len'; DAT kq2g_moira.stt 68a07c4d 'The Knorr Expeditionary Forces thank you! Allow me to reward you.' (no item is handed over)
 255	kill_target	Aerfalle's Generals	0x47003bca,0x4700390b,0x47003b72,0x47003b73	DAT wsl_lordnuvillusag, wsl_baroncolierag, wsl_generaldreyvonag, wsl_generalsaroceteag (each drops the matching key_foundryentrance*_ag: Lord Nuvillus', Baron Colier's, General Dreyvon's, General Sarocete's Key); AC2 Vault quests/db 255: 'Aerfalle's four generals ... Each one has a key'
@@ -866,6 +1070,36 @@ vault_id	field	key	value	source
 262	prerequisite	1	214	AC2 Vault quests/db 262 requirements: 'Must have completed Piercing the Shield Wall Quest' (Vault id 214, Piercing the Shield wall)
 262	step	1	kill 30 Colossi	AC2 Vault quests/db 262 walkthrough: 'kill 30 total Colossi' (the DAT postings table 2500895f also offers other counts 1-30)
 262	line	offer	0x2500834c:0x91779f7e	DAT postings board (2500834c) 91779f7e 'You scan the list of postings and pick one out.'
+262	journal	1.1	0x2500895f:0xdae10ca4	DAT postings table 2500895f dae10ca4 '30 Colossi': the journal line with 30 kills left (kill step 1, count stage 1 of 30)
+262	journal	1.2	0x2500895f:0x5ae10ca5	DAT postings table 2500895f 5ae10ca5 '29 Colossi': the journal line with 29 kills left (kill step 1, count stage 2 of 30)
+262	journal	1.3	0x2500895f:0xdae10ca5	DAT postings table 2500895f dae10ca5 '28 Colossi': the journal line with 28 kills left (kill step 1, count stage 3 of 30)
+262	journal	1.4	0x2500895f:0x5ae10ca6	DAT postings table 2500895f 5ae10ca6 '27 Colossi': the journal line with 27 kills left (kill step 1, count stage 4 of 30)
+262	journal	1.5	0x2500895f:0xdae10ca6	DAT postings table 2500895f dae10ca6 '26 Colossi': the journal line with 26 kills left (kill step 1, count stage 5 of 30)
+262	journal	1.6	0x2500895f:0x5ae10ca7	DAT postings table 2500895f 5ae10ca7 '25 Colossi': the journal line with 25 kills left (kill step 1, count stage 6 of 30)
+262	journal	1.7	0x2500895f:0xdae10ca7	DAT postings table 2500895f dae10ca7 '24 Colossi': the journal line with 24 kills left (kill step 1, count stage 7 of 30)
+262	journal	1.8	0x2500895f:0x5ae10ca0	DAT postings table 2500895f 5ae10ca0 '23 Colossi': the journal line with 23 kills left (kill step 1, count stage 8 of 30)
+262	journal	1.9	0x2500895f:0xdae10ca0	DAT postings table 2500895f dae10ca0 '22 Colossi': the journal line with 22 kills left (kill step 1, count stage 9 of 30)
+262	journal	1.10	0x2500895f:0x5ae10ce4	DAT postings table 2500895f 5ae10ce4 '21 Colossi': the journal line with 21 kills left (kill step 1, count stage 10 of 30)
+262	journal	1.11	0x2500895f:0xdae10ce4	DAT postings table 2500895f dae10ce4 '20 Colossi': the journal line with 20 kills left (kill step 1, count stage 11 of 30)
+262	journal	1.12	0x2500895f:0x5ae10ce5	DAT postings table 2500895f 5ae10ce5 '19 Colossi': the journal line with 19 kills left (kill step 1, count stage 12 of 30)
+262	journal	1.13	0x2500895f:0xdae10ce5	DAT postings table 2500895f dae10ce5 '18 Colossi': the journal line with 18 kills left (kill step 1, count stage 13 of 30)
+262	journal	1.14	0x2500895f:0x5ae10ce6	DAT postings table 2500895f 5ae10ce6 '17 Colossi': the journal line with 17 kills left (kill step 1, count stage 14 of 30)
+262	journal	1.15	0x2500895f:0xdae10ce6	DAT postings table 2500895f dae10ce6 '16 Colossi': the journal line with 16 kills left (kill step 1, count stage 15 of 30)
+262	journal	1.16	0x2500895f:0x5ae10ce7	DAT postings table 2500895f 5ae10ce7 '15 Colossi': the journal line with 15 kills left (kill step 1, count stage 16 of 30)
+262	journal	1.17	0x2500895f:0xdae10ce7	DAT postings table 2500895f dae10ce7 '14 Colossi': the journal line with 14 kills left (kill step 1, count stage 17 of 30)
+262	journal	1.18	0x2500895f:0x5ae10ce0	DAT postings table 2500895f 5ae10ce0 '13 Colossi': the journal line with 13 kills left (kill step 1, count stage 18 of 30)
+262	journal	1.19	0x2500895f:0xdae10ce0	DAT postings table 2500895f dae10ce0 '12 Colossi': the journal line with 12 kills left (kill step 1, count stage 19 of 30)
+262	journal	1.20	0x2500895f:0x5ae10c24	DAT postings table 2500895f 5ae10c24 '11 Colossi': the journal line with 11 kills left (kill step 1, count stage 20 of 30)
+262	journal	1.21	0x2500895f:0xdae10c24	DAT postings table 2500895f dae10c24 '10 Colossi': the journal line with 10 kills left (kill step 1, count stage 21 of 30)
+262	journal	1.22	0x2500895f:0x5ae10c25	DAT postings table 2500895f 5ae10c25 '9 Colossi': the journal line with 9 kills left (kill step 1, count stage 22 of 30)
+262	journal	1.23	0x2500895f:0xdae10c25	DAT postings table 2500895f dae10c25 '8 Colossi': the journal line with 8 kills left (kill step 1, count stage 23 of 30)
+262	journal	1.24	0x2500895f:0x5ae10c26	DAT postings table 2500895f 5ae10c26 '7 Colossi': the journal line with 7 kills left (kill step 1, count stage 24 of 30)
+262	journal	1.25	0x2500895f:0xdae10c26	DAT postings table 2500895f dae10c26 '6 Colossi': the journal line with 6 kills left (kill step 1, count stage 25 of 30)
+262	journal	1.26	0x2500895f:0x5ae10c27	DAT postings table 2500895f 5ae10c27 '5 Colossi': the journal line with 5 kills left (kill step 1, count stage 26 of 30)
+262	journal	1.27	0x2500895f:0xdae10c27	DAT postings table 2500895f dae10c27 '4 Colossi': the journal line with 4 kills left (kill step 1, count stage 27 of 30)
+262	journal	1.28	0x2500895f:0x5ae10c20	DAT postings table 2500895f 5ae10c20 '3 Colossi': the journal line with 3 kills left (kill step 1, count stage 28 of 30)
+262	journal	1.29	0x2500895f:0xdae10c20	DAT postings table 2500895f dae10c20 '2 Colossi': the journal line with 2 kills left (kill step 1, count stage 29 of 30)
+262	journal	1.30	0x2500895f:0x5ae10c64	DAT postings table 2500895f 5ae10c64 '1 Colossus': the journal line with 1 kills left (kill step 1, count stage 30 of 30)
 263	step	1	kill 1 Tromp Wheran	AC2 Vault quests/db 263 walkthrough: 'You must slay Tromp Wheran at 33.6S 56.0E'; DAT quest_bm2c_savethefarm.stt 2e5c1e52 'Find and destroy Tromp Wheran.'
 263	step	2	talk Derrigos Elan	AC2 Vault quests/db 263: 'return to Derrigos to complete the quest'; DAT quest_bm2c_savethefarm.stt 2e5f1e52 'Return to Derrigos Elan.'
 263	reward_item	Loot from nearby chest	0x4700401f	DAT bm2c_derrigos.stt 8b6b1869 'Take the key to my chest here. Take anything that pleases you'; wsl_key_quest_bm2c.entity is the key the NPC gives; the chest's own loot is world data, not a quest reward
@@ -874,6 +1108,7 @@ vault_id	field	key	value	source
 263	journal	1	0x250089c2:0x2e5c1e52	DAT quest_bm2c_savethefarm.stt 2e5c1e52 'Find and destroy Tromp Wheran.'
 263	journal	turn	0x250089c2:0x2e5f1e52	DAT quest_bm2c_savethefarm.stt 2e5f1e52 'Return to Derrigos Elan.'
 263	ignore	chest	yes	the walkthrough's chest is the one the NPC's key opens (DAT bm2c_derrigos.stt 8b6b1869 'Take the key to my chest here'); the key is the reward item, the chest is not a quest step
+263	line	busy	0x250089c9:0x8b6b186f	DAT string table 0x250089c9 key 0x8b6b186f: Derrigos Elan's 'not done yet' line: 'Somehow I get the feeling that Tromp Wheran is still at large. Were you able to subdue him?'
 264	step	1	kill 10 Ruthless Waraths	AC2 Vault quests/db 264 walkthrough: 'You must kill 10 Ruthless Waraths ... and then return to Urlin'
 264	step	2	talk Urlin Furst	AC2 Vault quests/db 264 walkthrough: return to Urlin Furst for the reward
 266	item	Captain Trammel's Knapsack	0x470040f3	DAT wsl_connector_b_knapsack.entity (name string "Captain Trammel's Knapsack")
@@ -886,24 +1121,30 @@ vault_id	field	key	value	source
 267	step	1	kill 15 Moarsman Sentries	AC2 Vault quests/db 267 walkthrough: 'You must kill 15 Moarsman Sentries and then return to Brenden'
 267	line	offer	0x25008976:0x2ae6122c	DAT kq3a_brenden.stt (0x25008976) 2ae6122c 'The Moarsmen have united against us ...' (the quest summary of quest_kq3a_moarsmansentry.stt quotes it)
 267	line	turn	0x25008976:0x68a07c4d	DAT kq3a_brenden.stt (0x25008976) 68a07c4d 'Bravo! Thank you for making this region a better place.'
+267	line	busy	0x25008976:0xcde80fb2	DAT kq3a_brenden.stt (25008976) key cde80fb2: Brenden's 'I know there are more Moarsmen out there, friend.' while the kills are underway
 268	npc	Jaina	0x47003fb9	DAT wsl_kq3b_jaina.entity ('Jaina Larin[fn]'); AC2 Vault quests/db 268: 'Speak to Jaina Larin in Greenstone ... then speak to Jaina'
 268	line	offer	0x25008977:0x2ae6122c	DAT kq3b_jaina.stt (0x25008977) 2ae6122c 'Greetings, friend! The Knorr Expeditionary Forces sent me here ... The Spawn must be eradicated'
 268	line	turn	0x25008977:0x68a07c4d	DAT kq3b_jaina.stt (0x25008977) 68a07c4d 'Well done, adventurer! The Spawn have truly proven themselves to be a nuisance'
+268	line	busy	0x25008977:0xcde80fb2	DAT Jaina Larin table 0x25008977 key 0xcde80fb2 'Back so soon? You should be out eradicating the Spawn!': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 269	start_npc	entity	0x47003fba	AC2Hero hero_npcs 'Yurikhe (50.0S_49.9E)' related quest 'Kill the Chromu Sclavus' (Vault spells Yorikhe, Greenstone); DAT 'Yurikhe' 0x47003fba
 269	line	offer	0x25008978:0x2ae6122c	DAT kq3c_yurikhe.stt (0x25008978) key 0x2ae6122c: 'Good to see you ... The Sclavus enclaves are growing in strength against us, and we must vanquish them.'
 269	line	turn	0x25008978:0x68a07c4d	DAT kq3c_yurikhe.stt (0x25008978) key 0x68a07c4d: 'A job well done. You've earned a reward from the Knorr Expeditionary Force.'
 269	journal	done	0x25008966:0x6c459364	DAT quest_kq3c_chromusclavus.stt (0x25008966) key 0x6c459364 (the quest summary), the completed line the DAT hunts' generator uses (quests 184, 197, 234)
+269	line	busy	0x25008978:0xcde80fb2	DAT Yurikhe table 0x25008978 key 0xcde80fb2 'The Sclavus threat continues! You must persevere!': the generic Knorr hunt progress line (the importer pairs 2ae6122c / 68a07c4d / cde80fb2 as offer / reward / progress)
 270	step	1	kill 15 Slithis Eye Stalks	AC2 Vault quests/db 270 walkthrough: 'You must kill 15 Slithis Eye Stalks ... return to Norekhe'
 270	step	2	talk Norekhe	AC2 Vault quests/db 270 walkthrough: return to Norekhe for the reward
 270	line	offer	0x25008979:0x2ae6122c	DAT norekhe (25008979) 2ae6122c 'We've spotted a pod of Slithis Eyestalks over on the northeastern shore of the island...'
 270	line	turn	0x25008979:0x68a07c4d	DAT norekhe (25008979) 68a07c4d 'Good job, adventurer - I couldn't have done it more quickly myself. Before you press on in your travels, allow me to reward you.'
+270	line	busy	0x25008979:0xcde80fb2	DAT norekhe (25008979) cde80fb2: 'Do not tarry, friend! There are more Slithis out there than you can shake a stick at!' (Norekhe's progress line for this quest)
 271	step	1	kill 15 Shade Matrons	AC2 Vault quests/db 271 walkthrough: 'You must kill 15 Shade Matrons.'
 271	step	2	talk Andar Morlean	AC2 Vault quests/db 271 walkthrough: 'Speak to Andar again for your reward.'
 271	line	offer	0x2500897a:0x2ae6122c	DAT kq3e_andar.stt (0x2500897a) 2ae6122c: 'Kill fifteen Shade Matrons for the Expeditionary Forces of Knorr, and we will reward your valor.' (the offer)
 271	line	turn	0x2500897a:0x68a07c4d	DAT kq3e_andar.stt (0x2500897a) 68a07c4d: 'The Knorr Expeditionary Forces salutes you! Here is your reward.' (the turn-in)
+271	line	busy	0x2500897a:0xcde80fb2	DAT string table 0x2500897a key 0xcde80fb2: Andar Morlean's 'not done yet' line: 'There are still more Shade Matrons out there for you to apprehend!'
 272	npc	Kyrin	0x47003fb7	DAT wsl_kq3f_kyrin.entity (name string 'Kyrin Sorelar'); kq3f_kyrin.stt 2ae6122c 'destroying fifteen Ryai Takeru, and I will reward'
 272	line	offer	0x2500897b:0x2ae6122c	DAT kq3f_kyrin.stt (2500897b) key 2ae6122c: 'The Takeru that accompanied the early Tumerok explorers are uncontrollable! ... destroying fifteen Ryai Takeru, and I will reward you.' (also the quest table's summary 6c459364)
 272	line	turn	0x2500897b:0x68a07c4d	DAT kq3f_kyrin.stt (2500897b) key 68a07c4d: 'Brave work, my friend. Greenstone is a safer place now, thanks to you. Here is your reward.'
+272	line	busy	0x2500897b:0xcde80fb2	DAT string table 0x2500897b key 0xcde80fb2: Kyrin's 'not done yet' line: 'Hurry! The Takeru are out there!'
 273	start_npc	entity	0x4700407c	DAT wsl_bm3a_fiona.entity (names 4700407c; table bm3a_fiona.stt 250089d5, name 'Fiona Dyask'); the Vault's 'Fiona Diask'
 273	npc	Fiona	0x4700407c	DAT wsl_bm3a_fiona.entity (names 4700407c)
 273	ignore	chest	yes	The chest is a world object that the quest key opens; no source lists its contents (DAT bm3a_fiona.stt 8b6b1869: 'Take this key'); same treatment as the sibling quests 231/238/245
@@ -912,18 +1153,21 @@ vault_id	field	key	value	source
 273	step	2	talk Fiona	AC2 Vault quests/db 273 walkthrough: 'Return to Fiona for your reward'; DAT quest_bm3a_losthomestead.stt 2e5f1e52 'Return to Fiona Dyask.'
 273	line	offer	0x250089d5:0x2ae6122c	DAT bm3a_fiona.stt (250089d5) key 2ae6122c: 'Perhaps you can help me, adventurer. I and my family were among the first settlers...'
 273	line	turn	0x250089d5:0x8b6b1869	DAT bm3a_fiona.stt key 8b6b1869: 'Praise the day! Bendit Stelzor was no match for you...Take this key, friend.'
+273	line	busy	0x250089d5:0x8b6b186f	DAT giver table 0x250089d5 key 8b6b186f: the giver's 'not done yet' line for the kill (Please tell me that you've bested Bandit Stelzor in combat....) while the quest is underway
 273	journal	1	0x250089c5:0x2e5c1e52	DAT quest_bm3a_losthomestead.stt (250089c5) key 2e5c1e52: 'Find and destroy Bendit Stelzor.'
 273	journal	turn	0x250089c5:0x2e5f1e52	DAT quest_bm3a_losthomestead.stt key 2e5f1e52: 'Return to Fiona Dyask.'
 274	start_npc	entity	0x47004094	DAT wsl_bm3b_urln.entity (stem of bm3b_urln.stt, name 'Urln Bestaad[nm]'; quest_bm3b_kallikanofthecorn.stt 'Urln Bestaad said'); the Vault spells him Urlin
 274	step	1	kill 1 Chip the Gnawer	AC2 Vault quests/db 274 walkthrough: 'You must seek out and kill Chip the Gnawer'; DAT quest_bm3b_kallikanofthecorn.stt 2e5c1e52 'Find and destroy Chip the Gnawer.'
 274	line	offer	0x250089d6:0x2ae6122c	DAT bm3b_urln.stt (0x250089d6) 2ae6122c 'All my blasted hopes and dreams, ground to cornmeal beneath my very toes! ...' (the quest summary quotes it)
 274	line	turn	0x250089d6:0x8b6b1869	DAT bm3b_urln.stt (0x250089d6) 8b6b1869 'You have driven Chip the Gnawer from my fields, and for that I thank you ... Choose whatever you like from my chest'
+274	line	busy	0x250089d6:0x8b6b186f	DAT giver table 0x250089d6 key 8b6b186f: the giver's 'not done yet' line for the kill (My corn grows riper every day - if you do not stop Chip the Gnawer, I ...) while the quest is underway
 274	journal	1	0x250089d0:0x2e5c1e52	DAT quest_bm3b_kallikanofthecorn.stt (0x250089d0) 2e5c1e52 'Find and destroy Chip the Gnawer.'
 274	journal	turn	0x250089d0:0x2e5f1e52	DAT quest_bm3b_kallikanofthecorn.stt (0x250089d0) 2e5f1e52 'Return to Urln Bestaad.'
 275	journal	1	0x250089d1:0x2e5c1e52	DAT quest_bm3c_sulthisscare.stt (0x250089d1) 2e5c1e52 'Find and destroy the Slitharon Sulthis.'
 275	journal	turn	0x250089d1:0x2e5f1e52	DAT quest_bm3c_sulthisscare.stt 2e5f1e52 'Return to Giranua.'
 275	line	offer	0x250089d7:0x2ae6122c	DAT bm3c_giranua.stt (0x250089d7) 2ae6122c 'Traveler, I narrowly escaped from a grave danger ...'
 275	line	turn	0x250089d7:0x8b6b1869	DAT bm3c_giranua.stt 8b6b1869 'I can rest easier knowing that the Slitharon Slithis has been destroyed ... take the key to my chest'
+275	line	busy	0x250089d7:0x8b6b186f	DAT Giranua table 0x250089d7 key 0x8b6b186f 'Have you destroyed the Slitharon Sulthis yet?': the quest's own progress question, beside its turn line 0x8b6b1869
 276	step	1	kill 1 Chromast Chromu	AC2 Vault quests/db 276 walkthrough: 'You must kill the Chromast Chromu sclavus ... Return to Elion Magnaron'
 276	step	2	talk Elion Magnaron	AC2 Vault quests/db 276 walkthrough: return to Elion Magnaron for the reward
 276	line	offer	0x250089d8:0x2ae6122c	DAT elion magnaron table 0x250089d8 key 0x2ae6122c: 'A temple of great interest to the Knorr Expeditionary Scholars lies to the south ...'
@@ -931,24 +1175,69 @@ vault_id	field	key	value	source
 276	journal	1	0x250089d2:0x2e5c1e52	DAT quest_bm3d_templechromast.stt (0x250089d2) key 0x2e5c1e52: 'Find and destroy the Chromast Sclavus.'
 276	journal	turn	0x250089d2:0x2e5f1e52	DAT quest_bm3d_templechromast.stt (0x250089d2) key 0x2e5f1e52: 'Return to Elion Magnaron.'
 276	journal	done	0x250089d2:0x6c459364	DAT quest_bm3d_templechromast.stt (0x250089d2) key 0x6c459364 (the quest summary), the completed line the DAT hunts' generator uses (quests 184, 197, 234)
+276	line	busy	0x250089d8:0x8b6b186f	DAT Elion Magnaron table 0x250089d8 key 0x8b6b186f 'Have you cleared Temple Chromast yet?': the quest's own progress question, beside its turn line 0x8b6b1869
 279	npc	Elite Legionary Otonku	0x470040ea	DAT wsl_connector_d_otonku.entity (connector_d_otonku.stt 0x25008a17 name string 'Elite Legionary Otonku')
 279	step	1	talk Elite Legionary Otonku	AC2 Vault quests/db 279 walkthrough: 'see Elite Legionary Otonku, who is at the Aerie ... speak to Otonku to complete the quest'
 279	line	offer	0x25008a1b:0x276e1293	DAT captain trammel (25008a1b) 276e1293 'Excellent! I knew that the townsfolk of Greenstone could depend on you.' (identical to quest table 25008a15 6c459364)
 279	line	offer	0x25008a1b:0x27761293	DAT captain trammel (25008a1b) 27761293 'I've just heard word that Elite Legionary Otonku could use a hand over in the Aerie...'
 279	line	1	0x25008a17:0xf570086e	DAT elite legionary otonku (25008a17) f570086e 'Welcome to the Aerie, traveler! Captain Trammel spoke very highly of you.'
 279	journal	1	0x25008a15:0x2e5c1e52	DAT quest_connector_c.stt 25008a15 2e5c1e52 'Report to Elite Legionary Otonku.'
+279	line	busy	0x25008a1b:0xf573186e	DAT captain trammel (25008a1b) f573186e: 'Have you reported to Elite Legionary Otonku at the Aerie yet?' (Trammel's progress line for this quest)
 280	line	offer	0x2500897f:0x2ae6122c	DAT kq4d_temakhe.stt (0x2500897f) 2ae6122c: '... kill twenty Swarm Drone Nymphs and report back to me for your reward.' (the offer)
 280	line	turn	0x2500897f:0x68a07c4d	DAT kq4d_temakhe.stt (0x2500897f) 68a07c4d: 'Well done! Allow me to reward you for all your hard work.' (the turn-in)
 280	journal	turn	0x2500896d:0x0a1cfd2b	DAT quest_kq4d_swarmdronenymph.stt (0x2500896d) 0a1cfd2b 'Report to Temakhe.' (this quest's DAT table; its title there is 'Exterminate the Swarm Drone Nymphs')
+280	journal	1.1	0x2500896d:0x0a1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 0a1cfd0b '20 Swarm Drone Nymph(s)': the count stage with 20 left (text counts down 20..1)
+280	journal	1.2	0x2500896d:0x6a1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 6a1cfd0b '19 Swarm Drone Nymph(s)': the count stage with 19 left (text counts down 20..1)
+280	journal	1.3	0x2500896d:0x4a1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 4a1cfd0b '18 Swarm Drone Nymph(s)': the count stage with 18 left (text counts down 20..1)
+280	journal	1.4	0x2500896d:0xaa1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key aa1cfd0b '17 Swarm Drone Nymph(s)': the count stage with 17 left (text counts down 20..1)
+280	journal	1.5	0x2500896d:0x8a1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 8a1cfd0b '16 Swarm Drone Nymph(s)': the count stage with 16 left (text counts down 20..1)
+280	journal	1.6	0x2500896d:0xea1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key ea1cfd0b '15 Swarm Drone Nymph(s)': the count stage with 15 left (text counts down 20..1)
+280	journal	1.7	0x2500896d:0xca1cfd0b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key ca1cfd0b '14 Swarm Drone Nymph(s)': the count stage with 14 left (text counts down 20..1)
+280	journal	1.8	0x2500896d:0x2a1cfd0a	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 2a1cfd0a '13 Swarm Drone Nymph(s)': the count stage with 13 left (text counts down 20..1)
+280	journal	1.9	0x2500896d:0x0a1cfd0a	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 0a1cfd0a '12 Swarm Drone Nymph(s)': the count stage with 12 left (text counts down 20..1)
+280	journal	1.10	0x2500896d:0x2a1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 2a1cfd1b '11 Swarm Drone Nymph(s)': the count stage with 11 left (text counts down 20..1)
+280	journal	1.11	0x2500896d:0x0a1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 0a1cfd1b '10 Swarm Drone Nymph(s)': the count stage with 10 left (text counts down 20..1)
+280	journal	1.12	0x2500896d:0x6a1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 6a1cfd1b '9 Swarm Drone Nymph(s)': the count stage with 9 left (text counts down 20..1)
+280	journal	1.13	0x2500896d:0x4a1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 4a1cfd1b '8 Swarm Drone Nymph(s)': the count stage with 8 left (text counts down 20..1)
+280	journal	1.14	0x2500896d:0xaa1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key aa1cfd1b '7 Swarm Drone Nymph(s)': the count stage with 7 left (text counts down 20..1)
+280	journal	1.15	0x2500896d:0x8a1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 8a1cfd1b '6 Swarm Drone Nymph(s)': the count stage with 6 left (text counts down 20..1)
+280	journal	1.16	0x2500896d:0xea1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key ea1cfd1b '5 Swarm Drone Nymph(s)': the count stage with 5 left (text counts down 20..1)
+280	journal	1.17	0x2500896d:0xca1cfd1b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key ca1cfd1b '4 Swarm Drone Nymph(s)': the count stage with 4 left (text counts down 20..1)
+280	journal	1.18	0x2500896d:0x2a1cfd1a	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 2a1cfd1a '3 Swarm Drone Nymph(s)': the count stage with 3 left (text counts down 20..1)
+280	journal	1.19	0x2500896d:0x0a1cfd1a	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 0a1cfd1a '2 Swarm Drone Nymph(s)': the count stage with 2 left (text counts down 20..1)
+280	journal	1.20	0x2500896d:0x2a1cfd2b	DAT quest_kq4d_swarmdronenymph.stt 0x2500896d key 2a1cfd2b '1 Swarm Drone Nymph(s)': the count stage with 1 left (text counts down 20..1)
+280	line	busy	0x2500897f:0xcde80fb2	DAT string table 0x2500897f key 0xcde80fb2: Temakhe's 'not done yet' line: 'Do not tarry, friend! There are more Swarm Drone Nymphs out there than you can shake a stick at!'
 281	npc	Argen	0x47003fbe	DAT wsl_kq4b_arlen.entity (name string 'Arlen Jenis'; the Vault walkthrough: 'speak to Argen for your reward')
 281	start_npc	entity	0x47003fbe	DAT wsl_kq4b_arlen.entity (name string 'Arlen Jenis', kq4b_arlen.stt 2500897d; the Vault spells it Argen Jenis); key 2ae6122c 'The Thralls continue to threaten the security of our Ramparts outposts'
 282	step	1	kill 20 Swarm Harvesters	AC2 Vault quests/db 282 walkthrough: 'You must kill 20 Swarm Harvesters ... Speak to Bertrand for your reward'
 282	line	offer	0x25008980:0x2ae6122c	DAT bertrand jas table 25008980 key 2ae6122c: 'The original settlers of Knorr fought valiantly to push the Olthoi back ... exterminate twenty Swarm Harvesters' (the offer)
 282	line	turn	0x25008980:0x68a07c4d	DAT table 25008980 key 68a07c4d: 'The Knorr Expeditionary Forces thank you! Here is your reward.'
+282	line	busy	0x25008980:0xcde80fb2	DAT kq4e_bertrand.stt (25008980) key cde80fb2: Bertrand's 'There are still more Swarm Harvesters out there for you to exterminate!' while the kills are underway
+282	journal	1.1	0x2500896e:0x281dda38	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda38 '20 Swarm Harvesters' (count stage 1 of 20: 20 left)
+282	journal	1.2	0x2500896e:0x281dda08	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda08 '19 Swarm Harvesters' (count stage 2 of 20: 19 left)
+282	journal	1.3	0x2500896e:0x281dda18	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda18 '18 Swarm Harvesters' (count stage 3 of 20: 18 left)
+282	journal	1.4	0x2500896e:0x281dda68	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda68 '17 Swarm Harvesters' (count stage 4 of 20: 17 left)
+282	journal	1.5	0x2500896e:0x281dda78	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda78 '16 Swarm Harvesters' (count stage 5 of 20: 16 left)
+282	journal	1.6	0x2500896e:0x281dda48	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda48 '15 Swarm Harvesters' (count stage 6 of 20: 15 left)
+282	journal	1.7	0x2500896e:0x281dda58	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dda58 '14 Swarm Harvesters' (count stage 7 of 20: 14 left)
+282	journal	1.8	0x2500896e:0x281ddaa8	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281ddaa8 '13 Swarm Harvesters' (count stage 8 of 20: 13 left)
+282	journal	1.9	0x2500896e:0x281ddab8	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281ddab8 '12 Swarm Harvesters' (count stage 9 of 20: 12 left)
+282	journal	1.10	0x2500896e:0x281dd228	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd228 '11 Swarm Harvesters' (count stage 10 of 20: 11 left)
+282	journal	1.11	0x2500896e:0x281dd238	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd238 '10 Swarm Harvesters' (count stage 11 of 20: 10 left)
+282	journal	1.12	0x2500896e:0x281dd208	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd208 '9 Swarm Harvesters' (count stage 12 of 20: 9 left)
+282	journal	1.13	0x2500896e:0x281dd218	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd218 '8 Swarm Harvesters' (count stage 13 of 20: 8 left)
+282	journal	1.14	0x2500896e:0x281dd268	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd268 '7 Swarm Harvesters' (count stage 14 of 20: 7 left)
+282	journal	1.15	0x2500896e:0x281dd278	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd278 '6 Swarm Harvesters' (count stage 15 of 20: 6 left)
+282	journal	1.16	0x2500896e:0x281dd248	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd248 '5 Swarm Harvesters' (count stage 16 of 20: 5 left)
+282	journal	1.17	0x2500896e:0x281dd258	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd258 '4 Swarm Harvesters' (count stage 17 of 20: 4 left)
+282	journal	1.18	0x2500896e:0x281dd2a8	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd2a8 '3 Swarm Harvesters' (count stage 18 of 20: 3 left)
+282	journal	1.19	0x2500896e:0x281dd2b8	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dd2b8 '2 Swarm Harvesters' (count stage 19 of 20: 2 left)
+282	journal	1.20	0x2500896e:0x281dca28	DAT quest_kq4e_swarmharvester.stt (0x2500896e) key 281dca28 '1 Swarm Harvesters' (count stage 20 of 20: 1 left)
 282	journal	turn	0x2500896e:0x281dca38	DAT quest_kq4e_swarmharvester.stt (2500896e) key 281dca38: 'Report to Bertrand Jas.'
 284	kill_target	Thralls	0x47003af7,0x47003afc	AC2 Vault quests/db 284: 'Agony Thralls and Torment Thralls will advance the quest'; DAT wsl_thrallagony.entity, wsl_thralltorment.entity (postings table 2500895f has 'Agony Thralls' / 'Torment Thralls')
 284	prerequisite	1	214	AC2 Vault quests/db 284 requirements: 'Must have completed Piercing the Shield Wall quest' (Vault id 214, Piercing the Shield wall)
 284	step	1	kill 30 Thralls	AC2 Vault quests/db 284 walkthrough: 'kill a total of 30 Thralls' (the DAT postings table also offers other counts 1-30)
+286	hold	reason	the parsed steps omit the 100-kill Slaughterfest stage the DAT phases include; it would ship shortened once its prerequisites ship	pass-2 audit (batch 7 notes)
 289	reward_effect	Cerulean Power	0x6f0043c8 28800	AC2 Vault quests/db 289 reward '+25 Focus buff, 8 hours' (8 h = 28800 s); DAT eff_ceruleanpower.wc 6f0043c8 (names), string table eff_ceruleanpower.stt 2500888f 'Cerulean Power'
 289	reward_note	+25 Focus buff, 8 hours	an effect, not an item	reward_effect 0x6f0043c8 above
 290	kill_target	Swarm Nymphs	0x47003ada,0x47003ad8,0x47003ad5,0x47003ad9	AC2 Vault quests/db 290: 'Swarm Soldier Nymph, Swarm Legionary Nymph, Swarm Eviscerator Nymph, Swarm Noble Nymph' advance the quest; DAT wsl_swarmnymphsoldier, wsl_swarmnymphlegionary, wsl_swarmnympheviscerator, wsl_swarmnymphnoble
@@ -966,6 +1255,7 @@ vault_id	field	key	value	source
 292	line	turn	0x25008cba:0xfab69ecf	DAT mikaci key 0xfab69ecf: 'Pah! This is a mere skull on a stick. And is that mold I see?' (the skull totem; the Skeleton Totem quest has its own lines)
 292	line	turn	0x25008cba:0xf9b69ecf	DAT mikaci key 0xf9b69ecf: 'Well, no one can say that I've ever reneged on my promises. I offered you an reward, so here it is.'
 292	journal	turn	0x25008c99:0x48aa0e30	DAT quest table 0x25008c99 (Skull Totem[E]) key 0x48aa0e30: 'Go to the Crystal Caves and find the Skull Totem'
+292	line	busy	0x25008cba:0x8f6b186e	DAT Mikaci table 0x25008cba key 0x8f6b186e 'Where is the Skull Totem?': the Skull Totem progress question
 294	item	Siraluun Headdress	0x4700463c	content/definitions.tsv (built from the DAT) 4700463c 'Siraluun Headdress[E]'; dat_index.sqlite records: 0x4700463c is an ENTITYDESC in 7230 (the names table has no entry for it)
 294	step	1	craft Siraluun Headdress	AC2 Vault quests/db 294 walkthrough: 'You need one of each [feather], and you must combine them to create a Siraluun Headdress.'
 294	step	2	give Siraluun Headdress to Elder Jrim	AC2 Vault quests/db 294 walkthrough: 'Give the Headdress to Elder Jrim for your reward.'
@@ -979,6 +1269,4 @@ vault_id	field	key	value	source
 296	line	offer	0x25008d0d:0xa6e6124f	DAT fraidy table 25008d0d key a6e6124f: 'Help them find their rest, and, I'll... I'll give you a big present!' (the summary's closing sentence)
 296	line	turn	0x25008d0d:0x2ee20fe4	DAT fraidy table 25008d0d key 2ee20fe4: 'You put all those spirits to rest, and I want to reward you! Here, take this shiny'
 296	journal	turn	0x25008d10:0x48b20e30	DAT quest table 25008d10 key 48b20e30 'Return to Fraidy in Drudgerton.'
-169	hold	reason	the parsed steps skip the pillar puzzle and the lattice pickup the walkthrough has; it would ship shortened once the Well of Elemental Light is placed	pass-2 audit (batch 7 notes)
-214	hold	reason	the walkthrough's Gear Sentinel test and tunnel dungeon have no step form; a talk-only quest would skip them	pass-1 merge review
-286	hold	reason	the parsed steps omit the 100-kill Slaughterfest stage the DAT phases include; it would ship shortened once its prerequisites ship	pass-2 audit (batch 7 notes)
+296	line	busy	0x25008d0d:0x3458086e	DAT string table 0x25008d0d key 0x3458086e: Fraidy's 'not done yet' line for the Flayers: 'Those Flayers have to be put to rest! Their very existence is making me quiver in my bones!'

@@ -8,8 +8,8 @@ Evidence ranking: client/DAT, then AC2 Vault, then AC2Hero, then Pyrealium polic
 
 | Status | Quests |
 |---|---|
-| Shipped (rows in `content/*-vault.tsv`) | 65 |
-| Fully resolved, not shipped | 23 |
+| Shipped (rows in `content/*-vault.tsv`) | 66 |
+| Fully resolved, not shipped | 22 |
 | Partially resolved (no engine gap; data missing) | 56 |
 | Blocked by an engine gap | 98 |
 | ...of which every parsed field also resolves and no catalog overlaps | 4 |
@@ -19,7 +19,7 @@ Phase 2 gave the engine the registry's level, time limit, repeat delay and solve
 
 | Gap closed (Phase 2, in order) | Quests shipped by it |
 |---|---|
-| level requirement + time limit + repeat timer | 65 (every shipped quest needs all three) |
+| level requirement + time limit + repeat timer | 66 (every shipped quest needs all three) |
 | item grants (any item entity) | 0 (no generated shape grants items yet) |
 | gold reward, prerequisite quests | 0 (no generated shape uses them yet) |
 
@@ -99,7 +99,7 @@ Why the hunt generator passed over the rest:
 
 Detected for no quest: Kill-set Tell (a line on a kill); delays (delay_ms) (delays: the Vault's prose gives no timed beats; a kill-time chat line is quoted by no walkthrough).
 
-Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 84 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
+Not blocking (an existing pattern stands in): Give hook (Use + InqItem + TakeItem stands in, as in the Shelter): 86 quests; Pyrealium journal id (no DAT quest of this name; the title is a DAT string): 141 quests.
 
 ### Build order
 
@@ -588,7 +588,7 @@ Start NPCs that an older catalog only places, or that have an information-only `
 | 194 | Fracture the Veinu Niffis | shipped | 0x4000020f | Eliza Dumach 0x8140b0ad544a5f0b (high) | 0/0 | level requirement, prerequisite quests, repeat timer, time limit | prerequisite quests: the generator does not link them to their own rows yet |
 | 148 | Get Buzzed | shipped |  | Stubby None (medium) | 2/2 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 89 | Great Big Pumpkin | resolved | 0x4000027b | Ikkabod 0x8140b07822c7d041 (high) | 0/0 | item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
-| 141 | Green Thumb | resolved |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | level requirement, repeat timer, time limit |  |
+| 141 | Green Thumb | shipped |  | Matto Olvidan 0x81409b6850504acf (medium) | 5/5 | level requirement, repeat timer, time limit |  |
 | 144 | Herd Rescue | shipped |  | Ulafa Olvidan 0x8140dd4f509af946 (medium) | 3/3 | chest/door/lever interaction, fellowship credit, level requirement, repeat timer, time limit |  |
 | 107 | Hunt the Plague Mucor | shipped |  | Lupe 0x8140b4ed06cc1d4d (high) | 0/0 | ApplyEffect, item grants beyond the Shelter's item profiles, level requirement, repeat timer, time limit |  |
 | 135 | I'm Hungry | shipped |  | Stubby None (medium) | 0/0 | level requirement, repeat timer, time limit |  |
