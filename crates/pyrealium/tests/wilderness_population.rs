@@ -14,12 +14,12 @@ fn wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("wilderness-world-v1.tsv"),Path::new(&data)).unwrap();
-    let source:serde_json::Value=serde_json::from_str(include_str!("../../../content/wilderness-content-v1.json")).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/wilderness-world-v1.report.json")).unwrap();
+    let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-content-v1.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-world-v1.report.json")).unwrap();
     let encounters=Encounters::load(Path::new("training"),&content).unwrap();
     let health=encounters.initial_health().collect::<BTreeMap<_,_>>();
     let ai=creature_ai::catalog().unwrap();
-    let native=include_str!("../../../content/wilderness-creature-combat-v1.tsv").lines().filter(|l|l.starts_with("47"))
+    let native=pyrealium::content_db::files::text("wilderness-creature-combat-v1.tsv").lines().filter(|l|l.starts_with("47"))
         .map(|l|{let f=l.split('\t').collect::<Vec<_>>();(u32::from_str_radix(f[0],16).unwrap(),
             (f[1].parse::<u32>().unwrap(),f[6].parse::<u16>().unwrap()))}).collect::<BTreeMap<_,_>>();
     let regions=source["regions"].as_array().unwrap();
@@ -110,7 +110,7 @@ fn wilderness_groups_fill_once_and_refill_after_the_configured_delay() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("wilderness-world-v1.tsv"),Path::new(&data)).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/wilderness-world-v1.report.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
     assert_eq!(encounters.spawners().group_count(),report["groups"].as_array().unwrap().len());
     let total=content.objects().count();
@@ -145,8 +145,8 @@ fn hunting_camps_use_native_ground_loot_and_group_respawns() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("hunting-world-v2.tsv"),Path::new(&data)).unwrap();
-    let source:serde_json::Value=serde_json::from_str(include_str!("../../../content/hunting-content-v2.json")).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/hunting-world-v2.report.json")).unwrap();
+    let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("hunting-content-v2.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("hunting-world-v2.report.json")).unwrap();
     let world=Content::load(&root.join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();

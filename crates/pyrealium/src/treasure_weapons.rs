@@ -19,7 +19,7 @@ fn profiles() -> &'static BTreeMap<u32, Profile> {
     PROFILES.get_or_init(|| {
         #[derive(Deserialize)]
         struct File { schema: u32, weapons: Vec<Profile> }
-        let file: File = serde_json::from_str(include_str!("../../../content/treasure-weapons.json")).expect("checked weapon catalog");
+        let file: File = serde_json::from_str(crate::content_db::files::text("treasure-weapons.json")).expect("checked weapon catalog");
         assert_eq!(file.schema, 1);
         let mut rows = BTreeMap::new();
         for p in file.weapons {

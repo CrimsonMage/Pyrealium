@@ -77,13 +77,19 @@ def dump_database(path):
 
 
 def without_world(text):
-    """A content dump without the shipped world's rows (the builder's own stay)."""
+    """A content dump without the shipped world's rows (the builder's own stay) and without the
+    content files (`content_file`, its row tables and `content_document`: shipped data the world
+    builder does not edit; the server keeps them in a merge)."""
     db = sqlite3.connect(":memory:")
     try:
         db.executescript(text)
         db.executescript("DELETE FROM world_evidence; "
                          "DELETE FROM world_object WHERE pack IN (SELECT name FROM world_pack WHERE kind <> 'builder'); "
                          "DELETE FROM world_pack WHERE kind <> 'builder';")
+        files = [name for (name,) in db.execute("SELECT m.name FROM sqlite_master m WHERE m.type = 'table' AND (m.name IN "
+                 "('content_file', 'content_document') OR EXISTS (SELECT 1 FROM pragma_table_info(m.name) WHERE name = 'file'))")]
+        for name in sorted(files, key=lambda n: n == "content_file"):
+            db.execute(f"DELETE FROM {name}")
         return "\n".join(db.iterdump()) + "\n"
     finally:
         db.close()

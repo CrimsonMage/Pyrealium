@@ -9,7 +9,7 @@ fn wiki_npcs_are_grounded_unique_and_cannot_be_killed_for_loot() {
     let world=Content::load(&root.join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
     let content=Content::load(&root.join("npc-world-v1.tsv"),Path::new(&data)).unwrap();
     let quests=include_str!("../../../content/content.sql");
-    let source:serde_json::Value=serde_json::from_str(include_str!("../../../content/npc-dialogue-v1.json")).unwrap();
+    let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("npc-dialogue-v1.json")).unwrap();
     let encounters=Encounters::load(Path::new("training"),&world).unwrap();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();
     assert_eq!(content.objects().count(),27);

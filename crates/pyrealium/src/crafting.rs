@@ -728,7 +728,7 @@ fn crafting_levels() -> &'static BTreeMap<u32, Vec<CraftRank>> {
     static LEVELS: OnceLock<BTreeMap<u32, Vec<CraftRank>>> = OnceLock::new();
     LEVELS.get_or_init(|| {
         let mut rows: BTreeMap<u32, Vec<CraftRank>> = BTreeMap::new();
-        for line in include_str!("../../../content/crafting-levels.tsv").lines() {
+        for line in crate::content_db::files::text("crafting-levels.tsv").lines() {
             if line.is_empty() || line.starts_with('#') || line.starts_with("pyrealium-") {
                 continue;
             }

@@ -21,11 +21,12 @@ use rusqlite::types::{Value, ValueRef};
 
 use crate::quest_emotes::Tables;
 
+pub mod files;
 pub mod overlay;
 pub mod world;
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 14;
+pub const SCHEMA_VERSION: i32 = 15;
 
 /// The tables, in dump order (`content_db/schema.sql`).
 pub const SCHEMA: &str = include_str!("content_db/schema.sql");
@@ -83,7 +84,7 @@ pub const SHAPES: [Shape; 10] = [
     Shape { table: "template_action", order: "template, emote_set, ord", key: 3,
         columns: &["template", "emote_set", "ord", "action", "delay_ms", "p1", "p2", "p3", "p4", "p5", "source"] },
 ];
-const SHAPES_TAIL: [Shape; 19] = [
+const SHAPES_TAIL: [Shape; 18] = [
     Shape { table: "quest_recipe", order: "recipe", key: 1, columns: &["recipe", "ingredient", "quantity", "output", "source"] },
     Shape { table: "quest_item", order: "entity", key: 1, columns: &["entity", "visual", "stack_limit", "equipment_mask", "physical", "source"] },
     Shape { table: "template_use", order: "name", key: 1, columns: &["name", "template", "priority", "source"] },
@@ -112,11 +113,9 @@ const SHAPES_TAIL: [Shape; 19] = [
     Shape { table: "patrol", order: "actor", key: 1, columns: &["actor", "pause_ms", "points", "source"] },
     Shape { table: "spawn_group", order: "id", key: 1, columns: &["id", "capacity", "regen_ms", "source"] },
     Shape { table: "spawn_group_member", order: "spawn_group, placement", key: 2, columns: &["spawn_group", "placement", "source"] },
-    Shape { table: "portal_route", order: "portal", key: 1,
-        columns: &["portal", "entity", "cell", "x", "y", "z", "dest_cell", "dest_x", "dest_y", "dest_z", "heading", "level", "source"] },
 ];
 /// Every table, in dump order.
-pub fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()) }
+pub fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()).chain(files::shapes()) }
 pub fn shape(table: &str) -> &'static Shape { shapes().find(|s| s.table == table).expect("a known table") }
 
 pub fn sql(e: rusqlite::Error) -> io::Error { io::Error::other(e.to_string()) }
@@ -174,21 +173,22 @@ pub fn open_dump(text: &str) -> io::Result<Connection> {
 
 /// Tables whose shape changed before they ever held rows: a dump's empty one of the earlier shape
 /// is made anew (any other table must match).
-const RESHAPED_EMPTY: [&str; 1] = ["world_pack"];
+const RESHAPED_EMPTY: [&str; 2] = ["world_pack", "portal_route"];
 
 /// The world's tables (`world::*`), which the quest-editing paths leave out of their dumps.
 pub const WORLD_TABLES: [&str; 3] = ["world_pack", "world_evidence", "world_object"];
 
 /// The dump `text` without the shipped world's rows (`WORLD_TABLES`, but a world builder's
-/// `builder` pack), in export form: what the world
-/// builder's quest editing exchanges (the shipped world is tens of megabytes and is not edited
-/// there; a merge over the shipped dump keeps it).
+/// `builder` pack) and without the content files (`files`), in export form: what the world
+/// builder's quest editing exchanges (the shipped world and files are tens of megabytes and are
+/// not edited there; a merge over the shipped dump keeps them).
 pub fn without_world(text: &str) -> io::Result<String> {
     let db = open_dump(text)?;
     // The world builder's own placements (a `builder` pack) stay: they are its edits.
     db.execute_batch("DELETE FROM world_evidence;
         DELETE FROM world_object WHERE pack IN (SELECT name FROM world_pack WHERE kind <> 'builder');
         DELETE FROM world_pack WHERE kind <> 'builder';").map_err(sql)?;
+    for shape in files::shapes().iter().rev() { db.execute_batch(&format!("DELETE FROM {};", shape.table)).map_err(sql)?; }
     export(&db)
 }
 

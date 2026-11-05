@@ -95,7 +95,7 @@ impl Catalog {
     }
     pub fn load_with_rules(dat:&mut crate::dat::Dat,metadata:&mut BTreeMap<u32,Option<crate::inventory_request::Metadata>>,rules:&crate::world_rules::Rules)->io::Result<Self> {
         let mut items=BTreeMap::new();let mut rejected=0;
-        for line in include_str!("../../../content/loot-items.tsv").lines().skip(1).filter(|l|!l.is_empty() && !l.starts_with('#')) {
+        for line in crate::content_db::files::text("loot-items.tsv").lines().skip(1).filter(|l|!l.is_empty() && !l.starts_with('#')) {
             let f=line.split('\t').collect::<Vec<_>>();if f.len()!=3{return Err(io::Error::other("loot item row"))}
             let hex=|s|u32::from_str_radix(s,16).map_err(io::Error::other);
             let definition=hex(f[0])?;let visual=hex(f[1])?;
@@ -108,7 +108,7 @@ impl Catalog {
             metadata.insert(definition,Some(info));items.insert(definition,item);
         }
         let mut catalog=Self::default();let mut missing=0;
-        for line in include_str!("../../../content/observed-loot.tsv").lines().skip(1).filter(|l|!l.is_empty() && !l.starts_with('#')) {
+        for line in crate::content_db::files::text("observed-loot.tsv").lines().skip(1).filter(|l|!l.is_empty() && !l.starts_with('#')) {
             let f=line.split('\t').collect::<Vec<_>>();if f.len()!=4{return Err(io::Error::other("loot bundle row"))}
             let entity=u32::from_str_radix(f[0],16).map_err(io::Error::other)?;
             let profile=f[1].parse::<u32>().map_err(io::Error::other)?;let count=f[2].parse::<u32>().map_err(io::Error::other)?;
@@ -124,11 +124,11 @@ impl Catalog {
         catalog.weapons=crate::treasure_weapons::compatible(dat,metadata);
         catalog.treasure=items.values().filter(|i|catalog.weapons.contains(&i.definition) || crate::apparel::recovered_slot(i.definition,i.visual).is_some()
             ||matches!(i.definition,crate::item_services::POTION_DEFINITION|crate::crafting::VIGOR_OUTPUT|crate::crafting::MUCOR)).cloned().collect();
-        for line in include_str!("../../../content/creature-combat.tsv").lines()
-            .chain(include_str!("../../../content/inferred-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../content/regional-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../content/wilderness-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../content/arwic-mines-creature-combat-v1.tsv").lines()) {
+        for line in crate::content_db::files::text("creature-combat.tsv").lines()
+            .chain(crate::content_db::files::text("inferred-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("regional-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("wilderness-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("arwic-mines-creature-combat-v1.tsv").lines()) {
             let f=line.split('\t').collect::<Vec<_>>();if f.len()<7||!f[0].starts_with("47"){continue;}
             catalog.levels.insert(u32::from_str_radix(f[0],16).map_err(io::Error::other)?,f[6].parse::<u16>().map_err(io::Error::other)?.clamp(1,150));
         }

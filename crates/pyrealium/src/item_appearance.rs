@@ -111,7 +111,7 @@ fn validate(
 /// Loads the observed table and keeps what the 7230 portal DAT confirms. Called once by
 /// `Bootstrap::load` for the 7230 data; without it every item stays parent-only.
 pub fn install(portal: &mut Dat) -> std::io::Result<()> {
-    let table = parse(include_str!("../../../content/7230/item-appearance-observed.tsv"))
+    let table = parse(crate::content_db::files::text("7230/item-appearance-observed.tsv"))
         .map_err(std::io::Error::other)?;
     let (kept, dropped) = validate(table, |visual| {
         // The tables the visual and its parents name in their global appearance.
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn the_shipped_table_parses_and_an_item_keeps_its_set() {
-        let table = parse(include_str!("../../../content/7230/item-appearance-observed.tsv")).unwrap();
+        let table = parse(crate::content_db::files::text("7230/item-appearance-observed.tsv")).unwrap();
         assert!(table.len() > 400, "{} types", table.len());
         let sets = table.values().find(|s| s.len() > 3).unwrap();
         let a = choose(sets, 0x1234, 0x47000001);

@@ -14,7 +14,7 @@ fn fixture(_label: &str) -> (Encounters, Scene, Store, crate::db::testdb::TestDa
     target.coordinates[0] += 2.0;
     let content = Content::fixture(id, target, None);
     let mut runtime = Encounters::parse(
-        include_str!("../../../../content/development-encounters.tsv"),
+        crate::content_db::files::text("development-encounters.tsv"),
         &content,
     )
     .unwrap();

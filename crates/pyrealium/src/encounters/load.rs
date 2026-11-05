@@ -27,7 +27,7 @@ impl Encounters {
     pub fn load_with_rules(path: &Path, content: &Content, rules: &crate::world_rules::Rules) -> io::Result<Self> {
         if path == Path::new("training") {
             return Self::parse_profile(
-                include_str!("../../../../content/development-encounters.tsv"),
+                crate::content_db::files::text("development-encounters.tsv"),
                 content,
                 true,
                 rules,
@@ -162,11 +162,11 @@ impl Encounters {
         // time. A catalog entry alone is not evidence that an NPC is attackable.
         // Only explicit encounter rules or recovered combat records qualify.
         let mut native_rules=BTreeMap::new();
-        for line in include_str!("../../../../content/creature-combat.tsv").lines()
-            .chain(include_str!("../../../../content/inferred-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../../content/regional-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../../content/wilderness-creature-combat-v1.tsv").lines())
-            .chain(include_str!("../../../../content/arwic-mines-creature-combat-v1.tsv").lines()) {
+        for line in crate::content_db::files::text("creature-combat.tsv").lines()
+            .chain(crate::content_db::files::text("inferred-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("regional-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("wilderness-creature-combat-v1.tsv").lines())
+            .chain(crate::content_db::files::text("arwic-mines-creature-combat-v1.tsv").lines()) {
             if line.is_empty() || line.starts_with('#') || line.starts_with("pyrealium-") {
                 continue;
             }
@@ -226,12 +226,12 @@ impl Encounters {
         }
         // Catalog labels are presentation only; unlike the old fallback list,
         // they must never confer health, rewards or attackability on an NPC.
-        let labels=include_str!("../../../../content/definitions.tsv").lines().filter_map(|line|{
+        let labels=crate::content_db::files::text("definitions.tsv").lines().filter_map(|line|{
             let mut fields=line.split('\t');let entity=u32::from_str_radix(fields.next()?,16).ok()?;
             fields.next()?;let name=fields.next()?;
             Some((entity,name.split('[').next().unwrap_or(name).trim().to_owned()))
         }).collect::<BTreeMap<_,_>>();
-        let protected=include_str!("../../../../content/population-protected.txt").lines()
+        let protected=crate::content_db::files::text("population-protected.txt").lines()
             .filter_map(|line|u32::from_str_radix(line,16).ok()).collect::<std::collections::BTreeSet<_>>();
         let bestiary=Bestiary{rules,native_rules,regional_native,ai:crate::creature_ai::catalog()?,labels,protected,spawn_policies,
             world:std::sync::Arc::new(world_rules.clone())};
@@ -247,11 +247,11 @@ impl Encounters {
         // pack caps its authored rosters as groups; services remain excluded.
         let mut spawners=crate::spawners::Spawners::new(actors.iter().map(|(&id,actor)|(id,bestiary.policy(id,actor))))?;
         for (id,capacity,members) in spawn_groups {spawners.group(id,capacity,members)?;}
-        for source in [include_str!("../../../../content/inferred-world-v1.report.json"),
-            include_str!("../../../../content/regional-world-v1.report.json"),
-            include_str!("../../../../content/wilderness-world-v1.report.json"),
-            include_str!("../../../../content/hunting-world-v2.report.json"),
-            include_str!("../../../../content/arwic-mines-world-v1.report.json")] {
+        for source in [crate::content_db::files::text("inferred-world-v1.report.json"),
+            crate::content_db::files::text("regional-world-v1.report.json"),
+            crate::content_db::files::text("wilderness-world-v1.report.json"),
+            crate::content_db::files::text("hunting-world-v2.report.json"),
+            crate::content_db::files::text("arwic-mines-world-v1.report.json")] {
         let inferred:serde_json::Value=serde_json::from_str(source).map_err(io::Error::other)?;
         for group in inferred["groups"].as_array().ok_or_else(||invalid("inferred spawn groups"))? {
             let members=group["members"].as_array().ok_or_else(||invalid("inferred roster"))?.iter().filter_map(|v|v.as_u64()).collect::<Vec<_>>();

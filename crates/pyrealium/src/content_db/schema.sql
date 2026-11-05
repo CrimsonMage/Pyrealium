@@ -261,20 +261,244 @@ CREATE TABLE IF NOT EXISTS spawn_group_member (
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (spawn_group, placement)
 );
-CREATE TABLE IF NOT EXISTS portal_route (
-  portal TEXT PRIMARY KEY CHECK (portal GLOB '0x8140[0-9a-fA-F]*'),
-  entity TEXT NOT NULL CHECK (entity GLOB '0x47[0-9a-fA-F]*'),
-  cell TEXT NOT NULL CHECK (cell GLOB '0x[0-9a-fA-F]*'),
-  x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL,
-  dest_cell TEXT NOT NULL CHECK (dest_cell GLOB '0x[0-9a-fA-F]*'),
-  dest_x REAL NOT NULL, dest_y REAL NOT NULL, dest_z REAL NOT NULL,
-  heading INTEGER NOT NULL CHECK (heading BETWEEN 0 AND 255),
-  level INTEGER NOT NULL CHECK (level >= 0),
-  family TEXT NOT NULL DEFAULT 'hand',
-  source TEXT NOT NULL CHECK (source <> '')
-);
 CREATE TABLE IF NOT EXISTS world_tombstone (
   iid TEXT PRIMARY KEY CHECK (iid GLOB '0x8140[0-9a-fA-F]*' AND length(iid) = 18),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> '')
+);
+-- Content files as rows (`content_db::files`). A file is its header (the lines before its first
+-- row: the format line and its comments, kept as written, since some readers check them), its rows
+-- in a table named for what they hold (each field exactly as the file wrote it; NULL where a row
+-- has fewer fields; `note` is the comment lines written before the row), and its footer. A file
+-- whose rows are a world pack's names the pack instead. Documents are JSON files kept whole.
+CREATE TABLE IF NOT EXISTS content_file (
+  name TEXT PRIMARY KEY CHECK (name <> ''),
+  rows_in TEXT NOT NULL,
+  header TEXT NOT NULL,
+  footer TEXT NOT NULL DEFAULT '',
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS content_document (
+  name TEXT PRIMARY KEY CHECK (name GLOB '*.json'),
+  body TEXT NOT NULL CHECK (json_valid(body)),
+  family TEXT NOT NULL DEFAULT 'hand',
+  source TEXT NOT NULL CHECK (source <> '')
+);
+CREATE TABLE IF NOT EXISTS creature_combat (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  health TEXT,
+  damage TEXT,
+  interval_ms TEXT,
+  armor TEXT,
+  xp TEXT,
+  level TEXT,
+  variance TEXT,
+  attack TEXT,
+  defense TEXT,
+  perception TEXT,
+  homesick TEXT,
+  damage_type TEXT,
+  max_vigor TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS creature_ai_profile (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  perception TEXT,
+  homesick TEXT,
+  wandering TEXT,
+  wander_range TEXT,
+  wander_probability TEXT,
+  friend_table TEXT,
+  free_attacking TEXT,
+  idle_only TEXT,
+  loot_profile TEXT,
+  loot_proof TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS creature_skill (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  skills TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS definition (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  visual TEXT,
+  label TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS loot_item (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  visual TEXT,
+  name TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS observed_loot (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  monster TEXT NOT NULL CHECK (monster <> ''),
+  profile TEXT,
+  observed_count TEXT,
+  items TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS encounter_rule (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  kind TEXT NOT NULL CHECK (kind <> ''),
+  v1 TEXT,
+  v2 TEXT,
+  v3 TEXT,
+  v4 TEXT,
+  v5 TEXT,
+  v6 TEXT,
+  v7 TEXT,
+  v8 TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS protected_entity (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS crafting_level (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  skill TEXT NOT NULL CHECK (skill <> ''),
+  level TEXT,
+  curve_xp TEXT,
+  learning_limit TEXT,
+  crafting_xp TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS skill (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  id TEXT NOT NULL CHECK (id <> ''),
+  record TEXT,
+  digest TEXT,
+  fingerprint TEXT,
+  race TEXT,
+  level TEXT,
+  credits TEXT,
+  cap TEXT,
+  curve TEXT,
+  kind TEXT,
+  required TEXT,
+  forbidden TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS skill_advancement (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  curve TEXT NOT NULL CHECK (curve <> ''),
+  fingerprint TEXT,
+  digest TEXT,
+  xp TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS skill_effect (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  skill TEXT NOT NULL CHECK (skill <> ''),
+  record TEXT,
+  kind TEXT,
+  reset_s TEXT,
+  vigor TEXT,
+  range TEXT,
+  targets TEXT,
+  right_hand TEXT,
+  left_hand TEXT,
+  story TEXT,
+  fx TEXT,
+  damage_table TEXT,
+  effects TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS skill_missile (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  skill TEXT NOT NULL CHECK (skill <> ''),
+  record TEXT,
+  hook TEXT,
+  entity TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS skill_travel (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  skill TEXT NOT NULL CHECK (skill <> ''),
+  class TEXT,
+  destinations TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS item_appearance (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  entity TEXT NOT NULL CHECK (entity <> ''),
+  visual TEXT,
+  instances_pre2012 TEXT,
+  instances_2012_2017 TEXT,
+  mods TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
+);
+CREATE TABLE IF NOT EXISTS portal_route (
+  file TEXT NOT NULL REFERENCES content_file(name) ON UPDATE CASCADE ON DELETE CASCADE,
+  ord INTEGER NOT NULL CHECK (ord >= 0),
+  portal TEXT NOT NULL CHECK (portal <> ''),
+  entity TEXT,
+  cell TEXT,
+  x TEXT,
+  y TEXT,
+  z TEXT,
+  dest_cell TEXT,
+  dest_x TEXT,
+  dest_y TEXT,
+  dest_z TEXT,
+  heading TEXT,
+  level TEXT,
+  note TEXT,
+  family TEXT NOT NULL DEFAULT 'hand',
+  PRIMARY KEY (file, ord)
 );

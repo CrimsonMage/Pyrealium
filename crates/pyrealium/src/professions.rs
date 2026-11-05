@@ -82,7 +82,7 @@ pub struct Catalog {
 pub fn catalog() -> &'static Catalog {
     static C: OnceLock<Catalog> = OnceLock::new();
     C.get_or_init(|| {
-        serde_json::from_str(include_str!("../../../content/professions-v1.json"))
+        serde_json::from_str(crate::content_db::files::text("professions-v1.json"))
             .expect("checked profession catalog")
     })
 }

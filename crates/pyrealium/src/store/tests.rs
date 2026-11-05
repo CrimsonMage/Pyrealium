@@ -196,7 +196,7 @@
         use crate::{inventory::{Item,Roll,Location,Command as I,ITEM_NAMESPACE},progression::Command as P};
         let t=crate::quest_emotes::shipped();
         // Quest 0x40000097 (the inferred catalog's evidence): a starter kill bestows it, its targets count.
-        let catalog:serde_json::Value=serde_json::from_str(include_str!("../../../../content/inferred-content-v1.json")).unwrap();
+        let catalog:serde_json::Value=serde_json::from_str(crate::content_db::files::text("inferred-content-v1.json")).unwrap();
         let q=catalog["quests"].as_array().unwrap().iter().find(|q|q["id"].as_u64()==Some(0x40000097)).unwrap();
         let (starter,target)=(q["kill_starters"][0].as_u64().unwrap() as u32,q["targets"][0].as_u64().unwrap() as u32);
         let (goal,xp)=(q["goal"].as_u64().unwrap(),q["xp"].as_u64().unwrap());

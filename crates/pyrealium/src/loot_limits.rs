@@ -22,7 +22,7 @@ impl Quantity {
 pub(crate) struct Limits(pub BTreeMap<u32, Quantity>);
 impl Limits {
     pub fn load(dat: &mut Dat) -> io::Result<Self> {
-        Self::parse(include_str!("../../../content/native-loot-limits.json"), |did| dat.read(did))
+        Self::parse(crate::content_db::files::text("native-loot-limits.json"), |did| dat.read(did))
     }
     fn parse(text: &str, mut read: impl FnMut(u32) -> io::Result<Vec<u8>>) -> io::Result<Self> {
         #[derive(Deserialize)]

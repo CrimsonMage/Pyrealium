@@ -14,8 +14,8 @@ fn table() -> &'static BTreeMap<u32, Vec<u32>> {
     static TABLE: OnceLock<BTreeMap<u32, Vec<u32>>> = OnceLock::new();
     TABLE.get_or_init(|| {
         parse(crate::data_profile::table(
-            include_str!("../../../content/skill-missiles.tsv"),
-            include_str!("../../../content/7230/skill-missiles.tsv"),
+            crate::content_db::files::text("skill-missiles.tsv"),
+            crate::content_db::files::text("7230/skill-missiles.tsv"),
         ))
     })
 }
@@ -47,8 +47,8 @@ mod tests {
     #[test]
     fn flame_bolt_fires_its_bolt_on_hook_one_and_starter_magic_fires_none() {
         for text in [
-            include_str!("../../../content/skill-missiles.tsv"),
-            include_str!("../../../content/7230/skill-missiles.tsv"),
+            crate::content_db::files::text("skill-missiles.tsv"),
+            crate::content_db::files::text("7230/skill-missiles.tsv"),
         ] {
             let hooks = parse(text);
             assert_eq!(hooks.get(&0x59), Some(&vec![1]), "Flame Bolt");

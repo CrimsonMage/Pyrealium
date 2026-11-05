@@ -342,11 +342,11 @@ impl Content {
     }
     /// The shipped snapshot works independently of the current directory.
     pub fn bundled(game_data: &Path) -> io::Result<Self> {
-        Self::parse(include_str!("../../../content/world.tsv"), game_data)
+        Self::parse(crate::content_db::files::text("world.tsv"), game_data)
     }
     pub fn observed(game_data: &Path) -> io::Result<Self> {
         Self::parse(
-            include_str!("../../../content/world-observed-expanded.tsv"),
+            crate::content_db::files::text("world-observed-expanded.tsv"),
             game_data,
         )
     }
@@ -355,14 +355,14 @@ impl Content {
         // Keep the retained actor snapshot when enabling the training preset;
         // replacing it with the portal/lifestone-only base leaves known actors
         // absent even though the server reports that world content is enabled.
-        for line in include_str!("../../../content/world-observed-expanded.tsv")
+        for line in crate::content_db::files::text("world-observed-expanded.tsv")
             .lines()
             .skip(1)
         {
             combined.push_str(line);
             combined.push('\n');
         }
-        for line in include_str!("../../../content/training-world.tsv")
+        for line in crate::content_db::files::text("training-world.tsv")
             .lines()
             .skip(1)
         {

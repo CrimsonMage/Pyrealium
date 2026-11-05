@@ -34,7 +34,7 @@ pub struct Content {
 pub fn content() -> &'static Content {
     static C: OnceLock<Content> = OnceLock::new();
     C.get_or_init(|| {
-        serde_json::from_str(include_str!("../../../content/arwic-mines-v1.json"))
+        serde_json::from_str(crate::content_db::files::text("arwic-mines-v1.json"))
             .expect("checked Arwic lesson")
     })
 }

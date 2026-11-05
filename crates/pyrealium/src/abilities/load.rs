@@ -9,8 +9,8 @@ impl Runtime {
     /// The skill records at their own durations, whatever `PYREALIUM_DEV_EFFECT_SCALE` says.
     pub(super) fn load_scaled(scale: f32) -> Result<Self, AbilityError> {
         Self::parse(
-            crate::data_profile::table(include_str!("../../../../content/skill-effects.tsv"), include_str!("../../../../content/7230/skill-effects.tsv")),
-            crate::data_profile::table(include_str!("../../../../content/skill-travel.tsv"), include_str!("../../../../content/7230/skill-travel.tsv")),
+            crate::data_profile::table(crate::content_db::files::text("skill-effects.tsv"), crate::content_db::files::text("7230/skill-effects.tsv")),
+            crate::data_profile::table(crate::content_db::files::text("skill-travel.tsv"), crate::content_db::files::text("7230/skill-travel.tsv")),
             scale,
         )
     }

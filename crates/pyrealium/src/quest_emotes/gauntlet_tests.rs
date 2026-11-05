@@ -11,7 +11,7 @@ const PORTAL: u32 = 0x4700_326b;
 const SLOT_BASE: u64 = 0x8140_6a75_0000_0000;
 /// The opponents in fight order, with their levels (`gauntlet-content-v1.json`).
 fn opponents() -> Vec<(u32, u64)> {
-    let data: serde_json::Value = serde_json::from_str(include_str!("../../../../content/gauntlet-content-v1.json")).unwrap();
+    let data: serde_json::Value = serde_json::from_str(crate::content_db::files::text("gauntlet-content-v1.json")).unwrap();
     data["opponents"].as_array().unwrap().iter()
         .map(|o| (u32::from_str_radix(o["entity"].as_str().unwrap(), 16).unwrap(), o["level"].as_u64().unwrap())).collect()
 }

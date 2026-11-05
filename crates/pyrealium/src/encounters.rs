@@ -64,8 +64,8 @@ mod spawner_tests {
     #[test]
     fn arwic_room_rosters_use_native_stats_and_refill_only_after_corpse_removal() {
         let Ok(path)=std::env::var("AC2_TEST_GAME_DATA") else{return};
-        let content=Content::parse_text(include_str!("../../../content/arwic-mines-world-v1.tsv"),Path::new(&path)).unwrap();
-        let mut runtime=Encounters::parse(include_str!("../../../content/development-encounters.tsv"),&content).unwrap();
+        let content=Content::parse_text(crate::content_db::files::text("arwic-mines-world-v1.tsv"),Path::new(&path)).unwrap();
+        let mut runtime=Encounters::parse(crate::content_db::files::text("development-encounters.tsv"),&content).unwrap();
         assert_eq!(runtime.actors.len(),6);assert_eq!(runtime.spawners.group_count(),2);
         assert_eq!(runtime.actors.values().filter(|a|a.entity==crate::arwic_items::OUTCAST).count(),4);
         for actor in runtime.actors.values() {
@@ -93,7 +93,7 @@ mod spawner_tests {
         let id=crate::content::NAMESPACE+7;let home=Placement::HUMAN_START;
         let content=Content::fixture(id,home,None);
         let text=format!("{}\nspawner\t{:08x}\t2000\t5000\n",
-            include_str!("../../../content/development-encounters.tsv"),crate::content::IDOL_SPAWN);
+            crate::content_db::files::text("development-encounters.tsv"),crate::content::IDOL_SPAWN);
         let mut runtime=Encounters::parse(&text,&content).unwrap();
         let mut scene=Scene::with_content(content);
         runtime.initialize_spawners(&mut scene,100).unwrap();
@@ -118,7 +118,7 @@ mod spawner_tests {
         let content=Content::fixture(id,home,None);
         let rules=crate::world_rules::Rules::parse(&format!("{}\nstats\t{id:016x}\t999\t-\t-\t30\t-\t-\t-\t-\t-\t-\n\
             group\t5\t1\t4000\t{id:016x}\npatrol\t{id:016x}\t0\t3,0\n",crate::world_rules::HEADER)).unwrap();
-        let mut runtime=Encounters::parse_with_rules(include_str!("../../../content/development-encounters.tsv"),&content,&rules).unwrap();
+        let mut runtime=Encounters::parse_with_rules(crate::content_db::files::text("development-encounters.tsv"),&content,&rules).unwrap();
         assert_eq!(runtime.initial_health().collect::<Vec<_>>(),vec![(id,999)]);
         assert!(runtime.inspection_stats().any(|row|row==(id,0x12e,30)));
         let mut scene=Scene::with_content(content);
@@ -134,7 +134,7 @@ mod spawner_tests {
     #[test]
     fn policy_cannot_make_a_fixed_service_attackable_or_create_an_unplaced_creature() {
         let content=Content::fixture(crate::content::NAMESPACE+7,Placement::HUMAN_START,None);
-        let text=include_str!("../../../content/development-encounters.tsv");
+        let text=crate::content_db::files::text("development-encounters.tsv");
         for row in ["spawner\t47000001\t0\t1000", "spawner\t470007d1\t0\t0",
             "spawner\t470007d1\t86400001\t1000",
             "spawner\t470007d1\t0\t1000\nspawner\t470007d1\t0\t2000"] {

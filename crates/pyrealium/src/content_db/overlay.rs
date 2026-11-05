@@ -220,6 +220,9 @@ mod merge_tests {
         assert!(builder_text(&merged).unwrap().contains("8140000000abcdef"));
         assert_eq!(tombstones(&merged).unwrap().len(), 1);
         let packs: i64 = merged.query_row("SELECT COUNT(*) FROM world_pack", [], |r| r.get(0)).unwrap();
-        assert_eq!(packs, crate::content_db::world::PACKS.len() as i64 + 1, "every shipped pack and the builder's");
+        assert_eq!(packs, crate::content_db::world::PACKS.len() as i64 + 2, "every shipped pack, the bundled world's and the builder's");
+        // The shipped content files come through the merge too.
+        let files: i64 = merged.query_row("SELECT COUNT(*) FROM content_file", [], |r| r.get(0)).unwrap();
+        assert_eq!(files, crate::content_db::files::FILES.len() as i64);
     }
 }

@@ -7,7 +7,7 @@ fn inferred_camps_are_grounded_capacity_limited_and_never_promote_services() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else{return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("inferred-world-v1.tsv"),Path::new(&data)).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/inferred-world-v1.report.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("inferred-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
     let members=report["groups"].as_array().unwrap().iter().flat_map(|g|g["members"].as_array().unwrap().iter().map(|v|v.as_u64().unwrap())).collect::<BTreeSet<_>>();
     let capacity=report["groups"].as_array().unwrap().iter().map(|g|g["capacity"].as_u64().unwrap() as usize).sum::<usize>();

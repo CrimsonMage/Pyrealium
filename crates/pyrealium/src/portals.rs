@@ -198,7 +198,7 @@ pub struct Routes(BTreeMap<u64, Route>);
 impl Routes {
     pub fn bundled(content: &Content, game_data: &Path) -> io::Result<Self> {
         Self::parse(
-            include_str!("../../../content/portal-routes.tsv"),
+            crate::content_db::files::text("portal-routes.tsv"),
             content,
             game_data,
             false,

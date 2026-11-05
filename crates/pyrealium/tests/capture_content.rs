@@ -28,7 +28,7 @@ fn audited_capture_objects_load_with_native_services_and_encounter_profiles() {
 fn town_npcs_are_not_promoted_to_encounters_by_the_old_catalog() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     // Retain exact source rows; no production store or generated pack required.
-    let sources=[include_str!("../../../content/world-observed-expanded.tsv"),include_str!("../../../content/capture-spawns-audited.tsv"),include_str!("../../../content/training-world.tsv")];
+    let sources=[pyrealium::content_db::files::text("world-observed-expanded.tsv"),include_str!("../../../content/capture-spawns-audited.tsv"),pyrealium::content_db::files::text("training-world.tsv")];
     let mut text=String::from("pyrealium-world-v3\n");
     for id in ["8140dc346c4fa355","81409bec26cb5af8","8140b739fea6ec9a",
         "814000000003000a","8140000000030040","8140000000030041","8140000000030042","8140000000030044"] {

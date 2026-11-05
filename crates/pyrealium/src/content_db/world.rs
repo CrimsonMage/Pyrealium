@@ -88,25 +88,9 @@ pub fn import_packs(db: &mut Connection, content: &Path) -> io::Result<Imported>
     for (ord, (pack, kind)) in PACKS.iter().enumerate() {
         let path = content.join(format!("{pack}.tsv"));
         if !path.exists() { continue; }
-        tx.execute("DELETE FROM world_object WHERE pack = ?1", [pack]).map_err(sql)?;
-        tx.execute("DELETE FROM world_pack WHERE name = ?1", [pack]).map_err(sql)?;
-        tx.execute("INSERT INTO world_pack (name, ord, kind, source) VALUES (?1, ?2, ?3, ?4)",
-            rusqlite::params![pack, ord as i64, kind, format!("content/{pack}.tsv, imported by pyrealium-content import-world-packs")]).map_err(sql)?;
         let text = std::fs::read_to_string(&path).map_err(|e| io::Error::new(e.kind(), format!("{}: {e}", path.display())))?;
-        let mut insert = tx.prepare("INSERT INTO world_object (pack, iid, ord, entity, visual, cell, x, y, z, qw, qx, qy, qz, scale, name) \
-            VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)").map_err(sql)?;
-        for (n, line) in text.lines().skip(1).filter(|l| !l.is_empty() && !l.starts_with('#')).enumerate() {
-            let f: Vec<&str> = line.split('\t').collect();
-            if !matches!(f.len(), 12 | 13) {
-                return Err(bad(format!("{pack}.tsv row {}: {} fields (a pack row has 12 or 13)", n + 1, f.len())));
-            }
-            let hex = |v: &str| format!("0x{v}");
-            insert.execute(rusqlite::params![pack, hex(f[0]), n as i64, hex(f[1]), hex(f[2]), hex(f[3]), f[4], f[5], f[6], f[7], f[8],
-                f[9], f[10], f[11], f.get(12).copied()])
-                .map_err(|e| bad(format!("{pack}.tsv row {} ({}): {e}", n + 1, f[0])))?;
-            imported.objects += 1;
-        }
-        drop(insert);
+        imported.objects += put_pack(&tx, pack, ord as i64, kind, &text,
+            &format!("content/{pack}.tsv, imported by pyrealium-content import-world-packs"))?;
         imported.packs += 1;
         // Its report: the original file's digest checked, the digest re-made over the rows.
         let report = content.join(format!("{pack}.report.json"));
@@ -134,6 +118,29 @@ pub fn import_packs(db: &mut Connection, content: &Path) -> io::Result<Imported>
     }
     tx.commit().map_err(sql)?;
     Ok(imported)
+}
+
+/// Replaces the pack `pack` with the rows of the pack file `text` (its first line, the header,
+/// is not a row); returns how many it holds.
+pub fn put_pack(db: &Connection, pack: &str, ord: i64, kind: &str, text: &str, source: &str) -> io::Result<usize> {
+    db.execute("DELETE FROM world_object WHERE pack = ?1", [pack]).map_err(sql)?;
+    db.execute("DELETE FROM world_pack WHERE name = ?1", [pack]).map_err(sql)?;
+    db.execute("INSERT INTO world_pack (name, ord, kind, source) VALUES (?1, ?2, ?3, ?4)", rusqlite::params![pack, ord, kind, source]).map_err(sql)?;
+    let mut insert = db.prepare("INSERT INTO world_object (pack, iid, ord, entity, visual, cell, x, y, z, qw, qx, qy, qz, scale, name) \
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)").map_err(sql)?;
+    let mut count = 0;
+    for (n, line) in text.lines().skip(1).filter(|l| !l.is_empty() && !l.starts_with('#')).enumerate() {
+        let f: Vec<&str> = line.split('\t').collect();
+        if !matches!(f.len(), 11..=13) {
+            return Err(bad(format!("{pack}.tsv row {}: {} fields (a pack row has 11 to 13)", n + 1, f.len())));
+        }
+        let hex = |v: &str| format!("0x{v}");
+        insert.execute(rusqlite::params![pack, hex(f[0]), n as i64, hex(f[1]), hex(f[2]), hex(f[3]), f[4], f[5], f[6], f[7], f[8],
+            f[9], f[10], f.get(11).copied(), f.get(12).copied()])
+            .map_err(|e| bad(format!("{pack}.tsv row {} ({}): {e}", n + 1, f[0])))?;
+        count += 1;
+    }
+    Ok(count)
 }
 
 fn put_evidence(db: &Connection, name: &str, value: &Value) -> io::Result<()> {

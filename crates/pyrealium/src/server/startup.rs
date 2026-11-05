@@ -38,20 +38,6 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
             "account must have 1-32 ASCII letters, digits or underscores",
         ));
     }
-    if config.map_travel && (!config.bind.ip().is_loopback() || !config.initialize_ui || config.game_data.is_none()) {
-        return Err(invalid("--test-map-travel requires a loopback server with DAT world/UI enabled."));
-    }
-    let map_landscape = if config.map_travel {
-        println!("Local testing: double-click map travel enabled.");
-        Some(crate::map_travel::Landscape::load(config.game_data.as_deref().unwrap())?)
-    } else { None };
-    let bootstrap = config
-        .game_data
-        .as_deref()
-        .map(crate::bootstrap::Bootstrap::load)
-        .transpose()?;
-    // Replaying trained skills can initialize the process-wide skill catalog.
-    // Select the native data profile before opening the character store.
     // The scripted quests' tables (`quest_emotes`), before the journal replays; a bad row refuses
     // the start. The shipped database (prepared, or `content.sql` beside the world table), unless
     // the world builder's overlay has its own beside it (`NAME.quests.sql`, saved by live edits),
@@ -66,6 +52,25 @@ pub(super) fn run_auth_mode(config: Config, tickets: bool, local_accounts: bool)
     } else {
         None
     };
+    // The content files every subsystem reads (creatures, loot, skills, routes: `content_db::files`)
+    // come from the same database, installed before anything reads one.
+    if let Some((text, origin)) = &shipped_quests {
+        crate::content_db::files::install(text).map_err(|e| io::Error::other(format!("{origin}: {e}")))?;
+    }
+    if config.map_travel && (!config.bind.ip().is_loopback() || !config.initialize_ui || config.game_data.is_none()) {
+        return Err(invalid("--test-map-travel requires a loopback server with DAT world/UI enabled."));
+    }
+    let map_landscape = if config.map_travel {
+        println!("Local testing: double-click map travel enabled.");
+        Some(crate::map_travel::Landscape::load(config.game_data.as_deref().unwrap())?)
+    } else { None };
+    let bootstrap = config
+        .game_data
+        .as_deref()
+        .map(crate::bootstrap::Bootstrap::load)
+        .transpose()?;
+    // Replaying trained skills can initialize the process-wide skill catalog.
+    // Select the native data profile before opening the character store.
     // The world builder's world is a content database (`NAME.content.sql`, saved by live edits):
     // its placements, the base placements it removes, its creature rules and its quests. It is a
     // layer: with the shipped dump it was edited from (`NAME.content.base.sql`), it is merged row

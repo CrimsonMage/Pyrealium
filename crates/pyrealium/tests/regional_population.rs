@@ -14,12 +14,12 @@ fn regional_wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("regional-world-v1.tsv"),Path::new(&data)).unwrap();
-    let source:serde_json::Value=serde_json::from_str(include_str!("../../../content/regional-content-v1.json")).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/regional-world-v1.report.json")).unwrap();
+    let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-content-v1.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-world-v1.report.json")).unwrap();
     let encounters=Encounters::load(Path::new("training"),&content).unwrap();
     let health=encounters.initial_health().collect::<BTreeMap<_,_>>();
     let ai=creature_ai::catalog().unwrap();
-    let native=include_str!("../../../content/regional-creature-combat-v1.tsv").lines().filter(|l|l.starts_with("47"))
+    let native=pyrealium::content_db::files::text("regional-creature-combat-v1.tsv").lines().filter(|l|l.starts_with("47"))
         .map(|l|{let f=l.split('\t').collect::<Vec<_>>();(u32::from_str_radix(f[0],16).unwrap(),
             (f[1].parse::<u32>().unwrap(),f[6].parse::<u16>().unwrap()))}).collect::<BTreeMap<_,_>>();
     let regions=source["regions"].as_array().unwrap();
@@ -96,7 +96,7 @@ fn regional_groups_fill_once_and_refill_after_the_configured_delay() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
     let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
     let content=Content::load(&root.join("regional-world-v1.tsv"),Path::new(&data)).unwrap();
-    let report:serde_json::Value=serde_json::from_str(include_str!("../../../content/regional-world-v1.report.json")).unwrap();
+    let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
     assert_eq!(encounters.spawners().group_count(),report["groups"].as_array().unwrap().len());
     let total=content.objects().count();

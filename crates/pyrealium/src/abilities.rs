@@ -40,8 +40,8 @@ pub fn validate_assets(portal: &mut crate::dat::Dat) -> std::io::Result<()> {
     }
     let report: Report =
         serde_json::from_str(crate::data_profile::table(
-            include_str!("../../../content/skill-effects.report.json"),
-            include_str!("../../../content/7230/skill-effects.report.json")))?;
+            crate::content_db::files::text("skill-effects.report.json"),
+            crate::content_db::files::text("7230/skill-effects.report.json")))?;
     for (record, expected) in report.record_sha256 {
         let did = u32::from_str_radix(&record, 16).map_err(std::io::Error::other)?;
         let actual = format!("{:x}", Sha256::digest(portal.read(did)?));
@@ -523,7 +523,7 @@ impl Runtime {
     pub fn coverage(&self) -> serde_json::Value {
         let mut counts = BTreeMap::<&str, usize>::new();
         let mut playable = 0;
-        let rows: Vec<_> = include_str!("../../../content/skills.tsv")
+        let rows: Vec<_> = crate::content_db::files::text("skills.tsv")
             .lines()
             .filter(|l| !l.starts_with('#') && l.contains('\t'))
             .map(|line| {
@@ -697,8 +697,8 @@ pub fn creature_abilities() -> BTreeMap<u32, Vec<CreatureAbility>> {
         return BTreeMap::new();
     };
     let text = crate::data_profile::table(
-        include_str!("../../../content/creature-skills.tsv"),
-        include_str!("../../../content/7230/creature-skills.tsv"),
+        crate::content_db::files::text("creature-skills.tsv"),
+        crate::content_db::files::text("7230/creature-skills.tsv"),
     );
     let mut out = BTreeMap::new();
     for line in text.lines() {

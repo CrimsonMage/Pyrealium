@@ -25,7 +25,7 @@ fn curves() -> Result<&'static BTreeMap<u32, Curve>, SkillError> {
     static CURVES: OnceLock<Result<BTreeMap<u32, Curve>, SkillError>> = OnceLock::new();
     CURVES
         .get_or_init(|| {
-            let mut lines = crate::data_profile::table(include_str!("../../../../content/skill-advancement.tsv"), include_str!("../../../../content/7230/skill-advancement.tsv")).lines();
+            let mut lines = crate::data_profile::table(crate::content_db::files::text("skill-advancement.tsv"), crate::content_db::files::text("7230/skill-advancement.tsv")).lines();
             if lines.next() != Some("pyrealium-skill-advancement-v1") {
                 return Err(SkillError::Catalog);
             }

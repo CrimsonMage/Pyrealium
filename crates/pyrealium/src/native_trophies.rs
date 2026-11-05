@@ -14,7 +14,7 @@ struct Drop {definition:u32,visual:u32,probability:f32,slot:u8}
 pub(crate) struct Trophies(BTreeMap<u32,Vec<(f32,Item)>>);
 impl Trophies {
     pub fn load(dat:&mut Dat,metadata:&mut BTreeMap<u32,Option<Metadata>>)->io::Result<Self> {
-        let file:File=serde_json::from_str(include_str!("../../../content/native-trophies.json"))?;
+        let file:File=serde_json::from_str(crate::content_db::files::text("native-trophies.json"))?;
         if file.schema!=1 || file.rules.len()>16384 {return Err(io::Error::other("invalid trophy catalog"));}
         let mut result=Self::default();let mut rejected=0;
         for rule in file.rules {

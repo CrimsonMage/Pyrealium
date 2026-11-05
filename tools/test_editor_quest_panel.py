@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 from types import SimpleNamespace
 
+import editor_content
 from editor_live import LiveLink
 from editor_quest_panel import QuestPanel, action_specs
 
@@ -42,12 +43,7 @@ class QuestPanelTests(unittest.TestCase):
         self.world = folder / "w.tsv"
         self.world.write_text("pyrealium-world-v2\n")
         # The world's quests as the server hands them: the shipped dump without the world's rows.
-        db = sqlite3.connect(":memory:")
-        db.executescript(SHIPPED.read_text(encoding="utf-8"))
-        for table in ("world_object", "world_evidence", "world_pack"):
-            db.execute(f"DELETE FROM {table}")
-        (folder / "w.content.sql").write_text("\n".join(db.iterdump()) + "\n", encoding="utf-8")
-        db.close()
+        (folder / "w.content.sql").write_text(editor_content.without_world(SHIPPED.read_text(encoding="utf-8")), encoding="utf-8")
         self.server = ThreadingHTTPServer(("127.0.0.1", 0), Strings)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
         self.addCleanup(self.server.server_close)
