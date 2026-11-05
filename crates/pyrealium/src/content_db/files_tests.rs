@@ -1,9 +1,4 @@
-use std::path::Path;
-
 use super::*;
-
-fn content() -> &'static Path { Path::new(concat!(env!("CARGO_MANIFEST_DIR"), "/../../content")) }
-fn rows(text: &str) -> Vec<&str> { text.lines().skip(1).filter(|l| !l.is_empty() && !l.starts_with('#')).collect() }
 
 #[test]
 fn a_file_round_trips_through_rows() {
@@ -27,42 +22,11 @@ fn a_file_round_trips_through_rows() {
     std::fs::remove_dir_all(&dir).unwrap();
 }
 
-/// Every content file the shipped dump holds reads as the file in `content/` did: a table file
-/// byte for byte, a pack-backed file row for row under its own header, a document as the same JSON.
-/// (The check retires with the files.)
-#[test]
-fn the_shipped_dump_holds_every_content_file() {
-    let shipped = std::fs::read_to_string(content().join(crate::content_db::DUMP)).unwrap();
-    let db = crate::content_db::open_dump(&shipped).unwrap();
-    for (name, rows_in) in FILES {
-        let Ok(file) = std::fs::read_to_string(content().join(name)) else { continue };
-        let file = file.replace("\r\n", "\n");
-        let rebuilt = rebuild(&db, name).unwrap().unwrap_or_else(|| panic!("the dump lacks {name}"));
-        if rows_in.starts_with("pack:") {
-            assert_eq!(rebuilt.lines().next(), file.lines().next(), "{name}");
-            assert_eq!(rows(&rebuilt), rows(&file), "{name}");
-        } else {
-            let file = if file.ends_with('\n') { file } else { format!("{file}\n") };
-            assert!(rebuilt == file, "{name} differs from its rows");
-        }
-    }
-    for name in DOCUMENTS.iter().chain(&REPORTS) {
-        let Ok(file) = std::fs::read_to_string(content().join(name)) else { continue };
-        let rebuilt: serde_json::Value = serde_json::from_str(&rebuild(&db, name).unwrap().unwrap_or_else(|| panic!("the dump lacks {name}"))).unwrap();
-        let mut file: serde_json::Value = serde_json::from_str(&file).unwrap();
-        // A pack report's digests are re-made over its rows (`world::import_packs`).
-        for digest in ["manifest_sha256", "source_sha256"] {
-            if let (Some(have), Some(was)) = (rebuilt.get(digest), rebuilt.get(format!("original_{digest}"))) {
-                file[format!("original_{digest}")] = was.clone();
-                file[digest] = have.clone();
-            }
-        }
-        assert!(rebuilt == file, "{name} differs from its document");
-    }
-}
-
 #[test]
 fn text_serves_the_repository_dump() {
     assert!(text("skills.tsv").starts_with("pyrealium-skills-v1\n"));
     assert!(text("professions-v1.json").starts_with('{'));
+    // A pack-backed world file reads as a world table of its rows' width.
+    assert!(text("world.tsv").starts_with("pyrealium-world-v2\n"));
+    assert!(text("world-observed-expanded.tsv").starts_with("pyrealium-world-v3\n"));
 }

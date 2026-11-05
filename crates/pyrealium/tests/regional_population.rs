@@ -12,7 +12,7 @@ fn distance(a:[f64;2],b:[f64;2])->f64 {(a[0]-b[0]).hypot(a[1]-b[1])*20.}
 #[test]
 fn regional_wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("regional-world-v1.tsv"),Path::new(&data)).unwrap();
     let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-content-v1.json")).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-world-v1.report.json")).unwrap();
@@ -27,7 +27,7 @@ fn regional_wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
         g["members"].as_array().unwrap().iter().map(move |id|(id.as_u64().unwrap(),g["region"].as_str().unwrap())))
         .collect::<BTreeMap<_,_>>();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();
-    let installed=root.join("../../data/world/legions-world.tsv");
+    let installed=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/world/legions-world.tsv");
     let fixed=std::fs::read_to_string(installed).unwrap_or_default().lines().filter_map(|l| {
         let f=l.split('\t').collect::<Vec<_>>();
         if f.len()!=13 || f[0].starts_with("8140c00000") {return None;}
@@ -94,7 +94,7 @@ fn regional_wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
 #[test]
 fn regional_groups_fill_once_and_refill_after_the_configured_delay() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("regional-world-v1.tsv"),Path::new(&data)).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("regional-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();

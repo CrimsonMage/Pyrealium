@@ -12,7 +12,7 @@ fn distance(a:[f64;2],b:[f64;2])->f64 {(a[0]-b[0]).hypot(a[1]-b[1])*20.}
 #[test]
 fn wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("wilderness-world-v1.tsv"),Path::new(&data)).unwrap();
     let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-content-v1.json")).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-world-v1.report.json")).unwrap();
@@ -27,7 +27,7 @@ fn wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
         g["members"].as_array().unwrap().iter().map(move |id|(id.as_u64().unwrap(),g["region"].as_str().unwrap())))
         .collect::<BTreeMap<_,_>>();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();
-    let installed=root.join("../../data/world/legions-world.tsv");
+    let installed=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/world/legions-world.tsv");
     let fixed=std::fs::read_to_string(&installed).unwrap_or_default().lines().filter_map(|l| {
         let f=l.split('\t').collect::<Vec<_>>();
         // Later guide-anchored camps were not part of this pack's original
@@ -108,7 +108,7 @@ fn wilderness_is_grounded_separated_and_uses_real_combat_and_loot() {
 #[test]
 fn wilderness_groups_fill_once_and_refill_after_the_configured_delay() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("wilderness-world-v1.tsv"),Path::new(&data)).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("wilderness-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
@@ -143,11 +143,11 @@ fn wilderness_groups_fill_once_and_refill_after_the_configured_delay() {
 #[test]
 fn hunting_camps_use_native_ground_loot_and_group_respawns() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("hunting-world-v2.tsv"),Path::new(&data)).unwrap();
     let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("hunting-content-v2.json")).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("hunting-world-v2.report.json")).unwrap();
-    let world=Content::load(&root.join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
+    let world=Content::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();
     let mut geometry=Geometry::open(Path::new(&data)).unwrap();
     assert_eq!(content.objects().count(),8);assert_eq!(encounters.spawners().len(),6);
@@ -197,7 +197,7 @@ fn hunting_camps_use_native_ground_loot_and_group_respawns() {
 /// The hunting catalogs' quests (the evidence the hunt quest rows came from).
 fn hunts()->Vec<serde_json::Value> {
     ["hunting-content-v1.json","hunting-content-v2.json"].iter().flat_map(|f| {
-        let v:serde_json::Value=serde_json::from_str(&std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content").join(f)).unwrap()).unwrap();
+        let v:serde_json::Value=serde_json::from_str(&std::fs::read_to_string(pyrealium::content_db::checkout::repository().join(f)).unwrap()).unwrap();
         v["quests"].as_array().unwrap().clone()
     }).collect()
 }

@@ -5,8 +5,8 @@ use std::{collections::BTreeSet, path::Path};
 #[test]
 fn wiki_npcs_are_grounded_unique_and_cannot_be_killed_for_loot() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else {return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
-    let world=Content::load(&root.join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
+    let root=pyrealium::content_db::checkout::repository();
+    let world=Content::load(&Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/world/legions-world.tsv"),Path::new(&data)).unwrap();
     let content=Content::load(&root.join("npc-world-v1.tsv"),Path::new(&data)).unwrap();
     let quests=include_str!("../../../content/content.sql");
     let source:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("npc-dialogue-v1.json")).unwrap();

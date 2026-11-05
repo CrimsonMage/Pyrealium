@@ -6,9 +6,9 @@
 //! A table file is a `content_file` row (its header: the format line and the comments before the
 //! first row, kept as written, since some readers check them; its footer) and its rows in a table
 //! named for what they hold, each field exactly as the file wrote it (NULL where a row has fewer
-//! fields), with the comment lines written before a row as its `note`. A file whose rows are a
-//! world pack (`world_object`) names the pack (`rows_in` = `pack:NAME`). A document is a
-//! `content_document` row; the packs' reports are the world's evidence (`world_evidence`).
+//! fields), with the comment lines written before a row as its `note`. A world file the server reads
+//! whole is its world pack (`PACK_FILES`). A document is a `content_document` row; the packs'
+//! reports are the world's evidence (`world_evidence`).
 //!
 //! The server installs its content database at start (`install`); anything that reads a file
 //! before that, and tests and tools, read the repository's `content/content.sql`.
@@ -44,9 +44,8 @@ pub const TABLES: [(&str, &[&str]); 16] = [
     ("portal_route", &["portal", "entity", "cell", "x", "y", "z", "dest_cell", "dest_x", "dest_y", "dest_z", "heading", "level"]),
 ];
 
-/// Every content file the server reads, by its path under `content/`, with where its rows live: a
-/// row table, or `pack:NAME` for a world pack.
-pub const FILES: [(&str, &str); 34] = [
+/// Every table file the server reads, by its path under `content/`, with the table its rows live in.
+pub const FILES: [(&str, &str); 30] = [
     ("creature-combat.tsv", "creature_combat"), ("inferred-creature-combat-v1.tsv", "creature_combat"),
     ("regional-creature-combat-v1.tsv", "creature_combat"), ("wilderness-creature-combat-v1.tsv", "creature_combat"),
     ("arwic-mines-creature-combat-v1.tsv", "creature_combat"),
@@ -63,10 +62,12 @@ pub const FILES: [(&str, &str); 34] = [
     ("skill-missiles.tsv", "skill_missile"), ("7230/skill-missiles.tsv", "skill_missile"),
     ("skill-travel.tsv", "skill_travel"), ("7230/skill-travel.tsv", "skill_travel"),
     ("7230/item-appearance-observed.tsv", "item_appearance"), ("portal-routes.tsv", "portal_route"),
-    ("world.tsv", "pack:bundled-world"), ("world-observed-expanded.tsv", "pack:world-observed-expanded"),
-    ("training-world.tsv", "pack:training-world"),
-    // The arwic-mines world pack is also read whole by the encounter tests.
-    ("arwic-mines-world-v1.tsv", "pack:arwic-mines-world-v1"),
+];
+/// The world files the server reads whole, with the world pack each is (its canonical text,
+/// `world::pack_text`): `world.tsv` is the bundled pack, the others are prepare-step packs.
+pub const PACK_FILES: [(&str, &str); 4] = [
+    ("world.tsv", "bundled-world"), ("world-observed-expanded.tsv", "world-observed-expanded"),
+    ("training-world.tsv", "training-world"), ("arwic-mines-world-v1.tsv", "arwic-mines-world-v1"),
 ];
 /// The JSON documents the server reads, then the world packs' source catalogs (which the prepare
 /// step checks the packs against).
@@ -134,6 +135,15 @@ pub struct Imported { pub files: usize, pub rows: usize, pub documents: usize }
 pub fn import(db: &mut Connection, content: &Path) -> io::Result<Imported> {
     let tx = db.transaction().map_err(sql)?;
     let mut imported = Imported { files: 0, rows: 0, documents: 0 };
+    // Schema 15's first dumps kept pack-backed files here too.
+    tx.execute("DELETE FROM content_file WHERE rows_in LIKE 'pack:%'", []).map_err(sql)?;
+    let bundled = content.join(PACK_FILES[0].0);
+    if bundled.exists() {
+        let text = std::fs::read_to_string(&bundled)?.replace("\r\n", "\n");
+        imported.rows += super::world::put_pack(&tx, BUNDLED_PACK.0, BUNDLED_PACK.1, "observed", &text,
+            &format!("content/{}, imported by pyrealium-content import-files", PACK_FILES[0].0))?;
+        imported.files += 1;
+    }
     for (name, rows_in) in FILES {
         let path = content.join(name);
         if !path.exists() { continue; }
@@ -145,10 +155,6 @@ pub fn import(db: &mut Connection, content: &Path) -> io::Result<Imported> {
         tx.execute("INSERT OR REPLACE INTO content_file (name, rows_in, header, footer, source) VALUES (?1, ?2, ?3, ?4, ?5)",
             rusqlite::params![name, rows_in, joined(&parts.header), joined(&parts.footer), source]).map_err(sql)?;
         imported.files += 1;
-        if let Some(pack) = rows_in.strip_prefix("pack:") {
-            if pack == BUNDLED_PACK.0 { imported.rows += super::world::put_pack(&tx, pack, BUNDLED_PACK.1, "observed", &text, &source)?; }
-            continue;
-        }
         let fields = fields_of(rows_in);
         let mut columns = vec!["file", "ord"];
         columns.extend_from_slice(fields);
@@ -183,6 +189,7 @@ pub fn import(db: &mut Connection, content: &Path) -> io::Result<Imported> {
 /// header, its rows (each after its note), its footer. A document's text is its JSON; so is a
 /// world evidence file's.
 pub fn rebuild(db: &Connection, name: &str) -> io::Result<Option<String>> {
+    if let Some((_, pack)) = PACK_FILES.iter().find(|(n, _)| *n == name) { return super::world::pack_text(db, pack); }
     let file: Option<(String, String, String)> = db.query_row("SELECT rows_in, header, footer FROM content_file WHERE name = ?1", [name],
         |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?))).optional().map_err(sql)?;
     let Some((rows_in, header, footer)) = file else {
@@ -191,10 +198,7 @@ pub fn rebuild(db: &Connection, name: &str) -> io::Result<Option<String>> {
         return db.query_row("SELECT body FROM world_evidence WHERE name = ?1", [name], |r| r.get(0)).optional().map_err(sql);
     };
     let mut text = header;
-    if let Some(pack) = rows_in.strip_prefix("pack:") {
-        let rows = super::world::pack_text(db, pack)?.ok_or_else(|| bad(format!("{name}: no world pack {pack}")))?;
-        rows.lines().skip(1).for_each(|l| { text.push_str(l); text.push('\n'); });
-    } else {
+    {
         let fields = fields_of(&rows_in);
         let mut statement = db.prepare(&format!("SELECT note, {} FROM {rows_in} WHERE file = ?1 ORDER BY ord", fields.join(", "))).map_err(sql)?;
         let mut rows = statement.query([name]).map_err(sql)?;
@@ -215,7 +219,7 @@ static INSTALLING: Mutex<()> = Mutex::new(());
 
 fn render(db: &Connection) -> io::Result<HashMap<String, &'static str>> {
     let mut out = HashMap::new();
-    let names: Vec<String> = FILES.iter().map(|(n, _)| n.to_string()).chain(DOCUMENTS.iter().map(|n| n.to_string()))
+    let names: Vec<String> = FILES.iter().chain(&PACK_FILES).map(|(n, _)| n.to_string()).chain(DOCUMENTS.iter().map(|n| n.to_string()))
         .chain(REPORTS.iter().map(|n| n.to_string())).collect();
     for name in names {
         if let Some(text) = rebuild(db, &name)? { out.insert(name, &*Box::leak(text.into_boxed_str())); }
@@ -229,7 +233,7 @@ pub fn install(text: &str) -> io::Result<()> {
     let _guard = INSTALLING.lock().unwrap_or_else(|e| e.into_inner());
     let rendered = render(&super::open_dump(text)?)?;
     // A database from before the files were rows (an older prepared copy) is refused whole.
-    let missing: Vec<&str> = FILES.iter().map(|(n, _)| *n).chain(DOCUMENTS).filter(|n| !rendered.contains_key(*n)).collect();
+    let missing: Vec<&str> = FILES.iter().chain(&PACK_FILES).map(|(n, _)| *n).chain(DOCUMENTS).filter(|n| !rendered.contains_key(*n)).collect();
     if !missing.is_empty() {
         return Err(bad(format!("the content database lacks the content files {} (import them: pyrealium-content import-files)",
             missing.join(", "))));

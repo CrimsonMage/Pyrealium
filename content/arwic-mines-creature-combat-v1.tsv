@@ -1,4 +1,0 @@
-pyrealium-creature-combat-v3
-# Native inherited Outcast fields. Absent weapon time stays 0 (runtime default).
-# entity health damage interval_ms armor xp level variance attack defense perception homesick damage_type max_vigor
-470015ac	164	28	0	4	19	6	0.7	79	55	30.0	60.0	0	164

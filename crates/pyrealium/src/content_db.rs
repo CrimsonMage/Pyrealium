@@ -21,6 +21,7 @@ use rusqlite::types::{Value, ValueRef};
 
 use crate::quest_emotes::Tables;
 
+pub mod checkout;
 pub mod files;
 pub mod overlay;
 pub mod world;

@@ -1,5 +1,38 @@
 # Stationary world content
 
+## Where the content lives (2026-11-05)
+
+All of the server's content is rows of the content database, `content/content.sql` (its
+editable form `content.sqlite`, made by `pyrealium-content build`). The file names this README
+uses (`creature-combat.tsv`, `professions-v1.json`, `regional-world-v1.tsv`, its
+`.report.json`, ...) name content the database holds, not files in this folder:
+
+- table files (creature combat/AI/skills, definitions, loot, encounters, crafting levels,
+  skills, routes, item appearances): `content_file` (header and footer) and one row table per
+  kind (`creature_combat`, `skill`, `portal_route`, ...), each field exactly as the file wrote it;
+- JSON documents (professions, trophies, loot limits, treasure weapons, the packs' source
+  catalogs): `content_document`;
+- world packs (`world.tsv` is the `bundled-world` pack) and their reports and evidence:
+  `world_pack`, `world_object`, `world_evidence`.
+
+The server reads them through `content_db::files` (rebuilt from the rows, the text the files
+held) and the prepare step through `content_db::world`. To see or regenerate them as files:
+
+```sh
+pyrealium-content checkout /tmp/content     # every file the database holds, written out
+scripts/with-content-files.sh python3 tools/author_professions.py   # a generator, round trip
+pyrealium-content checkin /tmp/content      # files (and packs) back into content.sql
+```
+
+`checkout` writes a consistent set: each pack is its canonical text (`pyrealium-world-v2/3/4` by
+row width) and its report's digests name that text and its catalog document (the first original
+file's digests are kept as `original_manifest_sha256` / `original_source_sha256`).
+
+What stays in this folder is source evidence the generators read, not server content: audits,
+`unresolved-*.json`, capture sources, `reference-tables.json`, `native-quests.json`, the entity
+lists, the lifestone/portal tables, and `vault-quest-overrides.tsv` (the Vault quest importer's
+draft overrides).
+
 Game-data mode loads the bundled snapshot automatically, independent of the
 working directory. Use the normal server options and:
 

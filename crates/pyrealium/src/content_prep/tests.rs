@@ -293,7 +293,8 @@ mod database_parity {
     #[test]
     fn the_shipped_world_from_the_database_is_the_files_world() {
         let Ok(data) = std::env::var("AC2_TEST_GAME_DATA") else { return };
-        let content = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+        // The shipped content as files (checked out of the dump) against the dump itself.
+        let content = crate::content_db::checkout::repository().to_path_buf();
         // The shipped dump, as the server reads it.
         let shipped = std::fs::read_to_string(content.join(crate::content_db::DUMP)).unwrap();
         for options in [super::Options { training_placements: true, shelter_quest: true },

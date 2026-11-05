@@ -5,7 +5,7 @@ use std::{collections::BTreeSet,path::Path};
 #[test]
 fn inferred_camps_are_grounded_capacity_limited_and_never_promote_services() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else{return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("inferred-world-v1.tsv"),Path::new(&data)).unwrap();
     let report:serde_json::Value=serde_json::from_str(pyrealium::content_db::files::text("inferred-world-v1.report.json")).unwrap();
     let mut encounters=Encounters::load(Path::new("training"),&content).unwrap();

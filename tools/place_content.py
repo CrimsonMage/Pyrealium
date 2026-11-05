@@ -14,6 +14,17 @@ from ac2_dat import Dat
 
 
 def bounded_text(path):
+    """A content file's text (at most 4 MiB): the file, or a shipped content file rebuilt from
+    its folder's content database where it is not on disk (`content_files`)."""
+    path = Path(path)
+    if not path.exists():
+        import content_files
+        text = content_files.text(path)
+        if text is None:
+            raise FileNotFoundError(f"{path}: no such content file")
+        if len(text.encode("utf-8")) > 4*1024*1024:
+            raise ValueError("content file exceeds 4 MiB")
+        return text
     with path.open("rb") as file:
         data = file.read(4*1024*1024+1)
     if len(data) > 4*1024*1024:

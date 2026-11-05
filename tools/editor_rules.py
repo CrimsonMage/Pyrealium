@@ -8,6 +8,7 @@ from pathlib import Path
 import math
 
 from editor_document import atomic_write
+import content_files
 from place_content import bounded_text
 
 HEADER = "pyrealium-world-rules-v1"
@@ -246,7 +247,7 @@ class Bestiary:
 
     @staticmethod
     def _rows(path):
-        if not path.exists():
+        if not content_files.exists(path):
             return []
         return [line.split("\t") for line in bounded_text(path).splitlines()[1:] if line and not line.startswith("#")]
 

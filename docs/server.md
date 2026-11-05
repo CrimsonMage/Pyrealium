@@ -281,7 +281,8 @@ Original quest/loot definitions and the full native skill-effect system are not
 implemented by these authored profiles.
 
 An explicit development encounter loop is available with `--content training
---initialize-ui true --encounters content/development-encounters.tsv` alongside
+--initialize-ui true --encounters training` (the shipped `development-encounters.tsv`
+rows; a path reads that encounter file instead) alongside
 the normal game-data/account/bind/data options. It connects native attack targets
 to server health/vigor changes, stationary retaliation, XP/gold rewards, levels,
 regeneration and timed creature respawn. Saved player state is restored on entry.
@@ -297,7 +298,7 @@ See [player systems integration](player-systems.md).
 Every placed creature in `content/creature-entities.txt` can be fought. The 152
 whose `portal.dat` records carry combat stats use them: health
 (`GameplayStatistics_MaxHealth`), natural damage, armor (`NPC_ArmorLevel`) and
-death experience, extracted into `content/creature-combat.tsv`. The other 40 use
+death experience, extracted into `creature-combat.tsv` (rows of `content/content.sql`). The other 40 use
 a 60-health / 6-damage starter profile. Explicit rows in the encounter file win,
 so the four training creatures keep beginner stats (the retail Idol Spawn is
 level 24 and would one-hit a new character). Creature armor reduces your hits and
@@ -313,8 +314,8 @@ XP debit. Beyond the development basic attack and self-heal, most active skill
 effects, adjusted-level bonuses and native advancement acceptance remain unfinished.
 
 Game-data mode (`serve --game-data PATH`) now loads the bundled stationary world
-pack automatically. Use `--content content/world.tsv` for an editable external
-pack, or `--content none` to disable content, alongside normal bind/account/data options.
+pack automatically (`world.tsv`, the database's `bundled-world` pack). Use `--content PATH` for an
+editable external pack (`pyrealium-content checkout DIR` writes `DIR/world.tsv` to start from), or `--content none` to disable content, alongside normal bind/account/data options.
 The combined pack contains 89 lifestones and 158 portals with DAT-backed visuals.
 The server creates/removes them as players enter/leave their cell. Two additional
 portal locations remain in the unresolved report because their terrain is missing.

@@ -14,6 +14,8 @@ import json
 import math
 import re
 from pathlib import Path
+
+import content_files
 import tkinter as tk
 from tkinter import ttk
 
@@ -105,7 +107,7 @@ def map_units(gx, gy, cells=2040):
 def read_routes(path):
     """pyrealium-portal-routes-v1 rows: source portal -> destination."""
     routes = {}
-    if not Path(path).exists():
+    if not content_files.exists(path):
         return routes
     for line in bounded_text(Path(path)).splitlines()[1:]:
         f = line.split("\t")

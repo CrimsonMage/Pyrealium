@@ -259,7 +259,7 @@ rule or placement rule).
   chance, attacks-on-sight, idle-only and no-loot.
 - **Loot**: a weighted table. One outcome (one or more items, or "nothing") is
   rolled per kill and replaces the native loot. **Copy native loot** starts from
-  the observed bundles. Items come from `content/loot-items.tsv`.
+  the observed bundles. Items come from the shipped `loot-items.tsv` rows (`content/content.sql`).
 - **Spawning**: a spawn group is a generator. Each member is a spawn point and at
   most *Alive at once* members are populated; the group respawn time overrides
   each member's own. **Add spawn point** copies the creature into your content

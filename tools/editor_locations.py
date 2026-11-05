@@ -8,6 +8,7 @@ from pathlib import Path
 import math
 
 from ac2_dat import Dat
+import content_files
 from place_content import bounded_text
 
 
@@ -64,7 +65,7 @@ def build_locations(game_folder, content_folder, catalog):
     folder = Path(content_folder)
     for name in ("world.tsv", "training-world.tsv", "observed-world.tsv", "local-world.tsv"):
         path = folder / name
-        if not path.exists():
+        if not content_files.exists(path):
             continue
         lines = bounded_text(path).splitlines()
         if not lines or lines[0] not in ("pyrealium-world-v1", "pyrealium-world-v2", "pyrealium-world-v3"):
@@ -82,7 +83,7 @@ def build_locations(game_folder, content_folder, catalog):
             except (ValueError, OverflowError):
                 continue
     routes = folder / "portal-routes.tsv"
-    if routes.exists():
+    if content_files.exists(routes):
         lines = bounded_text(routes).splitlines()
         if lines and lines[0] == "pyrealium-portal-routes-v1":
             for line in lines[1:]:

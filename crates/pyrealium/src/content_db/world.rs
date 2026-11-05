@@ -37,7 +37,7 @@ pub const CATALOGS: [(&str, &str); 10] = [
 ];
 /// A catalog document's text as the database keeps it (compact JSON), which its digest names.
 pub fn document_text(value: &Value) -> io::Result<String> { serde_json::to_string(value).map_err(io::Error::other) }
-/// The header a pack's canonical text starts with (the prepare step reads rows, not the header).
+/// The header of a pack of full-width rows (the prepare step reads rows, not the header).
 const HEADER: &str = "pyrealium-world-v4";
 
 fn sql(e: rusqlite::Error) -> io::Error { io::Error::other(e.to_string()) }
@@ -51,15 +51,17 @@ fn file_digests(path: &Path) -> io::Result<[String; 2]> {
     Ok([sha256_hex(lf.as_bytes()), sha256_hex(lf.replace('\n', "\r\n").as_bytes())])
 }
 
-/// The pack's canonical text: the header, then each row's fields as the file wrote them, in
-/// row order; `None` when the database has no such pack.
+/// The pack's canonical text: the header of its rows' width (`pyrealium-world-v2` for 11 fields,
+/// `v3` for 12, `v4` for 13, so the text reads as a world table as it is), then each row's fields
+/// as the file wrote them, in row order; `None` when the database has no such pack.
 pub fn pack_text(db: &Connection, pack: &str) -> io::Result<Option<String>> {
     let known: Option<String> = db.query_row("SELECT name FROM world_pack WHERE name = ?1", [pack], |r| r.get(0)).optional().map_err(sql)?;
     if known.is_none() { return Ok(None); }
     let mut statement = db.prepare("SELECT iid, entity, visual, cell, x, y, z, qw, qx, qy, qz, scale, name FROM world_object \
         WHERE pack = ?1 ORDER BY ord").map_err(sql)?;
     let mut rows = statement.query([pack]).map_err(sql)?;
-    let mut text = format!("{HEADER}\n");
+    let (mut body, mut width) = (String::new(), 13);
+    let mut first = true;
     while let Some(row) = rows.next().map_err(sql)? {
         let mut fields: Vec<String> = Vec::with_capacity(13);
         for i in 0..4 {
@@ -70,10 +72,13 @@ pub fn pack_text(db: &Connection, pack: &str) -> io::Result<Option<String>> {
         for i in 11..13 {
             if let Some(v) = row.get::<_, Option<String>>(i).map_err(sql)? { fields.push(v); }
         }
-        text.push_str(&fields.join("\t"));
-        text.push('\n');
+        width = if first { fields.len() } else { width.max(fields.len()) };
+        first = false;
+        body.push_str(&fields.join("\t"));
+        body.push('\n');
     }
-    Ok(Some(text))
+    let header = match width { 11 => "pyrealium-world-v2", 12 => "pyrealium-world-v3", _ => HEADER };
+    Ok(Some(format!("{header}\n{body}")))
 }
 
 /// An evidence file's JSON from the database, `None` when it has none.
@@ -113,7 +118,8 @@ pub fn import_packs(db: &mut Connection, content: &Path) -> io::Result<Imported>
                     return Err(bad(format!("{name}: its manifest_sha256 does not match {pack}.tsv (stale evidence)")));
                 }
                 let canonical = pack_text(&tx, pack)?.unwrap_or_default();
-                value["original_manifest_sha256"] = Value::String(manifest);
+                // A report checked out of the database already names the first original.
+                if value.get("original_manifest_sha256").is_none() { value["original_manifest_sha256"] = Value::String(manifest); }
                 value["manifest_sha256"] = Value::String(sha256_hex(canonical.as_bytes()));
             }
             // Its source catalog's digest likewise, over the document the database keeps.
@@ -123,7 +129,7 @@ pub fn import_packs(db: &mut Connection, content: &Path) -> io::Result<Imported>
                     return Err(bad(format!("{name}: its source_sha256 does not match {} (stale evidence)", catalog.display())));
                 }
                 let document: Value = serde_json::from_str(&std::fs::read_to_string(&catalog)?).map_err(|e| bad(format!("{}: {e}", catalog.display())))?;
-                value["original_source_sha256"] = Value::String(source);
+                if value.get("original_source_sha256").is_none() { value["original_source_sha256"] = Value::String(source); }
                 value["source_sha256"] = Value::String(sha256_hex(document_text(&document)?.as_bytes()));
             }
             put_evidence(&tx, &name, &value)?;

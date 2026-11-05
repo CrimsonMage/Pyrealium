@@ -4,7 +4,7 @@ use std::path::Path;
 #[test]
 fn translated_population_uses_native_combat_and_protects_services() {
     let Ok(data)=std::env::var("AC2_TEST_GAME_DATA") else{return};
-    let root=Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
+    let root=pyrealium::content_db::checkout::repository();
     let content=Content::load(&root.join("recovered-population.tsv"),Path::new(&data)).unwrap();
     let proof:serde_json::Value=serde_json::from_str(&std::fs::read_to_string(root.join("recovered-population.report.json")).unwrap()).unwrap();
     let encounters=Encounters::load(Path::new("training"),&content).unwrap();
