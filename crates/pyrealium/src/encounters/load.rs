@@ -267,6 +267,7 @@ impl Encounters {
         if let Some(tables)=crate::quest_emotes::tables() {
             for id in tables.slot_iids().filter(|id|actors.contains_key(id)) {spawners.hold(id);}
         }
+        spawners.set_chances(bestiary.operator_chances());
         Ok(Self {
             native_motion: false,
             actors,

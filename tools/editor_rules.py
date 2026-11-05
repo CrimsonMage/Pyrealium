@@ -97,9 +97,16 @@ class Rules:
             points = [tuple(float(v) for v in point.split(",")) for point in f[3].split(";")]
             self.set_patrol(check_target(f[1], True), int(f[2]), points)
         elif kind == "group" and len(f) == 5:
+            members, chances = [], {}
+            for token in f[4].split(","):
+                member, _, chance = token.partition(":")
+                member = check_target(member, True)
+                members.append(member)
+                if chance:
+                    chances[member] = float(chance)
             self.groups.append(dict(id=int(f[1], 16), capacity=int(f[2]),
                                     regeneration_ms=None if f[3] == "-" else int(f[3]),
-                                    members=[check_target(m, True) for m in f[4].split(",")]))
+                                    members=members, chances=chances))
             self.check_groups()
         else:
             raise ValueError(f"unrecognized row {kind!r}")
@@ -159,6 +166,9 @@ class Rules:
             if len(set(group["members"])) != len(group["members"]) or seen & set(group["members"]):
                 raise ValueError("A placement can belong to only one spawn group")
             seen |= set(group["members"])
+            for member, chance in group.setdefault("chances", {}).items():
+                if member not in group["members"] or not (math.isfinite(chance) and 0 < chance <= 1):
+                    raise ValueError("A member's spawn chance must be above 0% and at most 100%")
 
     def group_of(self, actor):
         return next((group for group in self.groups if actor in group["members"]), None)
@@ -170,6 +180,7 @@ class Rules:
         for group in self.groups:
             if actor in group["members"]:
                 group["members"].remove(actor)
+                group.get("chances", {}).pop(actor, None)
                 group["capacity"] = min(group["capacity"], max(1, len(group["members"])))
         self.groups = [group for group in self.groups if group["members"]]
 
@@ -179,7 +190,7 @@ class Rules:
                "# ai     target " + " ".join(s[0] for s in BEHAVIOUR),
                "# loot   target weight items(comma, or - for nothing)",
                "# patrol placement pause_ms dx,dy;dx,dy…   (metres from spawn)",
-               "# group  hex_id capacity respawn_ms|- members(comma)"]
+               "# group  hex_id capacity respawn_ms|- members(comma; member:chance is an ACE-style roll share 0..1)"]
         for target in sorted(self.stats):
             out.append("\t".join(["stats", target] + [self.stats[target].get(s[0], "-") for s in STATS]))
         for target in sorted(self.behaviour):
@@ -193,8 +204,18 @@ class Rules:
         for group in self.groups:
             out.append("\t".join(["group", f"{group['id']:x}", str(group["capacity"]),
                                   "-" if group["regeneration_ms"] is None else str(group["regeneration_ms"]),
-                                  ",".join(group["members"])]))
+                                  ",".join(m + (f":{group['chances'][m]:.6g}" if m in group.get("chances", {}) else "")
+                                           for m in group["members"])]))
         return "\n".join(out) + "\n"
+
+
+def spawn_shares(group):
+    """Each member's chance of winning a free slot when all are ready, the way ACE's
+    SelectAProfile rolls in [0, total) over its profile probabilities. Members without
+    a chance (ACE probability -1) fill on their own: their share is None."""
+    chances = group.get("chances", {})
+    total = sum(chances.values())
+    return {m: (chances[m] / total if m in chances and total > 0 else None) for m in group["members"]}
 
 
 def load_rules(world_path):
@@ -218,19 +239,35 @@ def save_rules(world_path, expected, rules):
     return editor_content.rules_text(world_path)
 
 
+# Source labels: the portal.dat entity record, or a value only the server supplies.
+DAT, SERVER = "DAT", "server"
+INHERITED = {DAT, SERVER}
+COMBAT_TABLES = ("creature-combat.tsv", "inferred-creature-combat-v1.tsv", "regional-creature-combat-v1.tsv",
+                 "wilderness-creature-combat-v1.tsv", "arwic-mines-creature-combat-v1.tsv")
+AI_TABLES = ("creature-ai.tsv", "inferred-creature-ai-v1.tsv", "regional-creature-ai-v1.tsv",
+             "wilderness-creature-ai-v1.tsv", "arwic-mines-creature-ai-v1.tsv")
+
+
 class Bestiary:
     """Native creature defaults, loot items and observed bundles from content/."""
 
     def __init__(self, content_folder):
         folder = Path(content_folder)
         self.combat, self.ai, self.names, self.items, self.native_loot = {}, {}, {}, {}, {}
-        for name in ("creature-combat.tsv", "inferred-creature-combat-v1.tsv", "regional-creature-combat-v1.tsv"):
+        self.combat_table = {}
+        # The same tables, in the same order, as the server's Encounters loader. Every value
+        # is the portal.dat entity record's; the server fills interval 0 and leash 0.
+        self.server_defaults = {}
+        for name in COMBAT_TABLES:
             for f in self._rows(folder / name):
-                if len(f) in (13, 14) and f[0].startswith("47"):
+                if len(f) in (13, 14) and f[0].startswith("47") and f[0] not in self.combat:
                     # entity health damage interval armor xp level variance attack defense perception homesick type [vigor]
-                    self.combat.setdefault(f[0], dict(health=f[1], damage=f[2], interval_ms=f[3] if f[3] != "0" else "1500",
-                        armor=f[4], xp=f[5], level=f[6], leash=f[11] if float(f[11]) > 0 else "18"))
-        for name in ("creature-ai.tsv", "inferred-creature-ai-v1.tsv", "regional-creature-ai-v1.tsv"):
+                    self.combat[f[0]] = dict(health=f[1], damage=f[2], interval_ms=f[3] if f[3] != "0" else "1500",
+                        armor=f[4], xp=f[5], level=f[6], leash=f[11] if float(f[11]) > 0 else "18")
+                    self.server_defaults[f[0]] = {n for n, absent in (("interval_ms", f[3] == "0"),
+                                                                       ("leash", float(f[11]) <= 0)) if absent}
+                    self.combat_table[f[0]] = name
+        for name in AI_TABLES:
             for f in self._rows(folder / name):
                 if len(f) == 11:
                     self.ai.setdefault(f[0], dict(perception=f[1], homesick=f[2], wandering=f[3], wander_range=f[4],
@@ -263,17 +300,18 @@ class Bestiary:
     def effective(self, rules, entity, actor):
         """(stats, behaviour) as the server will apply them, with each value's source."""
         entity, actor = entity.lower(), (actor or "").lower()
-        stats = {name: (value, "native") for name, value in self.combat.get(entity, {}).items()}
-        stats.setdefault("range", ("3", "native"))
-        stats.setdefault("gold", ("2" if entity in self.combat else "0", "native"))
-        stats.setdefault("respawn_ms", ("180000" if actor.startswith("8140c00000") else "120000" if actor.startswith("8140a0") else "30000", "server policy"))
-        behaviour = {name: (value, "native") for name, value in self.ai.get(entity, {}).items() if value != "-"}
+        defaults = self.server_defaults.get(entity, set())
+        stats = {name: (value, SERVER if name in defaults else DAT) for name, value in self.combat.get(entity, {}).items()}
+        stats.setdefault("range", ("3", SERVER))
+        stats.setdefault("gold", ("2" if entity in self.combat else "0", SERVER))
+        stats.setdefault("respawn_ms", ("180000" if actor.startswith("8140c00000") else "120000" if actor.startswith("8140a0") else "30000", SERVER))
+        behaviour = {name: (value, DAT) for name, value in self.ai.get(entity, {}).items() if value != "-"}
         for source, target in (("type", entity), ("placement", actor)):
             for name, value in rules.stats.get(target, {}).items():
                 stats[name] = (value, source)
             for name, value in rules.behaviour.get(target, {}).items():
                 behaviour[name] = (value, source)
-        if stats.get("leash", (0, "native"))[1] == "native":
+        if stats.get("leash", (0, DAT))[1] in INHERITED:
             # The leash the server applies: a homesick radius or the aggro radius can set it.
             leash = self.roaming(rules, entity, actor, (stats, behaviour))["leash"]
             if float(stats.get("leash", ("18",))[0]) != leash:
@@ -289,9 +327,9 @@ class Bestiary:
         leash = float(self.combat.get(entity.lower(), {}).get("leash", 18))
         if "homesick" not in behaviour:
             leash = max(leash, number(behaviour, "perception"))
-        if behaviour.get("homesick", (0, "native"))[1] != "native" and number(behaviour, "homesick") > 0:
+        if behaviour.get("homesick", (0, DAT))[1] not in INHERITED and number(behaviour, "homesick") > 0:
             leash = number(behaviour, "homesick")
-        if stats.get("leash", (0, "native"))[1] != "native":
+        if stats.get("leash", (0, DAT))[1] not in INHERITED:
             leash = number(stats, "leash", 18.)
         idle = behaviour.get("idle_only", ("0",))[0] == "1"
         wanders = (not idle and behaviour.get("wandering", ("-",))[0] != "0"

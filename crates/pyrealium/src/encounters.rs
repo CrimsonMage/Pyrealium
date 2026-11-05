@@ -526,6 +526,10 @@ impl Bestiary {
         if let Some(ms) = group.or(custom) { policy.regeneration_ms = ms; }
         policy
     }
+    /// Member chances of the operator groups (ACE profile probabilities).
+    fn operator_chances(&self) -> BTreeMap<u64, f32> {
+        self.world.groups.iter().flat_map(|g| g.chances.iter().map(|(&id, &c)| (id, c))).collect()
+    }
     fn operator_groups(&self, actors: &BTreeMap<u64, Actor>) -> Vec<(u64, usize, Vec<u64>)> {
         // Members that are not placed creatures (deleted or services) are skipped.
         self.world.groups.iter().map(|g| (g.id, g.capacity,

@@ -257,6 +257,8 @@ CREATE TABLE IF NOT EXISTS spawn_group (
 CREATE TABLE IF NOT EXISTS spawn_group_member (
   spawn_group TEXT NOT NULL REFERENCES spawn_group(id) ON UPDATE CASCADE ON DELETE CASCADE,
   placement TEXT NOT NULL CHECK (placement GLOB '0x8140[0-9a-fA-F]*'),
+  -- The member's spawn chance (ACE SelectAProfile), 0 < chance <= 1; NULL fills whenever free.
+  chance TEXT CHECK (chance IS NULL OR (CAST(chance AS REAL) > 0 AND CAST(chance AS REAL) <= 1)),
   family TEXT NOT NULL DEFAULT 'hand',
   source TEXT NOT NULL CHECK (source <> ''),
   PRIMARY KEY (spawn_group, placement)

@@ -160,6 +160,42 @@ class ViewportTests(unittest.TestCase):
         self.view.end_drag()
         self.assertEqual(actions, [("move","begin"),("move","preview"),("move","commit")])
 
+    def test_a_click_off_the_selection_clears_it_or_selects_what_it_hits(self):
+        actions, selected, cleared = [], [], []
+        self.view.on_transform = lambda tool, options, phase: actions.append((tool, phase)) or True
+        self.view.on_select = lambda identity, additive: selected.append(identity)
+        self.view.on_deselect = lambda: cleared.append(True)
+        # The selected object sits away from the pointer; the ground under it is world.
+        self.view.instances.append(dict(vertices=[(40, 40, 0), (42, 40, 0), (41, 42, 0)], indices=[0, 1, 2],
+                                        triangle_colors=[], role="saved", object_id=1, selected=True, position=(41, 41, 0)))
+        for tool in ("move", "rotate", "scale"):
+            actions.clear(); cleared.clear()
+            self.view.set_tool(tool)
+            # A click on empty world clears the selection; nothing is transformed.
+            self.view.orbit_start(SimpleNamespace(x=400, y=300, state=0))
+            self.view.end_drag(SimpleNamespace(x=400, y=300, state=0))
+            self.assertEqual((actions, cleared), ([(tool, "begin"), (tool, "cancel")], [True]), tool)
+            # A drag starting off the object still transforms it (rotate/scale anywhere).
+            actions.clear(); cleared.clear()
+            self.view.orbit_start(SimpleNamespace(x=400, y=300, state=0))
+            self.view.orbit_drag(SimpleNamespace(x=440, y=300, state=0x100))
+            self.view.end_drag(SimpleNamespace(x=440, y=300, state=0))
+            self.assertEqual(actions[-1], (tool, "commit"), tool)
+            self.assertEqual(cleared, [], tool)
+        # A click on another object selects it.
+        self.view.set_tool("move")
+        self.view.instances[0].update(role="base", object_id=2)
+        self.view.orbit_start(SimpleNamespace(x=400, y=300, state=0))
+        self.view.end_drag(SimpleNamespace(x=400, y=300, state=0))
+        self.assertEqual(selected, [2])
+
+    def test_a_double_click_uses_the_object_under_the_pointer(self):
+        used = []
+        self.view.on_use = used.append
+        self.view.instances[0].update(role="base", object_id=0x8140000000030031)
+        self.view.use_object(SimpleNamespace(x=400, y=300, state=0))
+        self.assertEqual(used, [0x8140000000030031])
+
     def test_escape_cancels_an_active_rotation_drag(self):
         actions = []
         self.view.on_transform = lambda tool, options, phase: actions.append(phase) or True
@@ -226,6 +262,24 @@ class ViewportTests(unittest.TestCase):
         self.view.orbit_start(SimpleNamespace(x=400, y=300, state=4))
         self.assertEqual(selected, [(123, True)])
         self.assertEqual(self.picked, [])
+
+    def test_a_click_in_fly_mode_selects_a_world_object_and_a_drag_looks(self):
+        selected = []
+        self.view.on_select = lambda identity, additive: selected.append((identity, additive))
+        self.view.instances[0].update(role="base", object_id=0x8140000000000009, did=1)
+        self.view.set_tool("explore")
+        # A drag looks around and selects nothing.
+        self.view.orbit_start(SimpleNamespace(x=400, y=300, state=0))
+        self.view.orbit_drag(SimpleNamespace(x=430, y=300, state=0))
+        self.view.end_drag(SimpleNamespace(x=430, y=300, state=0))
+        self.assertEqual(selected, [])
+        self.assertEqual(self.view.tool.get(), "explore")
+        # A click (press and release in place) selects and shows the move handles.
+        self.view.focus, self.view.azimuth, self.view.elevation = (0, 0, 0), 0, -1.2
+        self.view.orbit_start(SimpleNamespace(x=400, y=300, state=0))
+        self.view.end_drag(SimpleNamespace(x=401, y=300, state=0))
+        self.assertEqual(selected, [(0x8140000000000009, False)])
+        self.assertEqual(self.view.tool.get(), "move")
 
     def test_native_keys_move_directly_without_tk_key_focus(self):
         self.view.set_tool("explore")

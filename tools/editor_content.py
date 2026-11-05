@@ -191,6 +191,10 @@ def ensure_database(world_path, shipped=SHIPPED):
 def _connect(world_path):
     db = sqlite3.connect(ensure_database(world_path))
     db.execute("PRAGMA foreign_keys = ON")
+    # A database built before spawn chances (schema 16) gets the column, empty (as the server's
+    # `open_dump` adds it to an older dump).
+    if "chance" not in [c[1] for c in db.execute("PRAGMA table_info(spawn_group_member)")]:
+        db.execute("ALTER TABLE spawn_group_member ADD COLUMN chance TEXT")
     return db
 
 
@@ -281,7 +285,7 @@ def rules_text(world_path):
             for row in db.execute(query):
                 out.append("\t".join([kind, _bare(row[0])] + [_field(v) for v in row[1:]]))
         for gid, capacity, regen, members in db.execute(
-                "SELECT g.id, g.capacity, g.regen_ms, group_concat(substr(m.placement, 3), ',') FROM spawn_group g "
+                "SELECT g.id, g.capacity, g.regen_ms, group_concat(substr(m.placement, 3) || coalesce(':' || m.chance, ''), ',') FROM spawn_group g "
                 "JOIN spawn_group_member m ON m.spawn_group = g.id GROUP BY g.id ORDER BY g.id"):
             out.append("\t".join(["group", _bare(gid), _field(capacity), _field(regen), members]))
         return "\n".join(out) + "\n"
@@ -318,7 +322,9 @@ def write_rules(world_path, text, save=True):
             elif f[0] == "group":
                 db.execute("INSERT INTO spawn_group (id, capacity, regen_ms, source) VALUES (?,?,?,?)", ("0x" + f[1], f[2], value(f, 3), src))
                 for member in f[4].split(","):
-                    db.execute("INSERT INTO spawn_group_member (spawn_group, placement, source) VALUES (?,?,?)", ("0x" + f[1], "0x" + member, src))
+                    member, _, chance = member.partition(":")
+                    db.execute("INSERT INTO spawn_group_member (spawn_group, placement, chance, source) VALUES (?,?,?,?)",
+                               ("0x" + f[1], "0x" + member, chance or None, src))
             else:
                 raise ValueError(f"unrecognized rule row `{f[0]}`")
         db.commit()

@@ -53,6 +53,9 @@ pub struct Spawners {
     groups:BTreeMap<u64,Group>,
     baseline:BTreeMap<u64,Group>,
     membership:BTreeMap<u64,u64>,
+    /// Operator member chances (world_rules::Group::chances), keyed by point.
+    chances:BTreeMap<u64,f32>,
+    random:u64,
 }
 impl Spawners {
     /// Adopt the initial content lifetimes. Server bootstrap withdraws those
@@ -210,6 +213,40 @@ impl Spawners {
         self.groups=next.groups;self.membership=next.membership;
         Ok(())
     }
+    /// Live edit or load: the operator groups' member chances.
+    pub fn set_chances(&mut self, chances: BTreeMap<u64, f32>) {
+        self.chances = chances.into_iter().filter(|(_, c)| c.is_finite() && *c > 0. && *c <= 1.).collect();
+    }
+    fn unit(&mut self) -> f64 {
+        if self.random == 0 {
+            let mut seed = [0u8; 8];
+            let _ = getrandom::getrandom(&mut seed);
+            self.random = u64::from_le_bytes(seed) | 1;
+        }
+        let mut x = self.random;
+        x ^= x >> 12; x ^= x << 25; x ^= x >> 27;
+        self.random = x;
+        (x.wrapping_mul(0x2545_f491_4f6c_dd1d) >> 11) as f64 / (1u64 << 53) as f64
+    }
+    /// ACE WorldObject.SelectAProfile for a free slot: one roll in [0, total) over the
+    /// group's chance members that are ready (waiting and due), each taking its share
+    /// in roster order. Maxed (alive, corpse) or cooling-down members are left out, so
+    /// the shares are relative to what can spawn now, as ACE's GetTotalProbability.
+    fn roll(&mut self, id: u64, now: u64) -> u64 {
+        if !self.chances.contains_key(&id) { return id; }
+        let Some(group) = self.membership.get(&id).and_then(|g| self.groups.get(g)) else { return id };
+        let ready = group.members.iter().filter_map(|m| {
+            let chance = *self.chances.get(m)?;
+            matches!(self.points.get(m)?.state, State::Waiting { due } if due <= now).then_some((*m, f64::from(chance)))
+        }).collect::<Vec<_>>();
+        let total = ready.iter().map(|(_, c)| c).sum::<f64>();
+        let mut roll = self.unit() * total;
+        for (member, chance) in &ready {
+            if roll < *chance { return *member; }
+            roll -= chance;
+        }
+        ready.last().map_or(id, |(m, _)| *m)
+    }
     pub fn poll(&mut self, now: u64) -> Vec<Action> {
         let mut actions = Vec::new();
         while self.due.peek().is_some_and(|Reverse((due, _))| *due <= now) {
@@ -223,8 +260,15 @@ impl Spawners {
                     if !capacity {
                         let due=now.saturating_add(1000);point.state=State::Waiting{due};self.due.push(Reverse((due,id)));continue;
                     }
-                    point.state = State::Spawning;
-                    actions.push(Action::Spawn(id));
+                    let chosen = self.roll(id, now);
+                    if chosen != id {
+                        // Another ready member won this slot; this one waits for the next.
+                        let due=now.saturating_add(1000);
+                        self.points.get_mut(&id).unwrap().state=State::Waiting{due};self.due.push(Reverse((due,id)));
+                    }
+                    // The winner's own pending deadline goes stale (deadline() is None while spawning).
+                    self.points.get_mut(&chosen).unwrap().state = State::Spawning;
+                    actions.push(Action::Spawn(chosen));
                 }
                 State::Corpse { refill_at, .. } => {
                     point.state = State::Removing { refill_at };
@@ -335,6 +379,38 @@ mod tests {
         assert!(p.poll(10000).is_empty());assert_eq!(p.live(),2);
         assert!(p.group(2,3,vec![7,8]).is_err());assert!(p.group(2,1,vec![10]).is_err());
         assert!(p.group(2,1,vec![7,7]).is_err());
+    }
+    #[test]
+    fn chance_members_share_each_free_slot_like_ace_select_a_profile() {
+        let policy=Policy{initial_delay_ms:0,regeneration_ms:1000};
+        let mut tally=BTreeMap::<u64,u32>::new();
+        let mut p=Spawners::new([7,8].into_iter().map(|id|(id,policy))).unwrap();
+        p.random=0x9e37_79b9_7f4a_7c15;
+        p.replace_groups(1<<63,vec![(1,1,vec![7,8])]).unwrap();
+        p.set_chances(BTreeMap::from([(7,0.75),(8,0.25)]));
+        for round in 0..4000u64 {
+            let now=round*10_000;
+            p.initialize(now);
+            let spawned=p.poll(now);
+            assert_eq!(spawned.len(),1,"capacity 1: one slot, one roll");
+            let Action::Spawn(id)=spawned[0] else{panic!()};
+            *tally.entry(id).or_default()+=1;
+            p.spawned(id);
+        }
+        let share=f64::from(tally[&7])/4000.;
+        assert!((0.71..0.79).contains(&share),"75% member won {share}");
+    }
+    #[test]
+    fn a_lone_ready_chance_member_always_fills_its_slot() {
+        let policy=Policy{initial_delay_ms:0,regeneration_ms:1000};
+        let mut p=Spawners::new([7,8].into_iter().map(|id|(id,policy))).unwrap();
+        p.replace_groups(1<<63,vec![(1,1,vec![7,8])]).unwrap();
+        p.set_chances(BTreeMap::from([(7,0.9),(8,0.1)]));
+        p.initialize(0);let Action::Spawn(first)=p.poll(0)[0] else{panic!()};p.spawned(first);
+        let other=if first==7{8}else{7};
+        p.died(first,10,0);p.poll(10);p.removed(first,10);
+        // The cooling-down winner is out of the roll; the other is ready and alone.
+        assert_eq!(p.poll(1000),vec![Action::Spawn(other)]);
     }
     #[test]
     fn live_points_and_groups_change_without_disturbing_living_children() {

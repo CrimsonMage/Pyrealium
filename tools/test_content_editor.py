@@ -51,11 +51,20 @@ class EditorWorkflowTests(unittest.TestCase):
         self.assertEqual(read_document(self.path), self.original)
         self.assertTrue(editor.unsaved())
         self.assertEqual(str(editor.write_button.cget("state")), "normal")
+        # The 3D toolbar's Save button shows the unsaved state and saves.
+        self.assertIn("Save changes", editor.view3d.save_button.cget("text"))
         with patch.object(editor.live, "changed") as pushed:
             editor.save_file()
         pushed.assert_called_once()
         self.assertEqual(rows_from_text(read_document(self.path))[0][4], "45")
         self.assertFalse(editor.unsaved())
+        self.assertEqual(editor.view3d.save_button.cget("text"), "Saved")
+        editor.undo()
+        editor.view3d.save_button.invoke()   # the toolbar button itself
+        self.assertFalse(editor.unsaved())
+        self.assertEqual(read_document(self.path), self.original)
+        editor.redo()
+        editor.save_file()
         # Undo is a working-copy edit again, saved by the next Save.
         editor.undo()
         self.assertEqual(rows_from_text(read_document(self.path))[0][4], "45")
@@ -118,6 +127,20 @@ class EditorWorkflowTests(unittest.TestCase):
             self.editor.reload()
         self.assertEqual(self.editor.fields["X"].get(), "45")
         self.assertEqual(self.editor.selected_id, int(self.row[:16], 16))
+
+    def test_delete_and_selection_changes_never_open_a_dialog(self):
+        editor = self.editor
+        self.select()
+        editor.fields["X"].set("45")      # a form edit not applied
+        with patch("content_editor.messagebox.askyesno", side_effect=AssertionError("dialog")):
+            editor.clear_selection()
+            self.assertIsNone(editor.selected_id)
+            self.select()
+            editor.viewport_command("delete")
+        self.assertEqual(rows_from_text(editor.original), [])
+        self.assertEqual(read_document(self.path), self.original, "nothing written before Ctrl+S")
+        editor.undo()
+        self.assertEqual(len(rows_from_text(editor.original)), 1)
 
     def test_world_load_without_selected_entity(self):
         self.editor.fields["Entity"].set("")
@@ -247,6 +270,11 @@ class EditorWorkflowTests(unittest.TestCase):
         editor.save_file()
         saved = [row for row in rows_from_text(read_document(self.path)) if row[0] == "8140000000000009"]
         self.assertEqual(saved[0][4], "9")
+        # Clearing the selection keeps the working copy.
+        editor.clear_selection()
+        self.assertIsNone(editor.selected_id)
+        self.assertEqual(editor.view3d.tool.get(), "explore")
+        editor.select_in_view(0x8140000000000009)
         # Deleting the override reverts the object to the prepared world.
         with patch("content_editor.messagebox.askyesno", return_value=True):
             editor.delete_selected()
@@ -259,6 +287,67 @@ class EditorWorkflowTests(unittest.TestCase):
         editor.save_file()
         saved = [row for row in rows_from_text(read_document(self.path)) if row[0] == "814000000000000a"]
         self.assertEqual(saved[0][1:3], ["47000222", "1f000333"])
+
+    def test_selecting_and_moving_keep_the_loaded_scene(self):
+        from editor_population import read_reference
+        editor = self.editor
+        base_file = self.folder / "prepared.tsv"
+        base_file.write_text("pyrealium-world-v4\n"
+                             "8140000000000009\t47000001\t1f000001\t02990109\t5\t6\t7\t1\t0\t0\t0\t-\tGuard\n", encoding="utf-8")
+        editor.population.reference = read_reference(base_file)
+        editor.active_scene_cell = 0x02990109
+        revision = editor.content_revision
+        with patch.object(editor.view3d, "place_rows") as placed:
+            editor.select_in_view(0x8140000000000009)   # the override copy changes nothing drawn
+            self.assertEqual(editor.content_revision, revision)
+            placed.assert_not_called()
+            editor.fields["X"].set("9")
+            editor.save()                               # a move: in place
+            self.assertEqual(editor.content_revision, revision)
+            moved = placed.call_args.args
+            self.assertEqual((moved[0][0][4], moved[1][0][4]), ("9", "5"))
+            editor.undo()                               # back: in place again
+            self.assertEqual(editor.content_revision, revision)
+            self.assertEqual(placed.call_args.args[0][0][4], "5")
+        # Adding a new object loads its model: a rebuild.
+        editor.new_placement()
+        editor.fields["X"].set("20")
+        editor.save()
+        self.assertGreater(editor.content_revision, revision)
+
+    def test_navigation_bar_names_the_place_and_facing(self):
+        from editor_hero_map import map_units, world_point
+        editor = self.editor
+        self.assertEqual(editor.navigation_text(), ("Open an area from the World map.", None))
+        editor.outdoor_grid = {"block_side": 160, "cell_side": 20, "cells": 8}
+        editor.active_scene_cell = 0x74ba0001
+        # The camera stands 10 m into the next block east, facing east.
+        with patch.object(editor.view3d, "camera", return_value=((170, 15, 30), (1, 0, 0), (0, -1, 0), (0, 0, 1))):
+            text, bearing = editor.navigation_text()
+        self.assertEqual(round(bearing), 90)
+        self.assertIn("landblock 75BA  ·  cell 75BA0001", text)
+        self.assertIn(map_units(*world_point(0x75ba0001, 10, 15)), text)
+        self.assertTrue(text.endswith("facing  90° E"), text)
+        with patch.object(editor.view3d, "camera", return_value=((5, 5, 1), (-0.7071, -0.7071, 0), (0, 0, 0), (0, 0, 1))):
+            self.assertTrue(editor.navigation_text()[0].endswith("facing 225° SW"))
+        with patch.object(editor.view3d, "camera", return_value=((5, 5, 1), (-0.004, 1, 0), (0, 0, 0), (0, 0, 1))):
+            self.assertTrue(editor.navigation_text()[0].endswith("facing   0° N"))
+        editor.active_scene_cell = 0x02990109
+        with patch.object(editor.view3d, "camera", return_value=((1, 2, 3), (0, 1, 0), (1, 0, 0), (0, 0, 1))):
+            self.assertTrue(editor.navigation_text()[0].startswith("Dungeon room 02990109"))
+        editor.view3d.set_navigation("here", 90)
+        self.assertEqual(editor.view3d.nav_text.get(), "here")
+        self.assertTrue(editor.view3d.compass.find_all())
+
+    def test_a_portal_with_a_route_takes_the_camera_through(self):
+        editor = self.editor
+        editor.portal_routes = {"8140000000030031": dict(id="8140000000030031", destination=(0x58740039, [147.74, 15.13, 161.75]))}
+        with patch.object(editor, "navigate_to") as travel:
+            editor.use_object(0x8140000000030031)
+            travel.assert_called_once_with(0x58740039, [147.74, 15.13, 161.75])
+            editor.use_object(0x8140000000099999)
+            travel.assert_called_once()
+        self.assertIn("no route", editor.status.get())
 
     def test_entity_search_takes_ids_as_copied(self):
         editor = self.editor

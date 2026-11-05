@@ -342,7 +342,7 @@ mod tests {
         let original=runtime.initial_health().collect::<Vec<_>>();
         let mut rules=Rules::parse(&format!("{}\nstats\t470007d1\t999\t-\t-\t-\t-\t-\t-\t-\t-\t-\n",crate::world_rules::HEADER)).unwrap();
         // An invalid roster can also arrive through an in-process operator API.
-        rules.groups.push(crate::world_rules::Group{id:1,capacity:1,regeneration_ms:None,members:vec![id,id]});
+        rules.groups.push(crate::world_rules::Group{id:1,capacity:1,regeneration_ms:None,members:vec![id,id],chances:Default::default()});
         assert!(apply(&change(vec![],vec![object(id,Placement::HUMAN_START,None)],Some(rules)),&mut scene,Some(&mut runtime),&mut loot,10).is_err());
         assert_eq!(runtime.initial_health().collect::<Vec<_>>(),original);
         assert!(!runtime.is_creature(id));

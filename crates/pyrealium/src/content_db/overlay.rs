@@ -81,7 +81,7 @@ pub fn rules_text(db: &Connection) -> io::Result<String> {
         FROM creature_ai ORDER BY target", "ai", 9)?;
     rows("SELECT target, weight, items FROM creature_loot ORDER BY target, ord", "loot", 3)?;
     rows("SELECT actor, pause_ms, points FROM patrol ORDER BY actor", "patrol", 3)?;
-    let mut statement = db.prepare("SELECT g.id, g.capacity, g.regen_ms, group_concat(substr(m.placement, 3), ',') FROM spawn_group g \
+    let mut statement = db.prepare("SELECT g.id, g.capacity, g.regen_ms, group_concat(substr(m.placement, 3) || coalesce(':' || m.chance, ''), ',') FROM spawn_group g \
         JOIN spawn_group_member m ON m.spawn_group = g.id GROUP BY g.id ORDER BY g.id").map_err(sql)?;
     let mut found = statement.query([]).map_err(sql)?;
     while let Some(row) = found.next().map_err(sql)? {
@@ -151,9 +151,11 @@ pub fn import(db: &mut Connection, world: &str, rules: &str, game_data: Option<&
             "group" => {
                 tx.execute("INSERT INTO spawn_group (id, capacity, regen_ms, source) VALUES (?1, ?2, ?3, ?4)",
                     rusqlite::params![hex(f[1]), f[2], v(3), src]).map_err(sql)?;
+                // A member is `placement` or `placement:chance` (`world_rules::Group::chances`).
                 for member in f[4].split(',') {
-                    tx.execute("INSERT INTO spawn_group_member (spawn_group, placement, source) VALUES (?1, ?2, ?3)",
-                        rusqlite::params![hex(f[1]), hex(member), src]).map_err(sql)?;
+                    let (member, chance) = member.split_once(':').map_or((member, None), |(m, c)| (m, Some(c)));
+                    tx.execute("INSERT INTO spawn_group_member (spawn_group, placement, chance, source) VALUES (?1, ?2, ?3, ?4)",
+                        rusqlite::params![hex(f[1]), hex(member), chance, src]).map_err(sql)?;
                 }
                 Ok(1)
             }
@@ -174,7 +176,7 @@ mod tests {
         ai\t8140000000030001\t20\t-\t1\t8\t0.25\t0\t-\t1\n\
         loot\t47001234\t3\t47000f2d,47000f2e\nloot\t47001234\t1\t-\n\
         patrol\t8140000000030001\t2000\t1,0;0,1;-1,0\n\
-        group\t1a\t2\t30000\t8140000000030001,8140000000030002\n";
+        group\t1a\t2\t30000\t8140000000030001,8140000000030002:0.25\n";
 
     #[test]
     fn a_world_builders_files_come_in_as_rows_and_back_out_as_the_same_world_and_rules() {

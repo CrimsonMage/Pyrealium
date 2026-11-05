@@ -55,7 +55,7 @@ class PopulationWorkflowTests(unittest.TestCase):
 
     def test_stats_behaviour_and_loot_are_saved_per_placement(self):
         inspector = self.inspect()
-        self.assertIn("460 (native)", inspector.hints["health"].cget("text"))
+        self.assertIn("DAT: 460", inspector.hints["health"].cget("text"))
         inspector.values["health"][1].set("999")
         inspector.values["aggressive"][1].set("no")
         inspector.loot_rows = [(3, ["47000ed7"]), (1, [])]

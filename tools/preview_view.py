@@ -59,6 +59,10 @@ class Preview3D(ttk.Frame):
         self.on_nudge = on_nudge
         self.on_camera_move = on_camera_move
         self.on_select = on_select
+        # Called when a click lands on empty world while something is selected.
+        self.on_deselect = None
+        # Called with an object id on a double-click (or T on the selection): use it.
+        self.on_use = None
         self.on_command = on_command
         self.on_transform = on_transform
         self.on_stamp = on_stamp
@@ -108,6 +112,11 @@ class Preview3D(ttk.Frame):
             button = ttk.Button(tools, text=label, command=lambda value=name: self.set_tool(value))
             button.pack(side="left", padx=2)
             self.tool_buttons[name] = button
+        # Always on screen: Save writes the content file (and pushes it to a live server).
+        self.save_button = ttk.Button(tools, text="Save  Ctrl+S", style="Accent.TButton",
+                                      command=lambda: self.on_command and self.on_command("save"))
+        self.save_button.pack(side="right", padx=2)
+        ttk.Button(tools, text="Delete  Del", command=lambda: self.on_command and self.on_command("delete")).pack(side="left", padx=(12, 2))
         self.move_step = tk.StringVar(value="1")
         controls = ttk.Frame(self)
         controls.pack(fill="x", pady=(0, 4))
@@ -136,6 +145,16 @@ class Preview3D(ttk.Frame):
         self.canvas = tk.Canvas(self, background="#17212c", highlightthickness=0, height=330)
         self.canvas.pack(fill="both", expand=True)
         self.status = tk.StringVar(value="Choose a game data folder and load the native geometry.")
+        # Navigation: a compass (north up, the needle where the camera faces) and the
+        # camera's map coordinates, filled in by the editor (set_navigation).
+        nav = ttk.Frame(self)
+        nav.pack(fill="x", pady=(0, 4), before=self.canvas)
+        self.compass = tk.Canvas(nav, width=58, height=58, highlightthickness=0, background="#17212c")
+        self.compass.pack(side="left")
+        self.nav_text = tk.StringVar(value="Open an area from the World map.")
+        ttk.Label(nav, textvariable=self.nav_text, font=("TkFixedFont", 11)).pack(side="left", padx=10)
+        self.nav_shown = None
+        self.set_navigation(self.nav_text.get(), None)
         self.tool_help = tk.StringVar()
         ttk.Label(self, textvariable=self.tool_help, wraplength=850).pack(anchor="w", pady=(5, 0))
         self.tool_changed()
@@ -144,7 +163,9 @@ class Preview3D(ttk.Frame):
         self.canvas.bind("<Motion>", self.hover_placement)
         self.canvas.bind("<ButtonPress-1>", self.orbit_start)
         self.canvas.bind("<B1-Motion>", self.orbit_drag)
-        self.canvas.bind("<ButtonRelease-1>", lambda event: self.end_drag())
+        self.canvas.bind("<ButtonRelease-1>", self.end_drag)
+        # A double-click on an object uses it (a portal: travel through it).
+        self.canvas.bind("<Double-Button-1>", self.use_object)
         self.canvas.bind("<ButtonPress-3>", self.pan_start)
         self.canvas.bind("<B3-Motion>", self.pan_drag)
         self.canvas.bind("<ButtonRelease-3>", lambda event: self.end_drag())
@@ -436,13 +457,19 @@ class Preview3D(ttk.Frame):
             from editor_gizmo import descriptor, hit_axis
             width, height = self.canvas.winfo_width(), self.canvas.winfo_height()
             gizmo = descriptor(self.instances, tool, self.camera(), width, height)
+            hit = self.surface_hit(event, {"world", "saved", "base", "preview"})
+            target = hit[2] if hit else None
             if gizmo is None:
-                hit = self.surface_hit(event, {"world", "saved", "base", "preview"})
-                if hit and hit[2].get("object_id") is not None and self.on_select:
-                    self.on_select(hit[2]["object_id"], bool(event.state & 4))
+                if target is not None and target.get("object_id") is not None and self.on_select:
+                    self.on_select(target["object_id"], bool(event.state & 4))
                     self.set_tool(tool)
                 return
             axis = hit_axis(event.x, event.y, gizmo, self.camera(), width, height) if tool == "move" else None
+            # A drag anywhere transforms the selection. A click (released without moving)
+            # off it selects the object under the pointer, or clears the selection over
+            # empty world: end_drag decides once it knows whether the pointer moved.
+            on_selection = axis is not None or (target is not None and (target.get("selected") or target.get("role") == "preview"))
+            self.click_off = None if on_selection else (target, event.state)
             if self.on_transform and self.on_transform(tool, {}, "begin"):
                 self.transform_drag = dict(tool=tool, start=(event.x, event.y), gizmo=gizmo,
                                            camera=self.camera(), width=width, height=height, axis=axis, changed=False)
@@ -456,6 +483,8 @@ class Preview3D(ttk.Frame):
             if hit and hit[2].get("object_id") is not None and self.on_select is not None:
                 self.on_select(hit[2]["object_id"], bool(event.state & 5))
             else:
+                if self.on_deselect is not None:
+                    self.on_deselect()
                 self.status.set("No editable placement under the pointer. Native DAT scenery is a read-only reference.")
             self.drag = None
             return
@@ -465,6 +494,8 @@ class Preview3D(ttk.Frame):
             self.drag = None
         else:
             self.drag = (event.x, event.y)
+            # A press released without dragging is a click: it selects (see end_drag).
+            self.click_start = (event.x, event.y, event.state)
 
     def orbit_drag(self, event):
         if self.terrain_dragging:
@@ -572,6 +603,8 @@ class Preview3D(ttk.Frame):
                 self.on_command("cancel")
         elif key == "delete" and self.on_command:
             self.on_command("delete")
+        elif key == "t" and self.on_command:
+            self.on_command("use")
         elif self.tool.get() != "explore" and key in ("q", "w", "e", "r"):
             self.set_tool({"q": "select", "w": "move", "e": "rotate", "r": "scale"}[key])
         elif key == "f":
@@ -646,14 +679,30 @@ class Preview3D(ttk.Frame):
         self.drag = event.x, event.y
         self.redraw()
 
-    def end_drag(self):
+    def end_drag(self, event=None):
+        click, self.click_start = getattr(self, "click_start", None), None
+        if (click is not None and event is not None and self.tool.get() in ("explore", "orbit")
+                and abs(event.x - click[0]) <= 4 and abs(event.y - click[1]) <= 4):
+            # Fly / orbit: a click on an object selects it and shows the move handles.
+            hit = self.surface_hit(event, {"world", "saved", "base", "preview"})
+            if hit and hit[2].get("object_id") is not None and self.on_select is not None:
+                self.on_select(hit[2]["object_id"], bool(click[2] & 5))
+                self.set_tool("move")
         if self.terrain_dragging:
             self.terrain_dragging=False
             if self.on_surface:self.on_surface(None,"commit")
+        click_off, self.click_off = getattr(self, "click_off", None), None
         if self.transform_drag is not None:
             gesture, self.transform_drag = self.transform_drag, None
             if self.on_transform:
                 self.on_transform(gesture["tool"], {}, "commit" if gesture["changed"] else "cancel")
+            if click_off is not None and not gesture["changed"]:
+                target, state = click_off
+                if target is not None and target.get("object_id") is not None and self.on_select:
+                    self.on_select(target["object_id"], bool(state & 4))
+                    self.set_tool(gesture["tool"])
+                elif self.on_deselect is not None:
+                    self.on_deselect()
         self.drag = None
         self.placement_drag = False
 
@@ -980,6 +1029,47 @@ class Preview3D(ttk.Frame):
                 self.transform(item)
         self.instances.extend(additions)
         self.redraw()
+
+    def use_object(self, event):
+        hit = self.surface_hit(event, {"world", "saved", "base", "preview"})
+        if hit and hit[2].get("object_id") is not None and self.on_use is not None:
+            self.on_use(hit[2]["object_id"])
+        return "break"
+
+    def facing(self):
+        """Compass bearing the camera looks along: 0 north (+Y), 90 east (+X)."""
+        forward = self.camera()[1]
+        return math.degrees(math.atan2(forward[0], forward[1])) % 360
+
+    def set_navigation(self, text, bearing):
+        """Show the coordinates line and turn the compass needle (None hides it)."""
+        shown = (text, None if bearing is None else round(bearing))
+        if shown == self.nav_shown:
+            return
+        self.nav_shown = shown
+        self.nav_text.set(text)
+        c = self.compass
+        c.delete("all")
+        size, middle = 58, 29
+        c.create_oval(4, 4, size - 4, size - 4, outline="#5b7387", width=2, fill="#1d2a37")
+        for label, dx, dy in (("N", 0, -1), ("E", 1, 0), ("S", 0, 1), ("W", -1, 0)):
+            c.create_text(middle + dx * 18, middle + dy * 18, text=label, font=("TkDefaultFont", 8, "bold"),
+                          fill="#ffd479" if label == "N" else "#9fb3c4")
+        if bearing is not None:
+            angle = math.radians(bearing)
+            tip = (middle + math.sin(angle) * 22, middle - math.cos(angle) * 22)
+            tail = (middle - math.sin(angle) * 9, middle + math.cos(angle) * 9)
+            side = (math.cos(angle) * 5, math.sin(angle) * 5)
+            c.create_polygon(tip[0], tip[1], tail[0] + side[0], tail[1] + side[1], tail[0] - side[0], tail[1] - side[1],
+                             fill="#ffd479", outline="#142233")
+
+    def place_rows(self, rows, original_rows, reference, landscape=None):
+        """Move loaded objects to new rows in place (no scene rebuild), keeping the selection."""
+        selected = {item.get("object_id") for item in self.instances if item.get("selected")}
+        self.clear_arrangement()
+        self.preview_arrangement(rows, original_rows, reference, landscape)
+        self.arrangement_base = None
+        self.set_selection(selected - {None})
 
     def close(self):
         self.stop_travel()

@@ -12,6 +12,38 @@ import struct
 from ac2_dat import Dat
 
 
+# it_portal_shard.vd and it_portal_shard_gate.vd (DID names), the world's portal visuals.
+PORTAL_VISUALS = frozenset({0x1f00031e, 0x1f000d09})
+_ORB = []
+
+
+def portal_orb(radius=1.0, height=1.6, rings=10, segments=16):
+    """Editor stand-in for a portal: a purple sphere centred `height` above the origin."""
+    if _ORB:
+        return _ORB[0]
+    vertices, normals, indices = [], [], []
+    for ring in range(rings + 1):
+        theta = math.pi * ring / rings
+        for segment in range(segments + 1):
+            phi = 2 * math.pi * segment / segments
+            n = (math.sin(theta) * math.cos(phi), math.sin(theta) * math.sin(phi), math.cos(theta))
+            normals.append(list(n))
+            vertices.append([n[0] * radius, n[1] * radius, n[2] * radius + height])
+    for ring in range(rings):
+        for segment in range(segments):
+            a = ring * (segments + 1) + segment
+            b = a + segments + 1
+            indices += [a, a + 1, b, a + 1, b + 1, b]
+    color = (170, 70, 235)
+    _ORB.append(dict(did=None, vertices=vertices, normals=normals, indices=indices,
+                     uvs=[[0, 0]] * len(vertices), groups=[dict(start=0, count=len(indices), material=0)],
+                     materials=[0], material_images={}, material_colors={0: list(color)},
+                     material_diffuse={0: [color[0] / 255, color[1] / 255, color[2] / 255, 1.]},
+                     material_states={0: {}}, triangle_colors=[color] * (len(indices) // 3),
+                     attached=True, portal_marker=True))
+    return _ORB[0]
+
+
 class Reader:
     def __init__(self, data):
         self.data, self.offset = data, 0
@@ -182,7 +214,9 @@ class Assets:
         value = decode_mesh(self.portal.read(did))
         self.color_mesh(value)
         self.cache[did] = value
-        if len(self.cache) > 32:
+        # A scene uses a few hundred meshes; holding about three areas' worth makes a
+        # rebuild after a selection or edit reuse them instead of decoding again.
+        if len(self.cache) > 384:
             self.cache.popitem(last=False)
         return value
 
@@ -201,7 +235,7 @@ class Assets:
                     self.materials[material] = material_info(self.portal, material, self.surfaces, max_size=256)
                 except (OSError, ValueError, KeyError) as error:
                     self.materials[material] = {"average": [130, 145, 155], "image_error": str(error)}
-                if len(self.materials) > 32:
+                if len(self.materials) > 256:
                     self.materials.popitem(last=False)
             info = self.materials[material]
             self.materials.move_to_end(material)
@@ -255,6 +289,17 @@ class Assets:
         return result
 
     def creature(self, visual):
+        """The visual's meshes; a portal visual (its swirl is an FX the preview does not
+        draw) also gets a solid purple orb so it can be seen, selected and used."""
+        if visual not in PORTAL_VISUALS:
+            return self.parts(visual)
+        try:
+            meshes = self.parts(visual)
+        except (OSError, ValueError, KeyError):
+            meshes = []
+        return meshes + [(portal_orb(), (1, 1, 1))]
+
+    def parts(self, visual):
         """The visual's meshes, each part group placed at its parent's connection point.
 
         A mesh of an attached (non-root) group is a moved copy marked `attached`; the root

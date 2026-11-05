@@ -423,6 +423,7 @@ vault_id	field	key	value	source
 172	journal	4	0x25007fbe:0xb12096d1	DAT lataua.stt key b12096d1: 'Speak to the Hand of Asheron to gain access to the Scriptorium.'
 172	journal	7	0x25007fbe:0xb02096d1	DAT lataua.stt key b02096d1: 'Journey to Virindi portalspace to guard the Lens of Perception.'
 172	journal	9	0x25007fbe:0xb32096d1	DAT lataua.stt key b32096d1: 'Speak to Naokim to locate the Codex of Shadows.'
+182	start_npc	entity	0x470042ee	DAT 7230: string table 0x25008adc names him "Grey Ondaros" (Report to Grey Ondaros.), entity 0x470042ee (catalog "Grey Ondaros", visual npc_arb_grey.vd); the label match "Grey" picked 0x47003550, which is wsl_pumpkin4 (a grey pumpkin)
 185	step	1	kill 10 Anguish Crones	AC2 Vault quests/db 185 walkthrough: 'You must kill 10 Anguish Crones'
 185	step	2	talk Brother Groli Vontag	AC2 Vault quests/db 185 walkthrough: return to Brother Groli Vontag for the reward
 189	kill_target	Dark Dread Mu-miyah	0x47001f89	DAT wsl_mumiyahdarkdread.entity (name string 'Dread Dark Mu-miyah'); DAT redbellows table 25008b10 key cdeb1fb2 'How many Dread Dark Mu-miyah have you dispatched?' (the Vault writes the words in the other order)

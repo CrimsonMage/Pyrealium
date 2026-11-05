@@ -69,7 +69,7 @@ class RulesTests(unittest.TestCase):
         stats, behaviour = bestiary.effective(rules, entity, "8140000000020001")
         self.assertEqual(stats["health"], ("5", "type"))
         self.assertEqual(stats["damage"], ("9", "placement"))
-        self.assertEqual(stats["armor"][1], "native")
+        self.assertEqual(stats["armor"][1], "DAT")
         self.assertEqual(bestiary.roaming(rules, entity, None)["aggro"], 30.0)
         rules.set_behaviour(entity, {"homesick": "12"})
         self.assertEqual(bestiary.roaming(rules, entity, None)["leash"], 12.0)

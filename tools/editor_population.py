@@ -12,7 +12,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from editor_rules import BEHAVIOUR, STATS, Bestiary, Rules, check_value, load_rules, save_rules
+from editor_rules import BEHAVIOUR, STATS, Bestiary, Rules, check_value, load_rules, save_rules, spawn_shares
 from place_content import bounded_text
 
 COLORS = dict(leash="#8a4b55", aggro="#e0913a", wander="#58b97a", patrol="#4fc3e8",
@@ -487,7 +487,8 @@ class CreatureInspector:
             variable.set(value)
             base = inherited.get(name)
             text = "—" if base is None else {"1": "yes", "0": "no"}.get(base[0], base[0]) if spec[2] is bool else base[0]
-            self.hints[name].configure(text=f"inherits {text}" + (f" ({base[1]})" if base else ""))
+            # Blank fields inherit: show the value the server will use and where it comes from.
+            self.hints[name].configure(text=(f"{base[1]}: {text}" if base else "not set") + ("" if value == "" else "  (overridden)"))
         self.loot_rows = list(rules.loot.get(target, []))
         self.refresh_loot()
         self.refresh_group()
@@ -623,10 +624,19 @@ class CreatureInspector:
         ttk.Button(buttons, text="Add spawn point (copy here)", command=self.add_spawn).pack(side="left", padx=2)
         ttk.Button(buttons, text="Create group", command=self.create_group).pack(side="left", padx=2)
         ttk.Button(buttons, text="Remove selected member", command=self.remove_member).pack(side="left", padx=2)
+        chance = ttk.Frame(page)
+        chance.pack(fill="x", pady=(8, 0))
+        self.member_chance = tk.StringVar()
+        ttk.Label(chance, text="Selected member's chance %  (blank = always)").pack(side="left")
+        ttk.Entry(chance, textvariable=self.member_chance, width=7).pack(side="left", padx=6)
+        ttk.Button(chance, text="Set chance", command=self.set_chance).pack(side="left", padx=2)
+        self.members.bind("<<ListboxSelect>>", self.member_selected)
         ttk.Label(page, style="Muted.TLabel", wraplength=500, text=(
             "A spawn group is a generator: each member is a spawn point, and at most "
-            "'alive at once' of them are populated. Add spawn point copies this creature "
-            "into your world file 3 m east; move it with the placement tools.")).pack(anchor="w", pady=8)
+            "'alive at once' of them are populated. As in ACE, each free slot rolls once among the "
+            "ready members that have a chance, each winning its share of the total (shown as % of a roll); "
+            "members without a chance fill whenever a slot is free. Add spawn point copies this "
+            "creature into your world file 3 m east; move it with the placement tools.")).pack(anchor="w", pady=8)
 
     def refresh_group(self):
         group = self.population.rules.group_of(self.row["id"])
@@ -639,10 +649,44 @@ class CreatureInspector:
         self.group_note.configure(text=f"Spawn group {group['id']:x} · {len(group['members'])} spawn points")
         self.capacity.set(str(group["capacity"]))
         self.group_respawn.set("" if group["regeneration_ms"] is None else f"{group['regeneration_ms']/1000:g}")
+        shares = spawn_shares(group)
         for member in group["members"]:
             row = self.population.find(member)
-            self.members.insert("end", f"{member}  {self.population.label(row) if row else '(not placed)'}"
+            share = shares[member]
+            roll = "always" if share is None else f"{100 * share:.1f}% of a roll (chance {100 * group['chances'][member]:g}%)"
+            self.members.insert("end", f"{member}  {self.population.label(row) if row else '(not placed)'}  ·  {roll}"
                                 + ("  ← this" if member == self.row["id"] else ""))
+
+    def member_selected(self, event=None):
+        group = self.population.rules.group_of(self.row["id"])
+        selection = self.members.curselection()
+        if group is None or not selection:
+            return
+        chance = group.get("chances", {}).get(group["members"][selection[0]])
+        self.member_chance.set("" if chance is None else f"{100 * chance:g}")
+
+    def set_chance(self):
+        group = self.population.rules.group_of(self.row["id"])
+        selection = self.members.curselection()
+        if group is None or not selection:
+            self.editor_status("Select a member of the spawn group first.")
+            return
+        member = group["members"][selection[0]]
+        text = self.member_chance.get().strip().rstrip("%")
+        try:
+            percent = float(text) if text else None
+            if percent is not None and not (math.isfinite(percent) and 0 < percent <= 100):
+                raise ValueError()
+        except ValueError:
+            messagebox.showerror("Chance not set", "Enter a chance above 0 and at most 100, or leave it blank for always.", parent=self.window)
+            return
+        chances = group.setdefault("chances", {})
+        if percent is None:
+            chances.pop(member, None)
+        else:
+            chances[member] = percent / 100
+        self.commit_group(f"Spawn chance of {member}: " + ("always" if percent is None else f"{percent:g}%") + ".")
+        self.population.editor.show_object_data(force=True)
 
     def create_group(self):
         rules = self.population.rules

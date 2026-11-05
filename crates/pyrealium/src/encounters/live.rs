@@ -78,6 +78,8 @@ impl Encounters {
             }
             self.spawners.set_policy(id, self.bestiary.policy(id, actor));
         }
-        self.spawners.replace_groups(OPERATOR_GROUP, self.bestiary.operator_groups(&self.actors))
+        self.spawners.replace_groups(OPERATOR_GROUP, self.bestiary.operator_groups(&self.actors))?;
+        self.spawners.set_chances(self.bestiary.operator_chances());
+        Ok(())
     }
 }

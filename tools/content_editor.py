@@ -159,6 +159,7 @@ class Editor:
         self.extra_definitions = {key.lower(): value for key, value in self.settings.get("extra_definitions", {}).items()
                                   if isinstance(value, list) and len(value) == 2 and all(isinstance(v, str) for v in value)}
         self.geometry = GeometryTools(self)
+        self.object_data = None
         self.population = Population(self)
         self.live = LiveLink(self)
         self.hero_folder = tk.StringVar(value=self.settings.get("hero_map") or default_export())
@@ -175,6 +176,9 @@ class Editor:
         # updates the placement in the working copy.
         root.bind("<Control-s>", lambda event: self.save_file())
         root.bind("<Control-Return>", lambda event: self.save())
+        # Delete removes the selection unless a text field is being typed in.
+        root.bind("<Delete>", lambda event: None if isinstance(event.widget, (tk.Entry, ttk.Entry, ttk.Spinbox, ttk.Combobox, tk.Text))
+                  else self.viewport_command("delete"))
         root.bind("<Control-f>", lambda event: self.focus_catalog())
         root.bind("<Control-z>", lambda event: self.viewport_command("undo"))
         root.bind("<Control-y>", lambda event: self.viewport_command("redo"))
@@ -347,6 +351,9 @@ class Editor:
         self.view3d = Preview3D(self.workspace, on_pick=self.pick_3d, on_camera_move=self.camera_moved, on_select=self.select_in_view, on_command=self.viewport_command, on_transform=self.object_tools.transform, on_stamp=self.object_tools.stamp, on_surface=self.geometry.stroke, on_door=self.geometry.pick_door)
         self.view3d.canvas.configure(height=280)
         self.view3d.on_creature_click = lambda event: self.population.click_3d(self.view3d, event)
+        self.view3d.on_deselect = self.clear_selection
+        self.view3d.on_use = self.use_object
+        self.root.after(200, self.update_navigation)
         self.move_step = self.view3d.move_step
         map_frame = ttk.Frame(self.workspace)
         self.atlas = HeroMap(self.workspace, self.navigate_to, editor=self)
@@ -391,8 +398,19 @@ class Editor:
         inspector_tabs = ttk.Notebook(inspector)
         inspector_tabs.pack(fill="both", expand=True, padx=6, pady=6)
         transform_tab, tools_tab = ttk.Frame(inspector_tabs), ttk.Frame(inspector_tabs)
+        data_tab = ttk.Frame(inspector_tabs)
+        inspector_tabs.add(data_tab, text="Data")
         inspector_tabs.add(transform_tab, text="Transform")
         inspector_tabs.add(tools_tab, text="Tools")
+        data_scroll = ttk.Scrollbar(data_tab, orient="vertical")
+        data_scroll.pack(side="right", fill="y")
+        self.data_text = tk.Text(data_tab, wrap="word", width=34, background="#111925", foreground="#e5edf7",
+                                 borderwidth=0, highlightthickness=0, font=("TkDefaultFont", 9),
+                                 yscrollcommand=data_scroll.set, padx=6, pady=6)
+        self.data_text.pack(fill="both", expand=True)
+        data_scroll.configure(command=self.data_text.yview)
+        self.data_shown = object()
+        self.show_object_data()
         form = ttk.Frame(transform_tab, padding=(3, 5))
         form.pack(fill="x")
         form.columnconfigure(1, weight=1)
@@ -544,6 +562,10 @@ class Editor:
         if command in ("undo", "redo", "delete", "duplicate", "cancel"):
             self.view3d.cancel_transform()
             self.object_tools.cancel()
+        if command == "use":
+            if self.selected_id is not None:
+                self.use_object(self.selected_id)
+            return
         actions = {"save": self.save_file, "search": self.focus_catalog, "undo": self.undo,
                    "redo": self.redo, "delete": self.delete_selected, "duplicate": self.object_tools.duplicate}
         if command in actions:
@@ -893,9 +915,17 @@ class Editor:
     def field_snapshot(self):
         return {name: variable.get() for name, variable in self.fields.items()}
 
-    def discard_draft(self):
+    def confirm_discard_draft(self):
+        """Reload and close still ask before dropping form edits that were not applied."""
         return (not self.fields["Entity"].get().strip() or self.baseline is None or self.field_snapshot() == self.baseline or
                 messagebox.askyesno("Unsaved placement", "Discard the unsaved field changes?", parent=self.root))
+
+    def discard_draft(self):
+        """Form edits not yet applied (Update placement) are dropped when the selection changes.
+        No question is asked: a modal dialog could open behind the 3D view and block the editor."""
+        if self.fields["Entity"].get().strip() and self.baseline is not None and self.field_snapshot() != self.baseline:
+            self.status.set("Form edits that were not applied (Update placement / Ctrl+Enter) were dropped.")
+        return True
 
     def fields_changed(self):
         if self.changing_fields:
@@ -957,7 +987,7 @@ class Editor:
         self.placement_count.configure(text=f"{count:,} shown / {len(self.placements):,} saved")
 
     def reload(self, force=False):
-        if not force and not self.discard_draft():
+        if not force and not self.confirm_discard_draft():
             if self.loaded_path:
                 self.output.set(str(self.loaded_path))
             return
@@ -983,17 +1013,48 @@ class Editor:
             self.status.set(str(error))
             messagebox.showerror("Content could not be loaded", str(error), parent=self.root)
 
-    def show_document(self, rows):
-        """Show the working copy's placements (after a load, an edit, undo or redo)."""
+    def show_document(self, rows, before=None):
+        """Show the working copy's placements (after a load, an edit, undo or redo).
+
+        The loaded 3D scene is kept when only positions, rotations or scales changed:
+        those objects move in place. Only added or removed objects, or another entity
+        or visual, rebuild it."""
         self.placements = rows
         self.selected_id = None
         self.group_ids = ()
         self.baseline = self.field_snapshot()
-        self.content_revision += 1
+        if before is None or not self.move_in_scene(before, rows):
+            self.content_revision += 1
         self.filter_placements()
         self.update_actions()
         self.population.reload()
         self.preview()
+
+    def move_in_scene(self, before, after):
+        """Move changed objects in the loaded scene; False when the change needs a rebuild."""
+        prepared = {key: row["raw"] for key, row in self.prepared_rows().items() if row.get("raw")}
+        old = {row[0].lower(): row for row in before}
+        new = {row[0].lower(): row for row in after}
+        def shown(rows, identity):
+            # What the world shows for an identity: its row, else the prepared object.
+            return rows.get(identity) or prepared.get(identity)
+        def layout(row):
+            scale = row[11] if len(row) >= 12 else "-"
+            return [row[1].lower(), row[2].lower(), row[3].lower()] + [float(v) for v in row[4:11]] + [1.0 if scale == "-" else float(scale)]
+        moved_old, moved_new = [], []
+        for identity in set(old) | set(new):
+            was, now = shown(old, identity), shown(new, identity)
+            if was is None or now is None:
+                return False
+            if layout(was) == layout(now):
+                continue
+            if layout(was)[:2] != layout(now)[:2]:
+                return False
+            moved_old.append(was)
+            moved_new.append(now)
+        if moved_new and self.active_scene_cell is not None:
+            self.view3d.place_rows(moved_new, moved_old, self.active_scene_cell, self.outdoor_grid)
+        return True
 
     def unsaved(self):
         return self.loaded_path is not None and getattr(self, "disk_text", self.original) != self.original
@@ -1006,6 +1067,7 @@ class Editor:
         live = " and push live" if self.live.enabled.get() else ""
         self.write_button.configure(state="normal" if dirty else "disabled",
                                     text=(f"Save content file{live}  ·  Ctrl+S" if dirty else "Content file saved"))
+        self.view3d.save_button.configure(text=(f"● Save changes{live}  Ctrl+S" if dirty else "Saved"))
 
     def prepared_rows(self):
         """The loaded base world's rows by identity."""
@@ -1055,7 +1117,36 @@ class Editor:
             return not self.unsaved()
         return True
 
+    def show_object_data(self, force=False, identity=...):
+        """Fill the Data tab for the selected object (read-only server data); the
+        Creatures page passes the inspected creature, which is not a placement selection."""
+        if identity is ...:
+            identity = self.selected_id
+        if identity == self.data_shown and not force:
+            return
+        self.data_shown = identity
+        if identity is None:
+            text = ("Select an object in the 3D view to see its data: creature health, damage and "
+                    "experience, spawn group chances and respawn, portal destination, dialogue, loot "
+                    "and quest ties.")
+        else:
+            try:
+                if self.object_data is None:
+                    from editor_object_info import ObjectData
+                    index = Path(__file__).resolve().parents[2] / "INDEX" / "dat_index.sqlite"
+                    self.object_data = ObjectData(Path(self.args.catalog).parent, index)
+                from editor_object_info import render
+                text = render(self.object_data.describe(self, identity))
+            except (OSError, ValueError, KeyError, TypeError) as error:
+                logging.exception("Object data failed")
+                text = f"Data for {identity:016x} could not be read: {error}"
+        self.data_text.configure(state="normal")
+        self.data_text.delete("1.0", "end")
+        self.data_text.insert("1.0", text)
+        self.data_text.configure(state="disabled")
+
     def update_actions(self):
+        self.show_object_data()
         self.save_button.configure(text="Update placement  ·  Ctrl+Enter" if self.selected_id is not None else "Add placement  ·  Ctrl+Enter")
         self.show_unsaved()
         override = self.selected_id is not None and f"{self.selected_id:016x}" in self.prepared_rows()
@@ -1255,6 +1346,39 @@ class Editor:
         self.map_view = None
         self.preview()
 
+    POINTS = ("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+
+    def navigation_text(self):
+        """The camera's place and facing for the 3D view's navigation bar."""
+        view = self.view3d
+        cell = self.active_scene_cell
+        bearing = view.facing()
+        facing = f"facing {round(bearing) % 360:3d}° {self.POINTS[int((bearing + 22.5) // 45) % 8]}"
+        if cell is None:
+            return "Open an area from the World map.", None
+        eye = view.get_navigation_point()
+        if not 1 <= (cell & 65535) <= 64:
+            return f"Dungeon room {cell:08X}  ·  x {eye[0]:.1f}  y {eye[1]:.1f}  z {eye[2]:.1f}  ·  {facing}", bearing
+        side = self.population.block_side()
+        dx, dy = math.floor(eye[0] / side), math.floor(eye[1] / side)
+        bx, by = (cell >> 24) + dx, ((cell >> 16) & 255) + dy
+        if not (0 <= bx < 255 and 0 <= by < 255):
+            return f"Outside the world  ·  {facing}", bearing
+        x, y = eye[0] - dx * side, eye[1] - dy * side
+        here = (bx << 24) | (by << 16) | (1 + min(7, int(x / (side / 8))) * 8 + min(7, int(y / (side / 8))))
+        coordinates = map_units(*world_point(here, x, y))
+        return (f"{coordinates}  ·  landblock {here >> 16:04X}  ·  cell {here:08X}  ·  "
+                f"x {x:.1f}  y {y:.1f}  z {eye[2]:.1f}  ·  {facing}"), bearing
+
+    def update_navigation(self):
+        if self.closing:
+            return
+        try:
+            self.view3d.set_navigation(*self.navigation_text())
+        except (ValueError, IndexError, TypeError, tk.TclError):
+            pass
+        self.root.after(200, self.update_navigation)
+
     def camera_cell(self):
         """(cell, block-local x, y) under the 3D camera while exploring outdoors, else None."""
         cell = self.active_scene_cell
@@ -1392,10 +1516,13 @@ class Editor:
             position = self.position_in_scene(cell, position, reference)
             if self.active_scene_cell == reference:
                 self.view3d.update_placement(position, heading, scale)
-            selected_id = None if exploring else self.selected_id
+            # A selected placement is drawn by its own model (outlined), not a draft copy, so
+            # selecting and moving never rebuild the scene.
+            if self.selected_id is not None:
+                visual = 0
             base = self.population.show["Base world"].get()
-            key = (folder, reference, visual, (self.content_revision, selected_id, self.group_ids, self.geometry.project.revision, base, self.retry_revision))
-            placements = [row for row in self.placements if int(row[0], 16) != selected_id]
+            key = (folder, reference, visual, (self.content_revision, self.geometry.project.revision, base, self.retry_revision))
+            placements = list(self.placements)
             self.wanted = (key, position, heading, scale, placements)
             if self.future is None and key != self.scene_ready and self.scene_timer is None:
                 self.scene_timer = self.root.after(180, self.start_load)
@@ -1785,7 +1912,7 @@ class Editor:
     def close(self):
         if self.closing:
             return
-        if not self.discard_draft() or not self.discard_unsaved():
+        if not self.confirm_discard_draft() or not self.discard_unsaved():
             return
         if self.geometry.project.dirty and not messagebox.askyesno("Unsaved world geometry", "Close without saving the terrain/dungeon project?", parent=self.root):
             return
@@ -1935,7 +2062,7 @@ class Editor:
         self.history.append((before, result))
         self.history = self.history[-20:]
         self.redo_history.clear()
-        self.show_document(rows)
+        self.show_document(rows, rows_from_text(before) if before is not None else [])
 
     def delete_selected(self):
         identities = self.group_ids or ((self.selected_id,) if self.selected_id is not None else ())
@@ -1945,9 +2072,12 @@ class Editor:
         mine = {int(row[0], 16) for row in self.placements}
         prepared = [i for i in identities if i not in mine and f"{i:016x}" in self.prepared_rows()]
         own = [i for i in identities if i in mine]
-        note = (" Prepared objects are removed from this world; Tools > Restore removed prepared objects brings them back."
-                if prepared else " You can undo this change.")
-        if not messagebox.askyesno("Delete placements", f"Delete {label}?{note}", parent=self.root):
+        # Only removing prepared objects asks first: it is written at once, not a working-copy edit
+        # (those Ctrl+Z undoes and only Ctrl+S writes, so they need no modal that could open behind
+        # the 3D view).
+        if prepared and not messagebox.askyesno(
+                "Delete placements", f"Delete {label}? Prepared objects are removed from this world; "
+                "Tools > Restore removed prepared objects brings them back.", parent=self.root):
             return
         try:
             self.require_loaded_path()
@@ -1970,7 +2100,7 @@ class Editor:
                 for identity in named:
                     rules.remove_placement(identity)
                 self.population.save(f"Removed creature rules for {len(named)} deleted placement(s).")
-            self.status.set(f"Deleted {label}. Undo restores the complete selection.")
+            self.status.set(f"Deleted {label}. Ctrl+Z undoes it; Ctrl+S saves the content file.")
         except (OSError, ValueError) as error:
             messagebox.showerror("Placements were not deleted", str(error), parent=self.root)
 
@@ -2003,6 +2133,38 @@ class Editor:
             dialog.destroy()
         ttk.Button(dialog, text="Restore selected", command=restore).pack(pady=(0, 8))
 
+    def use_object(self, identity):
+        """Use a world object: a portal with a known route takes the camera through it."""
+        route = self.portal_routes.get(f"{identity:016x}")
+        if route is not None and route.get("destination"):
+            cell, position = route["destination"]
+            self.clear_selection()
+            self.navigate_to(cell, list(position))
+            self.status.set(f"Through portal {identity:016x} to {self.atlas.place_name(cell, position)} ({cell:08x}).")
+            return
+        base = self.prepared_rows().get(f"{identity:016x}")
+        name = (base or {}).get("name") or ""
+        if "portal" in name.casefold() or (base and base.get("entity") in {"4700084d"}):
+            self.status.set("This portal's destination is not known to Pyrealium (portal-routes.tsv). Open the dungeon "
+                            "from the Places tab (filter Dungeon, search its name) or with Go to cell.")
+        else:
+            self.status.set("Double-click (or T) uses a portal; this object has no route.")
+
+    def clear_selection(self):
+        """Deselect (a click on empty world): back to flying, the working copy unchanged."""
+        if self.selected_id is None and not self.group_ids:
+            return
+        if not self.discard_draft():
+            return
+        self.selected_id, self.group_ids = None, ()
+        self.objects.selection_remove(*self.objects.selection())
+        self.set_fields(dict(Entity=""))
+        self.baseline = self.field_snapshot()
+        self.view3d.set_selection([])
+        self.view3d.set_tool("explore")
+        self.update_actions()
+        self.status.set("Selection cleared." + (" Unsaved changes: Ctrl+S saves the content file." if self.unsaved() else ""))
+
     def select_many(self, identities):
         self.placement_search.set("")
         self.cell_only.set(False)
@@ -2024,6 +2186,7 @@ class Editor:
                 # On the Creatures page a prepared creature opens its rules inspector.
                 self.population.refresh_list()
                 self.population.select(creature["id"], inspect=True)
+                self.show_object_data(identity=identity)
                 return
             # A prepared-world object: copy it into the working copy as an override under
             # its own identity, then edit it like any placement. Unchanged overrides are
@@ -2104,8 +2267,15 @@ class Editor:
             before, after = entry
             result = after if forward else before
             self.original = result if result is not None else "pyrealium-world-v2\n"
+            selected = self.selected_id
             destination.append(source.pop())
-            self.show_document(rows_from_text(self.original))
+            self.show_document(rows_from_text(self.original), rows_from_text(before if forward else after) if (before if forward else after) is not None else [])
+            # Keep editing the same object; with it gone, no draft is left in the form.
+            if selected is not None and any(int(row[0], 16) == selected for row in self.placements):
+                self.select_saved(selected)
+            else:
+                self.set_fields(dict(Entity=""))
+                self.baseline = self.field_snapshot()
             self.status.set("Redid last file change." if forward else "Undid last file change.")
         except (OSError, ValueError) as error:
             messagebox.showerror("History could not be restored", str(error), parent=self.root)

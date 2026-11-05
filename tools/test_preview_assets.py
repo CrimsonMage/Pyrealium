@@ -3,7 +3,7 @@ import struct
 import unittest
 from unittest.mock import patch
 
-from preview_assets import Assets, entity_visual
+from preview_assets import Assets, entity_visual, portal_orb, PORTAL_VISUALS
 from preview_material import material_info, first_layer_state, MaterialFormatError
 from preview_mesh import decode_mesh, MeshFormatError
 
@@ -138,6 +138,26 @@ class AssetLoadingTests(unittest.TestCase):
         drawn = [item["object_id"] for item in instances if item["role"] == "base"]
         self.assertEqual(drawn, [0x8140aaaa00000001], "nearest first; saved ids not drawn twice; budget respected")
         self.assertTrue(any("base-world objects not drawn" in note for note in warnings))
+
+
+class PortalOrbTest(unittest.TestCase):
+    def test_a_portal_visual_without_meshes_still_gets_a_selectable_orb(self):
+        assets = Assets.__new__(Assets)
+        with patch.object(Assets, "parts", side_effect=ValueError("FX only")):
+            meshes = assets.creature(0x1f00031e)
+        self.assertEqual(len(meshes), 1)
+        orb = meshes[0][0]
+        self.assertTrue(orb["portal_marker"] and orb["attached"])
+        self.assertEqual(len(orb["triangle_colors"]), len(orb["indices"]) // 3)
+        self.assertTrue(all(0 <= index < len(orb["vertices"]) for index in orb["indices"]))
+        self.assertGreater(min(v[2] for v in orb["vertices"]), 0)
+
+    def test_other_visuals_get_no_orb(self):
+        assets = Assets.__new__(Assets)
+        with patch.object(Assets, "parts", return_value=[("mesh", (1, 1, 1))]):
+            self.assertEqual(assets.creature(0x1f00191d), [("mesh", (1, 1, 1))])
+            self.assertEqual(assets.creature(0x1f000d09)[-1][0], portal_orb())
+        self.assertIn(0x1f000d09, PORTAL_VISUALS)
 
 
 if __name__ == "__main__":

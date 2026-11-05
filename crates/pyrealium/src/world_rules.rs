@@ -85,7 +85,13 @@ pub struct Patrol {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Group { pub id: u64, pub capacity: usize, pub regeneration_ms: Option<u64>, pub members: Vec<u64> }
+pub struct Group {
+    pub id: u64, pub capacity: usize, pub regeneration_ms: Option<u64>, pub members: Vec<u64>,
+    /// ACE-style profile chance per member (`id:0.25`), 0 < chance <= 1. A member without
+    /// one is ACE's probability -1: it fills whenever its slot is free. Members with a
+    /// chance share each free slot's roll in proportion (ACE SelectAProfile).
+    pub chances: BTreeMap<u64, f32>,
+}
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Rules {
@@ -212,14 +218,22 @@ impl Rules {
                 let regeneration_ms = if *regeneration == "-" { None } else {
                     Some(regeneration.parse::<u64>().ok().filter(|v| (1000..=86_400_000).contains(v)).ok_or_else(|| invalid("group respawn must be 1000..86400000 ms"))?)
                 };
-                let members = members.split(',').map(|m| match Target::parse(m)? {
-                    Target::Actor(id) => Ok(id), Target::Entity(_) => Err(invalid("group members are placement ids")),
+                let mut chances = BTreeMap::new();
+                let members = members.split(',').map(|m| {
+                    let (m, chance) = match m.split_once(':') { Some((m, c)) => (m, Some(c)), None => (m, None) };
+                    let Target::Actor(id) = Target::parse(m)? else { return Err(invalid("group members are placement ids")) };
+                    if let Some(chance) = chance {
+                        let chance = chance.parse::<f32>().ok().filter(|c| c.is_finite() && *c > 0. && *c <= 1.)
+                            .ok_or_else(|| invalid("a member's spawn chance must be within 0..1 (exclusive of 0)"))?;
+                        chances.insert(id, chance);
+                    }
+                    Ok(id)
                 }).collect::<io::Result<Vec<_>>>()?;
                 if members.is_empty() || members.len() > 64 { return Err(invalid("a group has 1..64 members")); }
                 if members.iter().collect::<std::collections::BTreeSet<_>>().len()!=members.len() || self.groups.iter().any(|g| g.id == id || g.members.iter().any(|m| members.contains(m))) {
                     return Err(invalid("duplicate group or a member in two groups"));
                 }
-                self.groups.push(Group { id, capacity: capacity.min(members.len()), regeneration_ms, members });
+                self.groups.push(Group { id, capacity: capacity.min(members.len()), regeneration_ms, members, chances });
             }
             _ => return Err(invalid(format!("unrecognized rule row `{}`", f[0]))),
         }
@@ -246,7 +260,7 @@ ai\t8140000000020001\t25\t-\t1\t15\t0.5\t1\t-\t-\n\
 loot\t8140000000020001\t70\t47000ed7,47000ee1\n\
 loot\t8140000000020001\t30\t-\n\
 patrol\t8140000000020001\t2000\t10,0;10,10;0,10\n\
-group\t1\t2\t60000\t8140000000020001,8140000000020002,8140000000020003\n";
+group\t1\t2\t60000\t8140000000020001,8140000000020002:0.75,8140000000020003:0.25\n";
 
     #[test]
     fn placement_rules_override_type_rules_field_by_field() {
@@ -261,6 +275,7 @@ group\t1\t2\t60000\t8140000000020001,8140000000020002,8140000000020003\n";
         assert!(rules.loot_for(0x470007d1, 0x8140000000020002).is_none());
         assert_eq!(rules.patrols[&0x8140000000020001].waypoints, vec![[10., 0.], [10., 10.], [0., 10.]]);
         assert_eq!(rules.groups[0].capacity, 2);
+        assert_eq!(rules.groups[0].chances, BTreeMap::from([(0x8140000000020002, 0.75), (0x8140000000020003, 0.25)]));
         let ai = rules.behaviour_for(0x470007d1, 0x8140000000020001).apply(Default::default());
         assert!(ai.wanders() && ai.aggressive());
     }
@@ -272,6 +287,8 @@ group\t1\t2\t60000\t8140000000020001,8140000000020002,8140000000020003\n";
             "patrol\t8140000000020001\t0\t1;1", "group\t1\t1\t-\t470007d1", "bogus\tx",
             "group\t8000000000000001\t1\t-\t8140000000020001",
             "group\t1\t1\t-\t8140000000020001,8140000000020001",
+            "group\t1\t1\t-\t8140000000020001:0", "group\t1\t1\t-\t8140000000020001:1.5",
+            "group\t1\t1\t-\t8140000000020001:x",
             "stats\t470007d1\t1\t1\t-\t-\t-\t-\t10\t-\t-\t-"] {
             assert!(Rules::parse(&format!("{HEADER}\n{row}\n")).is_err(), "{row}");
         }

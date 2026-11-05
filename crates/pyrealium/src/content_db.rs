@@ -27,7 +27,7 @@ pub mod overlay;
 pub mod world;
 
 /// Bumped when the schema changes; the dump sets it as `PRAGMA user_version`.
-pub const SCHEMA_VERSION: i32 = 15;
+pub const SCHEMA_VERSION: i32 = 16;
 
 /// The tables, in dump order (`content_db/schema.sql`).
 pub const SCHEMA: &str = include_str!("content_db/schema.sql");
@@ -51,8 +51,8 @@ pub fn dump_in(directory: &Path) -> PathBuf {
 /// leading columns are its key.
 pub struct Shape { pub table: &'static str, pub columns: &'static [&'static str], pub order: &'static str, pub key: usize }
 /// Optional columns added after a table's first schema, which an older dump lacks.
-const OPTIONAL_SINCE: [(&str, &str); 5] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots"), ("emote_set", "phrase"),
-    ("quest_item", "physical")];
+const OPTIONAL_SINCE: [(&str, &str); 6] = [("spawn_slot", "arrival"), ("spawn_slot", "step"), ("emote_set", "owner_slots"), ("emote_set", "phrase"),
+    ("quest_item", "physical"), ("spawn_group_member", "chance")];
 /// `emote_set`'s columns beyond the TSV's (the database's own), in dump order after its name.
 const SET_EXTRA: [&str; 3] = ["priority", "owner_slots", "phrase"];
 /// A table's columns as the database holds them: `emote_set`'s extras after its name, then
@@ -113,7 +113,7 @@ const SHAPES_TAIL: [Shape; 18] = [
     Shape { table: "creature_loot", order: "target, ord", key: 2, columns: &["target", "ord", "weight", "items", "source"] },
     Shape { table: "patrol", order: "actor", key: 1, columns: &["actor", "pause_ms", "points", "source"] },
     Shape { table: "spawn_group", order: "id", key: 1, columns: &["id", "capacity", "regen_ms", "source"] },
-    Shape { table: "spawn_group_member", order: "spawn_group, placement", key: 2, columns: &["spawn_group", "placement", "source"] },
+    Shape { table: "spawn_group_member", order: "spawn_group, placement", key: 2, columns: &["spawn_group", "placement", "chance", "source"] },
 ];
 /// Every table, in dump order.
 pub fn shapes() -> impl Iterator<Item = &'static Shape> { SHAPES.iter().chain(SHAPES_TAIL.iter()).chain(files::shapes()) }
