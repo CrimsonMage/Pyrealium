@@ -25,7 +25,8 @@ const FULL: Options = Options { training_placements: true, shelter_quest: true }
 fn run(index: &AssetIndex, visual: u32, content: &Path) -> io::Result<Prepared> {
     let files = prepare_with(index, &mut |_| Some(visual), "dat", &Source::Dir(content), FULL);
     let mut db = crate::content_db::empty().unwrap();
-    if let (Ok(files), Ok(_)) = (&files, crate::content_db::world::import_packs(&mut db, content)) {
+    if let (Ok(files), Ok(_), Ok(_)) = (&files, crate::content_db::world::import_packs(&mut db, content),
+        crate::content_db::files::import(&mut db, content)) {
         let rows = prepare_with(index, &mut |_| Some(visual), "dat", &Source::Db { db, dir: content }, FULL).unwrap();
         assert_eq!((&rows.world, &rows.report), (&files.world, &files.report), "the database gives the files' world");
     }
@@ -287,21 +288,20 @@ fn installed_7230_templates_resolve_to_visuals() {
 }
 
 mod database_parity {
-    /// The shipped content prepared from the database (its `world_*` rows) is the world the pack
-    /// files prepare (needs the 7230 DATs: AC2_TEST_GAME_DATA).
+    /// The shipped content prepared from the database (its `world_*` rows and the packs' catalog
+    /// documents) is the world the pack files prepare (needs the 7230 DATs: AC2_TEST_GAME_DATA).
     #[test]
     fn the_shipped_world_from_the_database_is_the_files_world() {
         let Ok(data) = std::env::var("AC2_TEST_GAME_DATA") else { return };
         let content = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../content");
-        let mut db = crate::content_db::empty().unwrap();
-        crate::content_db::world::import_packs(&mut db, &content).unwrap();
+        // The shipped dump, as the server reads it.
+        let shipped = std::fs::read_to_string(content.join(crate::content_db::DUMP)).unwrap();
         for options in [super::Options { training_placements: true, shelter_quest: true },
                         super::Options { training_placements: false, shelter_quest: true }] {
             let index = super::asset_index(std::path::Path::new(&data)).unwrap();
             let mut profile = super::ContentProfile::open(std::path::Path::new(&data)).unwrap();
             let files = super::prepare_with(&index, &mut |d| profile.visual(d), "dat", &super::Source::Dir(&content), options).unwrap();
-            // Through the dump, as the shipped content holds it.
-            let rows = crate::content_db::open_dump(&crate::content_db::export(&db).unwrap()).unwrap();
+            let rows = crate::content_db::open_dump(&shipped).unwrap();
             let from_db = super::prepare_with(&index, &mut |d| profile.visual(d), "dat", &super::Source::Db { db: rows, dir: &content }, options).unwrap();
             assert_eq!(from_db.world, files.world);
             assert_eq!(from_db.report, files.report);

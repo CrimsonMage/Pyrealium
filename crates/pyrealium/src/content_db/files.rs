@@ -171,7 +171,7 @@ pub fn import(db: &mut Connection, content: &Path) -> io::Result<Imported> {
         if !path.exists() { continue; }
         let value: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&path)?).map_err(|e| bad(format!("{name}: {e}")))?;
         tx.execute("INSERT OR REPLACE INTO content_document (name, body, source) VALUES (?1, ?2, ?3)",
-            rusqlite::params![name, serde_json::to_string(&value).map_err(io::Error::other)?,
+            rusqlite::params![name, super::world::document_text(&value)?,
                 format!("content/{name}, imported by pyrealium-content import-files")]).map_err(sql)?;
         imported.documents += 1;
     }

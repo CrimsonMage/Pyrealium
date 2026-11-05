@@ -26,6 +26,17 @@ pub const PACKS: [(&str, &str); 17] = [
 ];
 /// Evidence files the prepare step reads beside the packs' own reports.
 pub const EVIDENCE: [&str; 2] = ["placement-replacements.json", "capture-spawns-audited.report.json"];
+/// The packs made from a source catalog (a `content_document`), which the prepare step checks a
+/// pack's report against (`source_sha256`).
+pub const CATALOGS: [(&str, &str); 10] = [
+    ("inferred-world-v1", "inferred-content-v1.json"), ("regional-world-v1", "regional-content-v1.json"),
+    ("wilderness-world-v1", "wilderness-content-v1.json"), ("exploration-world-v1", "exploration-content-v1.json"),
+    ("hunting-world-v1", "hunting-content-v1.json"), ("hunting-world-v2", "hunting-content-v2.json"),
+    ("workshops-world-v1", "workshops-content-v1.json"), ("arwic-mines-world-v1", "arwic-mines-world-v1.json"),
+    ("npc-world-v1", "npc-dialogue-v1.json"), ("gauntlet-world-v1", "gauntlet-content-v1.json"),
+];
+/// A catalog document's text as the database keeps it (compact JSON), which its digest names.
+pub fn document_text(value: &Value) -> io::Result<String> { serde_json::to_string(value).map_err(io::Error::other) }
 /// The header a pack's canonical text starts with (the prepare step reads rows, not the header).
 const HEADER: &str = "pyrealium-world-v4";
 
@@ -104,6 +115,16 @@ pub fn import_packs(db: &mut Connection, content: &Path) -> io::Result<Imported>
                 let canonical = pack_text(&tx, pack)?.unwrap_or_default();
                 value["original_manifest_sha256"] = Value::String(manifest);
                 value["manifest_sha256"] = Value::String(sha256_hex(canonical.as_bytes()));
+            }
+            // Its source catalog's digest likewise, over the document the database keeps.
+            let catalog = CATALOGS.iter().find(|(p, _)| p == pack).map(|(_, c)| content.join(c)).filter(|c| c.exists());
+            if let (Some(source), Some(catalog)) = (value.get("source_sha256").and_then(Value::as_str).map(str::to_owned), catalog) {
+                if !file_digests(&catalog)?.contains(&source) {
+                    return Err(bad(format!("{name}: its source_sha256 does not match {} (stale evidence)", catalog.display())));
+                }
+                let document: Value = serde_json::from_str(&std::fs::read_to_string(&catalog)?).map_err(|e| bad(format!("{}: {e}", catalog.display())))?;
+                value["original_source_sha256"] = Value::String(source);
+                value["source_sha256"] = Value::String(sha256_hex(document_text(&document)?.as_bytes()));
             }
             put_evidence(&tx, &name, &value)?;
             imported.evidence += 1;

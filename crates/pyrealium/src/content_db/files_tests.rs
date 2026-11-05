@@ -51,9 +51,11 @@ fn the_shipped_dump_holds_every_content_file() {
         let rebuilt: serde_json::Value = serde_json::from_str(&rebuild(&db, name).unwrap().unwrap_or_else(|| panic!("the dump lacks {name}"))).unwrap();
         let mut file: serde_json::Value = serde_json::from_str(&file).unwrap();
         // A pack report's digests are re-made over its rows (`world::import_packs`).
-        if let (Some(have), Some(was)) = (rebuilt.get("manifest_sha256"), rebuilt.get("original_manifest_sha256")) {
-            file["original_manifest_sha256"] = was.clone();
-            file["manifest_sha256"] = have.clone();
+        for digest in ["manifest_sha256", "source_sha256"] {
+            if let (Some(have), Some(was)) = (rebuilt.get(digest), rebuilt.get(format!("original_{digest}"))) {
+                file[format!("original_{digest}")] = was.clone();
+                file[digest] = have.clone();
+            }
         }
         assert!(rebuilt == file, "{name} differs from its document");
     }

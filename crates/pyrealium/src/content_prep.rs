@@ -416,7 +416,7 @@ impl Source<'_> {
             Self::Dir(d) => Ok(d.join(name).exists()),
             Self::Db { db, dir } => Ok(if let Some(pack) = name.strip_suffix(".tsv") {
                 crate::content_db::world::pack_text(db, pack)?.is_some()
-            } else if name.ends_with(".json") && crate::content_db::world::evidence(db, name)?.is_some() {
+            } else if name.ends_with(".json") && (crate::content_db::world::evidence(db, name)?.is_some() || document(db, name)?.is_some()) {
                 true
             } else {
                 dir.join(name).exists()
@@ -437,6 +437,10 @@ impl Source<'_> {
             && let Some(value) = crate::content_db::world::evidence(db, name)? {
             return Ok(value);
         }
+        if let Self::Db { db, .. } = self
+            && let Some(text) = document(db, name)? {
+            return serde_json::from_str(&text).map_err(|e| bad(format!("{name}: {e}")));
+        }
         read_json(&self.dir().join(name))
     }
     /// Whether a digest names this pack's (or file's) current content.
@@ -445,8 +449,18 @@ impl Source<'_> {
             && let Some(text) = crate::content_db::world::pack_text(db, pack)? {
             return Ok(value.and_then(Value::as_str) == Some(sha256_hex(text.as_bytes()).as_str()));
         }
+        if let Self::Db { db, .. } = self
+            && let Some(text) = document(db, name)? {
+            return Ok(value.and_then(Value::as_str) == Some(sha256_hex(text.as_bytes()).as_str()));
+        }
         digest_in(value, &self.dir().join(name))
     }
+}
+
+/// A content document's text (a pack's source catalog), `None` when the database has none.
+fn document(db: &rusqlite::Connection, name: &str) -> io::Result<Option<String>> {
+    use rusqlite::OptionalExtension;
+    db.query_row("SELECT body FROM content_document WHERE name = ?1", [name], |r| r.get(0)).optional().map_err(|e| io::Error::other(e.to_string()))
 }
 
 /// `apply_placement_replacements`: retire audited observations only after their verified
@@ -615,19 +629,8 @@ fn prepare_with(
     if audited {
         sources.push("capture-spawns-audited.tsv".into());
     }
-    let packs = [
-        ("inferred-world-v1.tsv", "inferred-content-v1.json"),
-        ("regional-world-v1.tsv", "regional-content-v1.json"),
-        ("wilderness-world-v1.tsv", "wilderness-content-v1.json"),
-        ("exploration-world-v1.tsv", "exploration-content-v1.json"),
-        ("hunting-world-v1.tsv", "hunting-content-v1.json"),
-        ("hunting-world-v2.tsv", "hunting-content-v2.json"),
-        ("workshops-world-v1.tsv", "workshops-content-v1.json"),
-        ("arwic-mines-world-v1.tsv", "arwic-mines-world-v1.json"),
-        ("npc-world-v1.tsv", "npc-dialogue-v1.json"),
-        ("gauntlet-world-v1.tsv", "gauntlet-content-v1.json"),
-    ];
-    for (pack, catalog) in packs {
+    for (pack, catalog) in crate::content_db::world::CATALOGS {
+        let pack = &format!("{pack}.tsv");
         if !content.exists(pack)? {
             continue;
         }
