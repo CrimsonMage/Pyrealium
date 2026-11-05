@@ -92,14 +92,14 @@
     fn legacy_hunts_migrate_once_and_the_migration_replays() {
         let t=crate::quest_emotes::shipped();
         let dir=crate::db::testdb::fresh();
-        let (marsh,mucor)=(0x4000fc20,0x4000fc23);
+        let (marsh,mimbu)=(0x4000fc20,0x4000fc1b);
         let saved;
         {
             let mut s=Store::open(&dir).unwrap();let c=s.create_native("local",&request("Hunt Mover")).unwrap();
             // State an older server left for hunts that were code: one now an AC2 Vault quest
             // (a stage per kill), one now a hand-written hunt (underway / goal met / done).
             s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(marsh,crate::legacy_quests::HuntState{count:3,started:500,completed:0,rewarded_xp:0});
-            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(mucor,crate::legacy_quests::HuntState{count:2,started:600,completed:0,rewarded_xp:0});
+            s.characters.get_mut(&c.id).unwrap().quests.hunting.0.insert(mimbu,crate::legacy_quests::HuntState{count:2,started:600,completed:0,rewarded_xp:0});
             // An inferred quest underway and one finished.
             s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x40000097,crate::legacy_quests::RunState{count:2,started:700,completed:0});
             s.characters.get_mut(&c.id).unwrap().quests.recovered.0.insert(0x4000000a,crate::legacy_quests::RunState{count:10,started:100,completed:900});
@@ -110,7 +110,7 @@
             assert_eq!(s.migrate_legacy_quests(&t).unwrap(),0,"once");
             saved=s.characters[&c.id].clone();
             assert_eq!((saved.quests.stage(marsh),saved.quests.timer(marsh).started),(4,500));
-            assert_eq!((saved.quests.stage(mucor),saved.quests.count(mucor),saved.quests.timer(mucor).started),(1,2,600));
+            assert_eq!((saved.quests.stage(mimbu),saved.quests.count(mimbu),saved.quests.timer(mimbu).started),(1,2,600));
             assert!(saved.quests.hunting.0.is_empty() && saved.quests.recovered.0.is_empty());
             assert_eq!((saved.quests.stage(0x40000097),saved.quests.count(0x40000097)),(1,2));
             assert!(t.solved(&saved.quests,0x4000000a) && saved.quests.timer(0x4000000a).completed==900);
