@@ -61,11 +61,15 @@ class ObjectData:
         if db is not None:
             self.quests = dict(db.execute("SELECT name, title FROM quest"))
             text = lambda v: "" if v is None else str(v)
+            # An owner may be an alias: an entities alias names several types.
+            aliases = {name: [v.strip() for v in value.split(",")] for name, kind, value in db.execute(
+                "SELECT name, kind, value FROM alias") if kind in ("entity", "entities", "object", "objects")}
             for name, entity, iid, trigger, item, quest, low, high, source in db.execute(
                     "SELECT name, owner_entity, owner_iid, trigger, item, quest, stage_min, stage_max, source FROM emote_set"):
                 row = dict(set=name, entity=_hex(entity), iid=_hex(iid), trigger=trigger, item=text(item), quest=text(quest),
                            stages=(text(low), text(high)), source=source)
-                for key in filter(None, (row["iid"], row["entity"])):
+                owners = aliases.get(text(iid), [iid]) + aliases.get(text(entity), [entity])
+                for key in filter(None, (_hex(o) for o in owners)):
                     self.emotes.setdefault(key, []).append(row)
             for f in db.execute("SELECT emote_set, ord, action, delay_ms, p1, p2, p3, p4, p5 FROM emote_action"):
                 self.actions.setdefault(f[0], []).append([text(v) for v in f])
